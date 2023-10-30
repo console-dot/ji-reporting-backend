@@ -1,18 +1,19 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const tehsil = mongoose.Schema({
-  id: {
-    type: Number,
-  },
-
   name: {
     type: String,
     required: true,
   },
+  district: {
+    type: mongoose.Types.ObjectId,
+    required: true,
+    ref: 'District',
+  },
 });
 
-const Tehsil = mongoose.model("Tehsil", tehsil);
+const TehsilModel = mongoose.model('Tehsil', tehsil);
 
 module.exports = {
-  Tehsil,
+  TehsilModel,
 };

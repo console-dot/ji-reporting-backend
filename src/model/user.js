@@ -1,61 +1,64 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const users = mongoose.Schema({
-  userId: {
-    type: Number,
-    required: true,
-    unique: true,
+const users = mongoose.Schema(
+  {
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    age: {
+      type: Number,
+      required: true,
+    },
+    role: {
+      required: true,
+      type: [mongoose.Types.ObjectId],
+      ref: 'Roles',
+    },
+    nazim: {
+      type: String, // Halqa/Maqam/Division/Province
+      required: true,
+    },
+    halqa: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Halqa',
+    },
+    tehsil: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Tehsil',
+    },
+    district: {
+      type: mongoose.Types.ObjectId,
+      ref: 'District',
+    },
+    division: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Division',
+    },
+    province: {
+      type: mongoose.Types.ObjectId,
+      ref: 'Province',
+    },
+    userRequest: {
+      type: mongoose.Types.ObjectId,
+      ref: 'UserRequest',
+      required: false,
+    },
   },
-  role: {
-    required: true,
-    type: Array,
-    default: [], // empty array means no permission by default (no user)
-    ref: "Roles",
-  },
-  name: {
-    type: String,
-    required: true,
-  },
-  age: {
-    type: Number,
-    required: true
-  },
-  nazim: {
-    type: String, // Halqa/Maqam/Division
-    required: true,
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now(),
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now(),
-  },
-  halqa: {
-    required: true,
-    type: Number,
-    ref: "Halqa",
-  },
-  division: {
-    required: true,
-    type: Number,
-    ref: "Division",
-  },
-  tehsil: {
-    required: true,
-    type: Number,
-    ref: "Tehsil",
-  },
-  district: {
-    required: true,
-    type: Number,
-    ref: "District",
-  },
-});
+  { timestamps: true } // For created_at and updated_at
+);
 
-const User = mongoose.model("User", users);
+const UserModel = mongoose.model('User', users);
 
 module.exports = {
-  User,
+  UserModel,
 };
