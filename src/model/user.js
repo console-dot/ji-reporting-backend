@@ -22,33 +22,24 @@ const users = mongoose.Schema(
     role: {
       required: true,
       type: [mongoose.Types.ObjectId],
-      ref: 'Roles',
+      ref: 'Role',
     },
     nazim: {
       type: String, // Halqa/Maqam/Division/Province
       required: true,
     },
-    halqa: {
+    userAreaId: {
       type: mongoose.Types.ObjectId,
-      ref: 'Halqa',
+      required: true,
+      refPath: 'userAreaType',
+      unique: true,
     },
-    tehsil: {
-      type: mongoose.Types.ObjectId,
-      ref: 'Tehsil',
+    userAreaType: {
+      type: String,
+      required: true,
+      enum: ['District', 'Division', 'Halqa', 'Maqam', 'Province', 'Tehsil'],
     },
-    district: {
-      type: mongoose.Types.ObjectId,
-      ref: 'District',
-    },
-    division: {
-      type: mongoose.Types.ObjectId,
-      ref: 'Division',
-    },
-    province: {
-      type: mongoose.Types.ObjectId,
-      ref: 'Province',
-    },
-    userRequest: {
+    userRequestId: {
       type: mongoose.Types.ObjectId,
       ref: 'UserRequest',
       required: false,

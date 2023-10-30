@@ -1,4 +1,4 @@
-const { UserModel } = require('../model');
+const { UserModel, RoleModel } = require('../model');
 const { UserRequest } = require('../model/UserRequest');
 const Response = require('./Response');
 const bcrypt = require('bcrypt');
@@ -6,8 +6,23 @@ const bcrypt = require('bcrypt');
 class User extends Response {
   signup = async (req, res) => {
     try {
-      const { email, password1, password2, name, age, nazim, areaId } =
-        req.body;
+      const {
+        email,
+        password1,
+        password2,
+        name,
+        age,
+        nazim,
+        userAreaId,
+        userAreaType,
+      } = req.body;
+
+      if (!userAreaId || !userAreaType) {
+        return this.sendResponse(req, res, {
+          message: 'Location is requied!',
+          status: 400,
+        });
+      }
       if (!email) {
         return this.sendResponse(req, res, {
           message: 'Email is requied!',
@@ -70,40 +85,24 @@ class User extends Response {
           status: 400,
         });
       }
-      const { halqa, tehsil, district, division, province } =
-        extractArea(areaId);
-      const role = getNazimRoles(nazim, {
-        halqa,
-        tehsil,
-        district,
-        division,
-        province,
+      const role = await RoleModel.findOne({ title: nazim });
+      const immediate_user_id = await getImmediateUser(
+        userAreaId,
+        userAreaType
+      );
+      const newUserRequest = new UserRequest({
+        immediate_user_id,
       });
-      let UserRequestReq;
-      if (nazim !== 'province') {
-        const newUserRequest = new UserRequest({
-          immediate_user_id: getImmediateUser(role, {
-            halqa,
-            tehsil,
-            district,
-            division,
-            province,
-          }),
-        });
-        UserRequestReq = await newUserRequest.save();
-      }
+      const UserRequestReq = await newUserRequest.save();
       const newUser = new UserModel({
         email,
         password,
         name,
         age,
-        role,
+        role: [role?._id],
         nazim,
-        halqa,
-        tehsil,
-        district,
-        division,
-        province,
+        userAreaId,
+        userAreaType,
         userRequest: UserRequestReq?.id,
       });
       const newUserReq = await newUser.save();
@@ -126,3 +125,5 @@ class User extends Response {
     }
   };
 }
+
+module.exports = User;

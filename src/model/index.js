@@ -1,5 +1,5 @@
 const { UserModel } = require('./user');
-const { Roles } = require('./roles');
+const { RoleModel } = require('./roles');
 const { HalqaModel } = require('./halqa');
 const { TehsilModel } = require('./tehsil');
 const { DistrictModel } = require('./district');
@@ -8,7 +8,7 @@ const { ProvinceModel } = require('./province');
 const { MaqamModel } = require('./maqam');
 
 module.exports = {
-  Roles,
+  RoleModel,
   UserModel,
   HalqaModel,
   TehsilModel,
