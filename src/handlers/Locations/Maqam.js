@@ -40,7 +40,7 @@ class Maqam extends Response {
   };
   getAll = async (req, res) => {
     try {
-      const data = await MaqamModel.find({});
+      const data = await MaqamModel.find({}).populate('province');
       return this.sendResponse(req, res, { data, status: 200 });
     } catch (err) {
       console.log(err);
@@ -53,7 +53,7 @@ class Maqam extends Response {
   getOne = async (req, res) => {
     try {
       const _id = req.params.id;
-      const data = await MaqamModel.findOne({ _id });
+      const data = await MaqamModel.findOne({ _id }).populate('province');
       if (!data) {
         return this.sendResponse(req, res, {
           message: 'Not found!',

@@ -1,7 +1,7 @@
-const { MaqamModel } = require('../../model');
+const { DistrictModel } = require('../../model');
 const Response = require('../Response');
 
-class Maqam extends Response {
+class District extends Response {
   createOne = async (req, res) => {
     try {
       const { name, division } = req.body;
@@ -17,17 +17,17 @@ class Maqam extends Response {
           status: 400,
         });
       }
-      const isExist = await MaqamModel.findOne({ name, division });
+      const isExist = await DistrictModel.findOne({ name, division });
       if (isExist) {
         return this.sendResponse(req, res, {
-          message: 'Maqam already exist!',
+          message: 'District already exist!',
           status: 400,
         });
       }
-      const newMaqam = new MaqamModel({ name, division });
-      await newMaqam.save();
+      const newDistrict = new DistrictModel({ name, division });
+      await newDistrict.save();
       return this.sendResponse(req, res, {
-        message: 'Maqam created',
+        message: 'District created',
         status: 201,
       });
     } catch (err) {
@@ -40,7 +40,10 @@ class Maqam extends Response {
   };
   getAll = async (req, res) => {
     try {
-      const data = await MaqamModel.find({});
+      const data = await DistrictModel.find({}).populate({
+        path: 'division',
+        populate: { path: 'province' },
+      });
       return this.sendResponse(req, res, { data, status: 200 });
     } catch (err) {
       console.log(err);
@@ -53,7 +56,10 @@ class Maqam extends Response {
   getOne = async (req, res) => {
     try {
       const _id = req.params.id;
-      const data = await MaqamModel.findOne({ _id });
+      const data = await DistrictModel.findOne({ _id }).populate({
+        path: 'division',
+        populate: { path: 'province' },
+      });
       if (!data) {
         return this.sendResponse(req, res, {
           message: 'Not found!',
@@ -73,17 +79,20 @@ class Maqam extends Response {
     try {
       const _id = req.params.id;
       const data = req.body;
-      const isExist = await MaqamModel.findOne({ _id });
+      const isExist = await DistrictModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
           message: 'Not found!',
           status: 404,
         });
       }
-      const updatedData = await MaqamModel.updateOne({ _id }, { $set: data });
+      const updatedData = await DistrictModel.updateOne(
+        { _id },
+        { $set: data }
+      );
       if (updatedData?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
-          message: 'Maqam updated',
+          message: 'District updated',
           status: 200,
         });
       }
@@ -102,17 +111,17 @@ class Maqam extends Response {
   deleteOne = async (req, res) => {
     try {
       const _id = req.params.id;
-      const isExist = await MaqamModel.findOne({ _id });
+      const isExist = await DistrictModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
           message: 'Not found!',
           status: 404,
         });
       }
-      const deleted = await MaqamModel.deleteOne({ _id });
+      const deleted = await DistrictModel.deleteOne({ _id });
       if (deleted?.deletedCount > 0) {
         return this.sendResponse(req, res, {
-          message: 'Maqam deleted',
+          message: 'District deleted',
           status: 200,
         });
       }
@@ -130,4 +139,4 @@ class Maqam extends Response {
   };
 }
 
-module.exports = Maqam;
+module.exports = District;

@@ -1,10 +1,11 @@
 const { HalqaModel } = require('../../model');
+const { getPopulateMethod } = require('../../utils');
 const Response = require('../Response');
 
 class Halqa extends Response {
   createOne = async (req, res) => {
     try {
-      const { name, parentId, type } = req.body;
+      const { name, parentId, parentType } = req.body;
       if (!name) {
         return this.sendResponse(req, res, {
           message: 'Name is required!',
@@ -14,14 +15,16 @@ class Halqa extends Response {
       if (!parentId) {
         return this.sendResponse(req, res, {
           message:
-            type === 'maqam' ? 'Tehsil is required!' : 'Tehsil is required!',
+            parentType === 'maqam'
+              ? 'Tehsil is required!'
+              : 'Tehsil is required!',
           status: 400,
         });
       }
       const isExist = await HalqaModel.findOne({
         name,
         parentId,
-        parentType: type,
+        parentType: parentType,
       });
       if (isExist) {
         return this.sendResponse(req, res, {
@@ -29,7 +32,11 @@ class Halqa extends Response {
           status: 400,
         });
       }
-      const newHalqa = new HalqaModel({ name, parentId, parentType: type });
+      const newHalqa = new HalqaModel({
+        name,
+        parentId,
+        parentType: parentType,
+      });
       await newHalqa.save();
       return this.sendResponse(req, res, {
         message: 'Halqa created',
@@ -45,8 +52,19 @@ class Halqa extends Response {
   };
   getAll = async (req, res) => {
     try {
-      const data = await HalqaModel.find({});
-      return this.sendResponse(req, res, { data, status: 200 });
+      const halqaData = await HalqaModel.find({}).populate('parentId');
+      // Dynamically populate based on parentType
+      for (const doc of halqaData) {
+        const method = getPopulateMethod(doc?.parentType);
+        if (method) {
+          await HalqaModel.populate(doc, {
+            path: 'parentId',
+            populate: method,
+          });
+        }
+      }
+
+      return this.sendResponse(req, res, { data: halqaData, status: 200 });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
@@ -58,11 +76,19 @@ class Halqa extends Response {
   getOne = async (req, res) => {
     try {
       const _id = req.params.id;
-      const data = await HalqaModel.findOne({ _id });
-      if (!data) {
+      const halqaData = await HalqaModel.findOne({ _id });
+      if (!halqaData) {
         return this.sendResponse(req, res, {
           message: 'Not found!',
           status: 404,
+        });
+      }
+      const method = getPopulateMethod(halqaData?.parentType);
+      let data = halqaData;
+      if (method) {
+        data = await halqaData.populate({
+          path: 'parentId',
+          populate: method,
         });
       }
       return this.sendResponse(req, res, { data, status: 200 });

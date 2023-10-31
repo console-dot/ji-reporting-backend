@@ -6,7 +6,7 @@ const {
   HalqaModel,
 } = require('./model');
 
-export const getImmediateUser = async (userAreaId, userAreaType) => {
+const getImmediateUser = async (userAreaId, userAreaType) => {
   let req = undefined;
   switch (userAreaType) {
     case 'Province':
@@ -30,3 +30,19 @@ export const getImmediateUser = async (userAreaId, userAreaType) => {
       return null;
   }
 };
+
+const getPopulateMethod = (type) => {
+  switch (type) {
+    case 'Maqam':
+      return { path: 'province' };
+    case 'Tehsil':
+      return {
+        path: 'district',
+        populate: { path: 'division', populate: { path: 'province' } },
+      };
+    default:
+      return null;
+  }
+};
+
+module.exports = { getImmediateUser, getPopulateMethod };

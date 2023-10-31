@@ -107,7 +107,6 @@ class Province extends Response {
         });
       }
       const deleted = await ProvinceModel.deleteOne({ _id });
-      console.log(deleted)
       if (deleted?.deletedCount > 0) {
         return this.sendResponse(req, res, {
           message: 'Province deleted',
