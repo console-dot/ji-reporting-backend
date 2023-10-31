@@ -6,6 +6,4 @@ const handler = new User();
 
 router.post('/signup', handler.signup);
 
-module.exports = {
-  user: router,
-};
+module.exports = router;

@@ -1,5 +1,6 @@
 const { UserModel, RoleModel } = require('../model');
 const { UserRequest } = require('../model/UserRequest');
+const { getImmediateUser } = require('../utils');
 const Response = require('./Response');
 const bcrypt = require('bcrypt');
 
@@ -59,12 +60,6 @@ class User extends Response {
           status: 400,
         });
       }
-      if (!areaId) {
-        return this.sendResponse(req, res, {
-          message: 'Area is required is requied!',
-          status: 400,
-        });
-      }
       if (password1 !== password2) {
         return this.sendResponse(req, res, {
           message: 'Both passwords should match!',
@@ -99,7 +94,7 @@ class User extends Response {
         password,
         name,
         age,
-        role: [role?._id],
+        role: role ? [role?._id] : [],
         nazim,
         userAreaId,
         userAreaType,

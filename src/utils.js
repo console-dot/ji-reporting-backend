@@ -24,8 +24,8 @@ const getImmediateUser = async (userAreaId, userAreaType) => {
       req = await TehsilModel.findOne({ _id: userAreaId });
       return req?.district;
     case 'Halqa':
-      req = await HalqaModel.findOne({ _id: userAreaId });
-      return req?.parent;
+      req = await HalqaModel.findOne({ _id: userAreaId })
+      return req?.parentId;
     default:
       return null;
   }
