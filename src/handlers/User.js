@@ -352,10 +352,16 @@ class User extends Response {
           status: 400,
         });
       }
-      const { password1, password2 } = req.body;
+      const { password0, password1, password2 } = req.body;
+      if (!password0) {
+        return this.sendResponse(req, res, {
+          message: 'Current Password is required',
+          status: 400,
+        });
+      }
       if (!password1) {
         return this.sendResponse(req, res, {
-          message: 'Password is required',
+          message: 'New Password is required',
           status: 400,
         });
       }
@@ -372,6 +378,13 @@ class User extends Response {
           status: 404,
         });
       }
+      const isValid = await bcrypt.compare(password0, userExist?.password);
+      if (!isValid) {
+        return this.sendResponse(req, res, {
+          message: 'Current password is not correct.',
+          status: 405,
+        });
+      }
       const password = await bcrypt.hash(password1, 10);
       const updated = await UserModel.updateOne(
         { _id },
@@ -386,6 +399,47 @@ class User extends Response {
       return this.sendResponse(req, res, {
         message: 'Password same as previous',
       });
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: 'Internal Server Error',
+        status: 500,
+      });
+    }
+  };
+  login = async (req, res) => {
+    try {
+      const { email, password } = req.body;
+      if (!email) {
+        return this.sendResponse(req, res, {
+          message: 'Email is required!',
+          status: 400,
+        });
+      }
+      if (!password) {
+        return this.sendResponse(req, res, {
+          message: 'Password is required!',
+          status: 400,
+        });
+      }
+      const userExist = await UserModel.findOne({ email });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: 'Invalid username/password',
+          status: 400,
+        });
+      }
+      const isValid = await bcrypt.compare(password, userExist?.password);
+      if (!isValid) {
+        return this.sendResponse(req, res, {
+          message: 'Invalid username/password',
+          status: 400,
+        });
+      }
+      const token = jwt.sign({ email }, process.env.JWT_SECRET, {
+        expiresIn: '1h',
+      });
+      return this.sendResponse(req, res, { data: { token, email } });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
