@@ -82,6 +82,13 @@ class User extends Response {
           status: 400,
         });
       }
+      const userAreaIdExist = await UserModel.findOne({ userAreaId });
+      if (userAreaIdExist) {
+        return this.sendResponse(req, res, {
+          message: 'Area already occupied',
+          status: 400,
+        });
+      }
       const role = await RoleModel.findOne({ title: nazim });
       const immediate_user_id = await getImmediateUser(
         userAreaId,
@@ -241,6 +248,144 @@ class User extends Response {
           status: 400,
         });
       }
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: 'Internal Server Error',
+        status: 500,
+      });
+    }
+  };
+  delete = async (req, res) => {
+    try {
+      const _id = req.params.id;
+      const userExist = await UserModel.findOne({ _id });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: 'User not found',
+          status: 404,
+        });
+      }
+      if (userExist?.isDeleted) {
+        return this.sendResponse(req, res, {
+          message: 'User already deleted',
+          status: 400,
+        });
+      }
+      const update = await UserModel.updateOne(
+        { _id },
+        { $set: { isDeleted: true } }
+      );
+      if (update?.modifiedCount > 0) {
+        return this.sendResponse(req, res, { message: 'User deleted' });
+      }
+      return this.sendResponse(req, res, { message: 'Nothing to delete' });
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: 'Internal Server Error',
+        status: 500,
+      });
+    }
+  };
+  update = async (req, res) => {
+    try {
+      const _id = req.params.id;
+      const { name, email, age } = req.body;
+      const userExist = await UserModel.findOne({ _id });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: 'User not found!',
+          status: 404,
+        });
+      }
+      if (!name) {
+        return this.sendResponse(req, res, {
+          message: 'Name is required',
+          status: 400,
+        });
+      }
+      if (!age) {
+        return this.sendResponse(req, res, {
+          message: 'Age is required',
+          status: 400,
+        });
+      }
+      if (!email) {
+        return this.sendResponse(req, res, {
+          message: 'Email is required',
+          status: 400,
+        });
+      }
+      const emailExist = await UserModel.findOne({ email, _id: { $ne: _id } });
+      if (emailExist) {
+        return this.sendResponse(req, res, {
+          message: 'User already exist with same email',
+          status: 400,
+        });
+      }
+      const updated = await UserModel.updateOne(
+        { _id },
+        { $set: { name, email, age } }
+      );
+      if (updated?.modifiedCount > 0) {
+        return this.sendResponse(req, res, { message: 'User updated.' });
+      }
+      return this.sendResponse(req, res, {
+        message: 'Nothing to update!',
+        status: 400,
+      });
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: 'Internal Server Error',
+        status: 500,
+      });
+    }
+  };
+  updatePassword = async (req, res) => {
+    try {
+      const _id = req.params.id;
+      if (!_id) {
+        return this.sendResponse(req, res, {
+          message: 'User ID is required',
+          status: 400,
+        });
+      }
+      const { password1, password2 } = req.body;
+      if (!password1) {
+        return this.sendResponse(req, res, {
+          message: 'Password is required',
+          status: 400,
+        });
+      }
+      if (password1 !== password2) {
+        return this.sendResponse(req, res, {
+          message: 'Both passwords should match',
+          status: 400,
+        });
+      }
+      const userExist = await UserModel.findOne({ _id });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: 'User not found!',
+          status: 404,
+        });
+      }
+      const password = await bcrypt.hash(password1, 10);
+      const updated = await UserModel.updateOne(
+        { _id },
+        { $set: { password } }
+      );
+      if (updated?.modifiedCount > 0) {
+        return this.sendResponse(req, res, {
+          message: 'Password updated',
+          status: 400,
+        });
+      }
+      return this.sendResponse(req, res, {
+        message: 'Password same as previous',
+      });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
