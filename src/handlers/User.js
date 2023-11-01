@@ -121,7 +121,7 @@ class User extends Response {
       });
     }
   };
-  forget = async (req, res) => {
+  forgetPassword = async (req, res) => {
     try {
       const { email } = req.body;
       if (!email) {
