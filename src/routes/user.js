@@ -7,5 +7,6 @@ const handler = new User();
 router.post('/signup', handler.signup);
 router.post('/forget', handler.forget);
 router.post('/reset', handler.resetPassword);
+router.delete('/:id', handler.delete);
 
 module.exports = router;

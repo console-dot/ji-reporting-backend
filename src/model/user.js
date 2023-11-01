@@ -44,6 +44,10 @@ const users = mongoose.Schema(
       ref: 'UserRequest',
       required: false,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true } // For created_at and updated_at
 );

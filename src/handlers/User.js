@@ -249,6 +249,41 @@ class User extends Response {
       });
     }
   };
+  delete = async (req, res) => {
+    try {
+      const _id = req.params.id;
+      const userExist = await UserModel.findOne({ _id });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: 'User not found',
+          status: 404,
+        });
+      }
+      if (userExist?.isDeleted) {
+        return this.sendResponse(req, res, {
+          message: 'User already deleted',
+          status: 400,
+        });
+      }
+      const update = await UserModel.updateOne(
+        { _id },
+        { $set: { isDeleted: true } }
+      );
+      if (update?.modifiedCount > 0) {
+        return this.sendResponse(req, res, { message: 'User deleted' });
+      }
+      return this.sendResponse(req, res, { message: 'Nothing to delete' });
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: 'Internal Server Error',
+        status: 500,
+      });
+    }
+  };
+  update = async (req, res) => {
+    
+  };
 }
 
 module.exports = User;
