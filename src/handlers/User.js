@@ -282,7 +282,59 @@ class User extends Response {
     }
   };
   update = async (req, res) => {
-    
+    try {
+      const _id = req.params.id;
+      const { name, email, age } = req.body;
+      const userExist = await UserModel.findOne({ _id });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: 'User not found!',
+          status: 404,
+        });
+      }
+      if (!name) {
+        return this.sendResponse(req, res, {
+          message: 'Name is required',
+          status: 400,
+        });
+      }
+      if (!age) {
+        return this.sendResponse(req, res, {
+          message: 'Age is required',
+          status: 400,
+        });
+      }
+      if (!email) {
+        return this.sendResponse(req, res, {
+          message: 'Email is required',
+          status: 400,
+        });
+      }
+      const emailExist = await UserModel.findOne({ email, _id: { $ne: _id } });
+      if (emailExist) {
+        return this.sendResponse(req, res, {
+          message: 'User already exist with same email',
+          status: 400,
+        });
+      }
+      const updated = await UserModel.updateOne(
+        { _id },
+        { $set: { name, email, age } }
+      );
+      if (updated?.modifiedCount > 0) {
+        return this.sendResponse(req, res, { message: 'User updated.' });
+      }
+      return this.sendResponse(req, res, {
+        message: 'Nothing to update!',
+        status: 400,
+      });
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: 'Internal Server Error',
+        status: 500,
+      });
+    }
   };
 }
 
