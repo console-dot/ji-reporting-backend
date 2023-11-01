@@ -5,5 +5,7 @@ const router = require('express').Router();
 const handler = new User();
 
 router.post('/signup', handler.signup);
+router.post('/forget', handler.forget);
+router.post('/reset', handler.resetPassword);
 
 module.exports = router;
