@@ -22,8 +22,9 @@ class Response {
         delete decoded?.exp;
         if (decoded)
           token = sign(decoded, process.env.JWT_SECRET, { expiresIn: '10m' });
+        return res.status(obj.status).json({ ...obj, token });
       }
-      return res.status(obj.status).json({ ...obj, token });
+      return res.status(obj.status).json({ ...obj });
     } catch (err) {
       console.log(err);
       return res
