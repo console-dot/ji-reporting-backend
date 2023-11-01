@@ -9,5 +9,6 @@ router.post('/forget-password', handler.forgetPassword);
 router.post('/reset-password', handler.resetPassword);
 router.delete('/:id', handler.delete);
 router.put('/:id', handler.update);
+router.put('/change-password/:id', handler.updatePassword);
 
 module.exports = router;

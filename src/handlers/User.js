@@ -82,6 +82,13 @@ class User extends Response {
           status: 400,
         });
       }
+      const userAreaIdExist = await UserModel.findOne({ userAreaId });
+      if (userAreaIdExist) {
+        return this.sendResponse(req, res, {
+          message: 'Area already occupied',
+          status: 400,
+        });
+      }
       const role = await RoleModel.findOne({ title: nazim });
       const immediate_user_id = await getImmediateUser(
         userAreaId,
@@ -327,6 +334,57 @@ class User extends Response {
       return this.sendResponse(req, res, {
         message: 'Nothing to update!',
         status: 400,
+      });
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: 'Internal Server Error',
+        status: 500,
+      });
+    }
+  };
+  updatePassword = async (req, res) => {
+    try {
+      const _id = req.params.id;
+      if (!_id) {
+        return this.sendResponse(req, res, {
+          message: 'User ID is required',
+          status: 400,
+        });
+      }
+      const { password1, password2 } = req.body;
+      if (!password1) {
+        return this.sendResponse(req, res, {
+          message: 'Password is required',
+          status: 400,
+        });
+      }
+      if (password1 !== password2) {
+        return this.sendResponse(req, res, {
+          message: 'Both passwords should match',
+          status: 400,
+        });
+      }
+      const userExist = await UserModel.findOne({ _id });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: 'User not found!',
+          status: 404,
+        });
+      }
+      const password = await bcrypt.hash(password1, 10);
+      const updated = await UserModel.updateOne(
+        { _id },
+        { $set: { password } }
+      );
+      if (updated?.modifiedCount > 0) {
+        return this.sendResponse(req, res, {
+          message: 'Password updated',
+          status: 400,
+        });
+      }
+      return this.sendResponse(req, res, {
+        message: 'Password same as previous',
       });
     } catch (err) {
       console.log(err);
