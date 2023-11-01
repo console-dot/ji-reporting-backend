@@ -1,12 +1,9 @@
-const { signIn, signUp, forgotPassword } = require("../handlers");
-const { isAdmin } = require("../middleware");
+const { User } = require('../handlers');
 
-const router = require("express").Router();
+const router = require('express').Router();
 
-router.post("/signIn", isAdmin, signIn);
-router.post("/signUp", isAdmin, signUp);
-router.post("/forgotPassword", forgotPassword);
+const handler = new User();
 
-module.exports = {
-  user: router,
-};
+router.post('/signup', handler.signup);
+
+module.exports = router;

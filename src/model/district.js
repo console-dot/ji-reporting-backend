@@ -1,18 +1,19 @@
 const mongoose = require("mongoose");
 
 const district = mongoose.Schema({
-  id: {
-    type: Number,
-  },
-
   name: {
     type: String,
     required: true,
   },
+  division: {
+    type: mongoose.Types.ObjectId,
+    required: true,
+    ref: 'Division',
+  },
 });
 
-const District = mongoose.model("District", district);
+const DistrictModel = mongoose.model("District", district);
 
 module.exports = {
-  District,
+  DistrictModel,
 };

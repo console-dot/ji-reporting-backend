@@ -1,18 +1,24 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const halqa = mongoose.Schema({
-  id: {
-    type: Number,
-  },
-
   name: {
     type: String,
     required: true,
   },
+  parentId: {
+    type: mongoose.Types.ObjectId,
+    required: true,
+    refPath: 'parentType',
+  },
+  parentType: {
+    type: String,
+    required: true,
+    enum: ['Tehsil', 'Maqam'],
+  },
 });
 
-const Halqa = mongoose.model("Halqa", halqa);
+const HalqaModel = mongoose.model('Halqa', halqa);
 
 module.exports = {
-  Halqa,
+  HalqaModel,
 };

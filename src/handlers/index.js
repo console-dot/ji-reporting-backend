@@ -1,9 +1,7 @@
-const { SignIn } = require("./signIn");
-const { SignUp } = require("./signUp");
-const { ForgotPassword } = require("./forgotPassword");
+const Locations = require('./Locations');
+const User = require('./User');
 
 module.exports = {
-  SignIn,
-  SignUp,
-  ForgotPassword
+  Locations,
+  User,
 };

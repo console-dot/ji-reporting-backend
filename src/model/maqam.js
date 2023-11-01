@@ -1,6 +1,6 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const division = mongoose.Schema({
+const maqam = mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -12,8 +12,8 @@ const division = mongoose.Schema({
   },
 });
 
-const DivisionModel = mongoose.model('Division', division);
+const MaqamModel = mongoose.model("Maqam", maqam);
 
 module.exports = {
-  DivisionModel,
+  MaqamModel,
 };
