@@ -7,8 +7,14 @@ const roles = mongoose.Schema({
     unique: true,
   },
   access: {
-    type: Array,
-    default: [],
+    type: {
+      ro: [],
+      rw: [],
+    },
+    default: {
+      ro: [],
+      rw: [],
+    },
   },
 });
 

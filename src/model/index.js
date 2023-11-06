@@ -7,6 +7,7 @@ const { DivisionModel } = require('./division');
 const { ProvinceModel } = require('./province');
 const { MaqamModel } = require('./maqam');
 const { ResetPasswordModel } = require('./resetPassword');
+const HalqaReports = require('./reports');
 
 module.exports = {
   RoleModel,
@@ -18,4 +19,5 @@ module.exports = {
   ProvinceModel,
   MaqamModel,
   ResetPasswordModel,
+  HalqaReports,
 };
