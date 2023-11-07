@@ -378,6 +378,18 @@ class HalqaReport extends Response {
           status: 401,
         });
       }
+      const startDate = new Date(isExist?.createdAt);
+      const currentDate = new Date();
+      const difference = currentDate - startDate;
+      const millisecondsPerDay = 1000 * 60 * 60 * 24;
+      const daysDifference = Math.floor(difference / millisecondsPerDay);
+      if (daysDifference >= 5) {
+        return this.sendResponse(req, res, {
+          message: 'Cannot update after 5 days',
+          status: 400,
+        });
+      }
+
       const updated = await HalqaReportModel.updateOne(
         { _id },
         { $set: dataToUpdate }
