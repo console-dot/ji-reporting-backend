@@ -10,8 +10,72 @@ const {
 } = require('../../model/reports');
 const { months, getRoleFlow } = require('../../utils');
 const Response = require('../Response');
-const { UserModel, RoleModel } = require('../../model');
-const { get } = require('mongoose');
+const { UserModel } = require('../../model');
+
+const isDataComplete = ({
+  month,
+  comments,
+  arkan,
+  umeedWaran,
+  rafaqa,
+  karkunan,
+  ijtRafaqa,
+  ijtKarkunan,
+  studyCircle,
+  darseQuran,
+  dawatiWafud,
+  rawabitParties,
+  hadithCircle,
+  nizamSalah,
+  shabBedari,
+  anyOther,
+  rawabitDecided,
+  current,
+  meetings,
+  literatureDistribution,
+  commonStudentMeetings,
+  commonLiteratureDistribution,
+  books,
+  increase,
+  decrease,
+  bookRent,
+  umeedwaranFilled,
+  rafaqaFilled,
+}) => {
+  if (
+    !month ||
+    !comments ||
+    !arkan ||
+    !umeedWaran ||
+    !rafaqa ||
+    !karkunan ||
+    !ijtRafaqa ||
+    !ijtKarkunan ||
+    !studyCircle ||
+    !darseQuran ||
+    !dawatiWafud ||
+    !rawabitParties ||
+    !hadithCircle ||
+    !nizamSalah ||
+    !shabBedari ||
+    !anyOther ||
+    !rawabitDecided ||
+    !current ||
+    !meetings ||
+    !literatureDistribution ||
+    !commonStudentMeetings ||
+    !commonLiteratureDistribution ||
+    !books ||
+    !increase ||
+    !decrease ||
+    !bookRent ||
+    !umeedwaranFilled ||
+    !rafaqaFilled
+  ) {
+    return false;
+  }
+  return true;
+};
 
 class HalqaReport extends Response {
   createReport = async (req, res) => {
@@ -26,16 +90,7 @@ class HalqaReport extends Response {
       const decoded = decode(token.split(' ')[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const rolesList = user?.role;
-      let hasAccess = false;
-      for (let i = 0; i < rolesList.length; i++) {
-        const roles = await RoleModel.findOne({ _id: rolesList[i] });
-        if (roles?.access?.rw?.includes('halqa')) {
-          hasAccess = true;
-          break;
-        }
-      }
-      if (!hasAccess) {
+      if (user?.nazim !== 'halqa') {
         return this.sendResponse(req, res, {
           message: 'Access denied',
           status: 401,
@@ -213,8 +268,11 @@ class HalqaReport extends Response {
       const decoded = decode(token.split(' ')[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const halqaAreaId = user?.userAreaId;
-      const reports = await HalqaReportModel.find({ halqaAreaId }).populate([
+      const { userAreaId: id, nazim: key } = user;
+      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      const reports = await HalqaReportModel.find({
+        halqaAreaId: accessList,
+      }).populate([
         { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
         { path: 'wiId' },
         { path: 'halqaActivityId' },
@@ -274,6 +332,65 @@ class HalqaReport extends Response {
         { path: 'halqaAreaId' },
       ]);
       return this.sendResponse(req, res, { data: reports });
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: 'Internal Server Error',
+        status: 500,
+      });
+    }
+  };
+  editReport = async (req, res) => {
+    try {
+      const token = req.headers.authorization;
+      const _id = req.params.id;
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: 'Access Denied',
+          status: 401,
+        });
+      }
+      if (!_id) {
+        return this.sendResponse(req, res, {
+          message: 'Id is required',
+          status: 404,
+        });
+      }
+      const decoded = decode(token.split(' ')[1]);
+      const userId = decoded?.id;
+      const dataToUpdate = req.body;
+      if (!isDataComplete(dataToUpdate)) {
+        return this.sendResponse(req, res, {
+          message: 'All fields are required',
+          status: 400,
+        });
+      }
+      const isExist = await HalqaReportModel.findOne({ _id });
+      if (!isExist) {
+        return this.sendResponse(req, res, {
+          message: 'Report not found',
+          status: 404,
+        });
+      }
+      if (isExist?.userId.toString() !== userId) {
+        return this.sendResponse(req, res, {
+          message: 'Access Denied',
+          status: 401,
+        });
+      }
+      const updated = await HalqaReportModel.updateOne(
+        { _id },
+        { $set: dataToUpdate }
+      );
+      if (updated?.modifiedCount > 0) {
+        return this.sendResponse(req, res, {
+          message: 'Report updated',
+        });
+      }
+      return this.sendResponse(req, res, {
+        message: 'Nothing to update',
+        status: 500,
+      });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
