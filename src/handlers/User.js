@@ -103,7 +103,15 @@ class User extends Response {
         password,
         name,
         age,
-        role: role ? [role?._id] : [],
+        role: role
+          ? {
+              ro: [],
+              rw: [role?._id],
+            }
+          : {
+              ro: [],
+              rw: [],
+            },
         nazim,
         userAreaId,
         userAreaType,
@@ -436,10 +444,16 @@ class User extends Response {
           status: 400,
         });
       }
-      const token = jwt.sign({ email }, process.env.JWT_SECRET, {
-        expiresIn: '1h',
+      const token = jwt.sign(
+        { email, id: userExist?._id },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: '1h',
+        }
+      );
+      return this.sendResponse(req, res, {
+        data: { token, email, id: userExist?._id },
       });
-      return this.sendResponse(req, res, { data: { token, email } });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
