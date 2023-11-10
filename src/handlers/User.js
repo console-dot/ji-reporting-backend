@@ -103,15 +103,7 @@ class User extends Response {
         password,
         name,
         age,
-        role: role
-          ? {
-              ro: [],
-              rw: [role?._id],
-            }
-          : {
-              ro: [],
-              rw: [],
-            },
+        role: role ? [role?._id] : [],
         nazim,
         userAreaId,
         userAreaType,
