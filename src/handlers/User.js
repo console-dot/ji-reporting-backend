@@ -436,6 +436,12 @@ class User extends Response {
           status: 400,
         });
       }
+      if (!userExist?.isDeleted) {
+        return this.sendResponse(req, res, {
+          message: 'User was deleted.',
+          status: 400,
+        });
+      }
       const token = jwt.sign(
         { email, id: userExist?._id },
         process.env.JWT_SECRET,
