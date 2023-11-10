@@ -11,5 +11,7 @@ router.post('/reset-password', handler.resetPassword);
 router.delete('/:id', handler.delete);
 router.put('/:id', handler.update);
 router.put('/change-password/:id', handler.updatePassword);
+router.get('/user-requests', handler.getAllRequests);
+router.patch('/user-requests/:id', handler.updateRequest);
 
 module.exports = router;
