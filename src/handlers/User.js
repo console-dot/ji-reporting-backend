@@ -1,6 +1,6 @@
 const { UserModel, RoleModel, ResetPasswordModel } = require('../model');
 const { UserRequest } = require('../model/UserRequest');
-const { getImmediateUser } = require('../utils');
+const { getImmediateUser, getParentId } = require('../utils');
 const Mailer = require('./Mailer');
 const Response = require('./Response');
 const bcrypt = require('bcrypt');
@@ -62,6 +62,12 @@ class User extends Response {
           status: 400,
         });
       }
+      if (nazim === 'province' || userAreaType === 'Province') {
+        return this.sendResponse(req, res, {
+          message: 'Province signup not allowed',
+          status: 400,
+        });
+      }
       if (password1 !== password2) {
         return this.sendResponse(req, res, {
           message: 'Both passwords should match!',
@@ -107,7 +113,7 @@ class User extends Response {
         nazim,
         userAreaId,
         userAreaType,
-        userRequest: UserRequestReq?.id,
+        userRequestId: UserRequestReq?.id,
       });
       const newUserReq = await newUser.save();
       if (!newUserReq?._id) {
@@ -258,12 +264,34 @@ class User extends Response {
   };
   delete = async (req, res) => {
     try {
+      const token = req.headers.authorization;
       const _id = req.params.id;
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: 'Access Denied',
+          status: 401,
+        });
+      }
+      if (!_id) {
+        return this.sendResponse(req, res, {
+          message: 'ID is required',
+          status: 404,
+        });
+      }
+      const decoded = jwt.decode(token.split(' ')[1]);
+      const userId = decoded?.id;
       const userExist = await UserModel.findOne({ _id });
       if (!userExist) {
         return this.sendResponse(req, res, {
           message: 'User not found',
           status: 404,
+        });
+      }
+      const parentId = await getParentId(userId.toString());
+      if (parentId?.toString() !== userId.toString()) {
+        return this.sendResponse(req, res, {
+          message: 'Third-party deletion not allowed',
+          status: 401,
         });
       }
       if (userExist?.isDeleted) {
@@ -290,7 +318,28 @@ class User extends Response {
   };
   update = async (req, res) => {
     try {
+      const token = req.headers.authorization;
       const _id = req.params.id;
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: 'Access Denied',
+          status: 401,
+        });
+      }
+      if (!_id) {
+        return this.sendResponse(req, res, {
+          message: 'ID is required',
+          status: 404,
+        });
+      }
+      const decoded = jwt.decode(token.split(' ')[1]);
+      const userId = decoded?.id;
+      if (userId.toString() !== _id.toString()) {
+        return this.sendResponse(req, res, {
+          message: 'Third-party update not allowed',
+          status: 404,
+        });
+      }
       const { name, email, age } = req.body;
       const userExist = await UserModel.findOne({ _id });
       if (!userExist) {
@@ -393,11 +442,11 @@ class User extends Response {
       if (updated?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
           message: 'Password updated',
-          status: 400,
         });
       }
       return this.sendResponse(req, res, {
         message: 'Password same as previous',
+        status: 400,
       });
     } catch (err) {
       console.log(err);
@@ -436,6 +485,27 @@ class User extends Response {
           status: 400,
         });
       }
+      if (userExist?.isDeleted) {
+        return this.sendResponse(req, res, {
+          message: 'User was deleted.',
+          status: 400,
+        });
+      }
+      const userRequest = await UserRequest.findOne({
+        _id: userExist?.userRequestId,
+      });
+      if (userRequest?.status === 'pending') {
+        return this.sendResponse(req, res, {
+          message: 'Account not verified yet.',
+          status: 400,
+        });
+      }
+      if (userRequest?.status === 'rejected') {
+        return this.sendResponse(req, res, {
+          message: 'Account request declined.',
+          status: 400,
+        });
+      }
       const token = jwt.sign(
         { email, id: userExist?._id },
         process.env.JWT_SECRET,
@@ -445,6 +515,82 @@ class User extends Response {
       );
       return this.sendResponse(req, res, {
         data: { token, email, id: userExist?._id },
+      });
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: 'Internal Server Error',
+        status: 500,
+      });
+    }
+  };
+  getAllRequests = async (req, res) => {
+    try {
+      const token = req.headers.authorization;
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: 'Access Denied',
+          status: 401,
+        });
+      }
+      const decoded = jwt.decode(token.split(' ')[1]);
+      const userId = decoded?.id;
+      const { userAreaId: immediate_user_id } = await UserModel.findOne({
+        _id: userId,
+      });
+      const allRequests = await UserRequest.find({
+        immediate_user_id,
+        status: 'pending',
+      });
+      return this.sendResponse(req, res, { data: allRequests });
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: 'Internal Server Error',
+        status: 500,
+      });
+    }
+  };
+  updateRequest = async (req, res) => {
+    try {
+      const _id = req.params?.id;
+      const { status } = req.body;
+      const token = req.headers.authorization;
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: 'Access Denied',
+          status: 401,
+        });
+      }
+      if (!_id) {
+        return this.sendResponse(req, res, {
+          message: 'ID is required',
+          status: 400,
+        });
+      }
+      if (!status) {
+        return this.sendResponse(req, res, {
+          message: 'ID is required',
+          status: 400,
+        });
+      }
+      const decoded = jwt.decode(token.split(' ')[1]);
+      const userId = decoded?.id;
+      const { userAreaId: immediate_user_id } = await UserModel.findOne({
+        _id: userId,
+      });
+      const update = await UserRequest.updateOne(
+        { _id, immediate_user_id },
+        { $set: { status } }
+      );
+      if (update?.modifiedCount > 0) {
+        return this.sendResponse(req, res, {
+          message: 'Status Updated',
+        });
+      }
+      return this.sendResponse(req, res, {
+        message: 'Nothing to update!',
+        status: 400,
       });
     } catch (err) {
       console.log(err);
