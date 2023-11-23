@@ -543,9 +543,10 @@ class User extends Response {
         status: 'pending',
       });
       const request_ids = allRequests.map((i) => i?._id.toString());
-      const users = await UserModel.find({ userRequestId: request_ids }, 'name email userAreaId userAreaType').populate([{path: 'userAreaId', refPath: 'userAreaType'}]);
-      // Name, email, userAreaId, userAreaType
-
+      const users = await UserModel.find(
+        { userRequestId: request_ids },
+        'name email userAreaId userAreaType'
+      ).populate([{ path: 'userAreaId', refPath: 'userAreaType' }]);
       return this.sendResponse(req, res, { data: users });
     } catch (err) {
       console.log(err);
