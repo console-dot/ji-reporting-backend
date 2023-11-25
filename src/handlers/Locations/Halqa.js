@@ -53,7 +53,11 @@ class Halqa extends Response {
   };
   getAll = async (req, res) => {
     try {
-      const halqaData = await HalqaModel.find({}).populate("parentId");
+      const options = {};
+      if (req.query.type) {
+        options.parentType = req.query.type;
+      }
+      const halqaData = await HalqaModel.find(options).populate("parentId");
       // Dynamically populate based on parentType
       for (const doc of halqaData) {
         const method = getPopulateMethod(doc?.parentType);
@@ -152,45 +156,6 @@ class Halqa extends Response {
         message: "Can not delete",
         status: 400,
       });
-    } catch (err) {
-      console.log(err);
-      return this.sendResponse(req, res, {
-        message: "Internal Server Error",
-        status: 500,
-      });
-    }
-  };
-  getHalqaListByParentType = async (req, res) => {
-    try {
-      const { type } = req.body;
-
-      if (!type) {
-        return this.sendResponse(req, res, {
-          message: "Type is missing",
-          status: 400,
-        });
-      }
-
-      const halqaData = await HalqaModel.find({ parentType: type }).populate(
-        "parentId"
-      );
-      if (!halqaData || halqaData.length === 0) {
-        return this.sendResponse(req, res, {
-          message: "No Data For This Type",
-          status: 404,
-        });
-      }
-      for (const doc of halqaData) {
-        const method = getPopulateMethod(doc?.parentType);
-        if (method) {
-          await HalqaModel.populate(doc, {
-            path: "parentId",
-            populate: method,
-          });
-        }
-      }
-
-      return this.sendResponse(req, res, { data: halqaData, status: 200 });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
