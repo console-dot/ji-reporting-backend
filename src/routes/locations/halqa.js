@@ -9,6 +9,5 @@ router.get("/", handler.getAll);
 router.get("/:id", handler.getOne);
 router.put("/:id", isProvince, handler.updateOne);
 router.delete("/:id", isProvince, handler.deleteOne);
-router.get("/halqaType", handler.getHalqaListByParentType);
 
 module.exports = router;
