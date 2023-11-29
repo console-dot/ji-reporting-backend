@@ -270,18 +270,32 @@ class HalqaReport extends Response {
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      const reports = await HalqaReportModel.find({
-        halqaAreaId: accessList,
-      }).populate([
-        { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
-        { path: 'wiId' },
-        { path: 'halqaActivityId' },
-        { path: 'otherActivityId' },
-        { path: 'tdId' },
-        { path: 'halqaLibId' },
-        { path: 'rsdId' },
-        { path: 'halqaAreaId' },
-      ]);
+      let reports;
+      if (user?.nazim !== 'province') {
+        reports = await HalqaReportModel.find({
+          halqaAreaId: accessList,
+        }).populate([
+          { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
+          { path: 'wiId' },
+          { path: 'halqaActivityId' },
+          { path: 'otherActivityId' },
+          { path: 'tdId' },
+          { path: 'halqaLibId' },
+          { path: 'rsdId' },
+          { path: 'halqaAreaId' },
+        ]);
+      } else {
+        reports = await HalqaReportModel.find().populate([
+          { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
+          { path: 'wiId' },
+          { path: 'halqaActivityId' },
+          { path: 'otherActivityId' },
+          { path: 'tdId' },
+          { path: 'halqaLibId' },
+          { path: 'rsdId' },
+          { path: 'halqaAreaId' },
+        ]);
+      }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);

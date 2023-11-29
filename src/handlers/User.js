@@ -514,7 +514,7 @@ class User extends Response {
         }
       );
       return this.sendResponse(req, res, {
-        data: { token, email, id: userExist?._id },
+        data: { token, email, id: userExist?._id, type: userExist?.nazim },
       });
     } catch (err) {
       console.log(err);
@@ -574,7 +574,7 @@ class User extends Response {
       const decoded = jwt.decode(t);
       if (decoded) {
         const { id } = decoded;
-        const user = await UserModel.findOne({ _id: id }, 'email name age');
+        const user = await UserModel.findOne({ _id: id }, 'email name age _id');
         return this.sendResponse(req, res, {
           data: user,
           status: 200,
