@@ -319,21 +319,21 @@ class User extends Response {
   update = async (req, res) => {
     try {
       const token = req.headers.authorization;
-      const _id = req.params.id;
       if (!token) {
         return this.sendResponse(req, res, {
           message: 'Access Denied',
           status: 401,
         });
       }
+      const decoded = jwt.decode(token.split(' ')[1]);
+      const userId = decoded?.id;
+      const _id = userId;
       if (!_id) {
         return this.sendResponse(req, res, {
           message: 'ID is required',
           status: 404,
         });
       }
-      const decoded = jwt.decode(token.split(' ')[1]);
-      const userId = decoded?.id;
       if (userId.toString() !== _id.toString()) {
         return this.sendResponse(req, res, {
           message: 'Third-party update not allowed',
@@ -394,7 +394,16 @@ class User extends Response {
   };
   updatePassword = async (req, res) => {
     try {
-      const _id = req.params.id;
+      const token = req.headers.authorization;
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: 'Access Denied',
+          status: 401,
+        });
+      }
+      const decoded = jwt.decode(token.split(' ')[1]);
+      const userId = decoded?.id;
+      const _id = userId;
       if (!_id) {
         return this.sendResponse(req, res, {
           message: 'User ID is required',
