@@ -338,21 +338,38 @@ class MaqamReport extends Response {
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      const reports = await MaqamReportModel.find({
-        maqamAreaId: accessList,
-      }).populate([
-        { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
-        { path: 'maqamAreaId', populate: { path: 'province' } },
-        { path: 'maqamTanzeemId' },
-        { path: 'wiId' },
-        { path: 'maqamActivityId' },
-        { path: 'mentionedActivityId' },
-        { path: 'otherActivityId' },
-        { path: 'tdId' },
-        { path: 'maqamDivisionLibId' },
-        { path: 'paighamDigestId' },
-        { path: 'rsdId' },
-      ]);
+      let reports;
+      if (user?.nazim !== 'province') {
+        reports = await MaqamReportModel.find({
+          maqamAreaId: accessList,
+        }).populate([
+          { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
+          { path: 'maqamAreaId', populate: { path: 'province' } },
+          { path: 'maqamTanzeemId' },
+          { path: 'wiId' },
+          { path: 'maqamActivityId' },
+          { path: 'mentionedActivityId' },
+          { path: 'otherActivityId' },
+          { path: 'tdId' },
+          { path: 'maqamDivisionLibId' },
+          { path: 'paighamDigestId' },
+          { path: 'rsdId' },
+        ]);
+      } else {
+        reports = await MaqamReportModel.find().populate([
+          { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
+          { path: 'maqamAreaId', populate: { path: 'province' } },
+          { path: 'maqamTanzeemId' },
+          { path: 'wiId' },
+          { path: 'maqamActivityId' },
+          { path: 'mentionedActivityId' },
+          { path: 'otherActivityId' },
+          { path: 'tdId' },
+          { path: 'maqamDivisionLibId' },
+          { path: 'paighamDigestId' },
+          { path: 'rsdId' },
+        ]);
+      }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
