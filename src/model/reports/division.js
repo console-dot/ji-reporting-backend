@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const divisionReportModel = mongoose.Schema(
   {
@@ -13,62 +13,65 @@ const divisionReportModel = mongoose.Schema(
     userId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'User',
+      ref: "User",
     },
     divisionAreaId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'Division',
+      ref: "Division",
     },
     maqamTanzeemId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'MaqamTanzeem',
+      ref: "MaqamTanzeem",
     },
     wiId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'WorkerInfo',
+      ref: "WorkerInfo",
     },
     divisionActivityId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'DivisionActivities',
+      ref: "DivisionActivities",
     },
     mentionedActivityId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'MentionedActivities',
+      ref: "MentionedActivities",
     },
     otherActivityId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'OtherActivities',
+      ref: "OtherActivities",
     },
     tdId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'ToseeDawat',
+      ref: "ToseeDawat",
     },
     maqamDivisionLibId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'MaqamDivisionLibrary',
+      ref: "MaqamDivisionLibrary",
     },
     paighamDigestId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'PaighamDigest',
+      ref: "PaighamDigest",
     },
     rsdId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'RozShabBedari',
+      ref: "RozShabBedari",
     },
   },
   { timestamps: true }
 );
 
-const DivisionReportModel = mongoose.model('DivisionReport', divisionReportModel);
+const DivisionReportModel = mongoose.model(
+  "DivisionReport",
+  divisionReportModel
+);
 
 module.exports = { DivisionReportModel };
