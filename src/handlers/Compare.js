@@ -443,6 +443,7 @@ class Compare extends Response {
     try {
       const { type, property } = req.params;
       const { duration, duration_type } = req.body;
+
       const valid_properties = [
         "activity",
         "other-activity",
@@ -450,7 +451,7 @@ class Compare extends Response {
         "ifradi-kuwat",
         "tanzeem",
       ];
-      console.log(duration_type);
+
       const valid_duration_type = ["month", "year"];
       const sampleData = {
         labels: duration,
