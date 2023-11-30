@@ -9,7 +9,7 @@ const {
   ToseeDawatModel,
   MaqamDivisionLibraryModel,
   PaighamDigestModel,
-  RozShabBedariModel,  
+  RozShabBedariModel,
 } = require('../../model/reports');
 const { months, getRoleFlow } = require('../../utils');
 const Response = require('../Response');
@@ -334,21 +334,38 @@ class DivisionReport extends Response {
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      const reports = await DivisionReportModel.find({
-        divisionAreaId: accessList,
-      }).populate([
-        { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
-        { path: 'divisionAreaId', populate: { path: 'province' } },
-        { path: 'maqamTanzeemId' },
-        { path: 'wiId' },
-        { path: 'divisionActivityId' },
-        { path: 'mentionedActivityId' },
-        { path: 'otherActivityId' },
-        { path: 'tdId' },
-        { path: 'maqamDivisionLibId' },
-        { path: 'paighamDigestId' },
-        { path: 'rsdId' },
-      ]);
+      let reports;
+      if (user?.nazim !== 'province') {
+        reports = await DivisionReportModel.find({
+          divisionAreaId: accessList,
+        }).populate([
+          { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
+          { path: 'divisionAreaId', populate: { path: 'province' } },
+          { path: 'maqamTanzeemId' },
+          { path: 'wiId' },
+          { path: 'divisionActivityId' },
+          { path: 'mentionedActivityId' },
+          { path: 'otherActivityId' },
+          { path: 'tdId' },
+          { path: 'maqamDivisionLibId' },
+          { path: 'paighamDigestId' },
+          { path: 'rsdId' },
+        ]);
+      } else {
+        reports = await DivisionReportModel.find().populate([
+          { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
+          { path: 'divisionAreaId', populate: { path: 'province' } },
+          { path: 'maqamTanzeemId' },
+          { path: 'wiId' },
+          { path: 'divisionActivityId' },
+          { path: 'mentionedActivityId' },
+          { path: 'otherActivityId' },
+          { path: 'tdId' },
+          { path: 'maqamDivisionLibId' },
+          { path: 'paighamDigestId' },
+          { path: 'rsdId' },
+        ]);
+      }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);

@@ -1,4 +1,8 @@
-const { HalqaReportModel, MaqamReportModel } = require("../model/reports");
+const {
+  HalqaReportModel,
+  MaqamReportModel,
+  DivisionReportModel,
+} = require("../model/reports");
 const Response = require("./Response");
 
 const months = [
@@ -438,6 +442,228 @@ class Compare extends Response {
       status: 200,
     });
   };
+  createDivisionReport = async (req, res, sampleData) => {
+    const { property } = req.params;
+    const { duration, duration_type } = req.body;
+    const fields = {
+      activity: "maqamActivityId",
+      "other-activity": "otherActivityId",
+      library: "maqamDivisionLibId",
+      "ifradi-kuwat": "wiId",
+      tanzeem: "maqamTanzeemId",
+    };
+    const db_data = {};
+    switch (duration_type) {
+      case "year":
+        for (let i = 0; i < duration.length; i++) {
+          const temp = await DivisionReportModel.find(
+            {
+              month: {
+                $gte: new Date(duration[i] - 1, 12),
+                $lte: new Date(duration[i], 12),
+              },
+            },
+            fields[property]
+          ).populate(fields[property]);
+          db_data[duration[i]] = temp;
+        }
+        break;
+      case "month":
+        for (let i = 0; i < duration.length; i++) {
+          const temp = await DivisionReportModel.find(
+            {
+              month: {
+                $gte: new Date(duration[i].year, duration[i].month - 1),
+                $lte: new Date(duration[i].year, duration[i].month),
+              },
+            },
+            fields[property]
+          ).populate(fields[property]);
+          db_data[
+            `${months[parseInt(duration[i].month)]}, ${duration[i].year}`
+          ] = temp;
+        }
+        break;
+    }
+    // CALCULATION
+    const finalData = {};
+    Object.keys(db_data).map((key) => {
+      const data_arr = db_data[key];
+      let t_data = {};
+      data_arr.forEach((val) => {
+        const accessor = val?.[fields[property]]?._doc;
+        delete accessor._id;
+        delete accessor.__v;
+        Object.keys(accessor).forEach((access_key) => {
+          if (t_data?.[access_key]) {
+            if (typeof accessor?.[access_key] === "object") {
+              Object.keys(accessor?.[access_key]?._doc).forEach((i) => {
+                t_data[access_key][i] += accessor?.[access_key]?.[i];
+              });
+            } else {
+              t_data[access_key] += accessor?.[access_key];
+            }
+          } else {
+            t_data[access_key] = accessor[access_key];
+          }
+        });
+      });
+      finalData[key] = t_data;
+    });
+    const result = {};
+    const sd = sampleData;
+    switch (property) {
+      case "ifradi-kuwat":
+        Object.keys(finalData).forEach((year) => {
+          result[year] = {};
+          Object.keys(finalData[year]).forEach((key) => {
+            result[year][key] =
+              finalData[year][key]?.start +
+              finalData[year][key]?.increase -
+              finalData[year][key]?.decrease;
+          });
+        });
+        sampleData.labels = Object.keys(result[Object.keys(result)[0]]).map(
+          (i) => i.toUpperCase()
+        );
+        sampleData.labels.pop();
+        sampleData.datasets = [];
+        Object.keys(result).forEach((key) => {
+          const rgb = this.getRandomRGB();
+          const ds = {
+            label: key,
+            data: Object.values(result[key]),
+            backgroundColor: `rgba(${rgb}, 0.5)`,
+            borderColor: `rgba(${rgb}, 1)`,
+            borderWidth: 1,
+          };
+          ds.data.pop();
+          sampleData.datasets.push(ds);
+        });
+        return this.sendResponse(req, res, {
+          data: sd,
+          status: 200,
+        });
+      case "activity":
+        Object.keys(finalData).forEach((year) => {
+          result[year] = {};
+          Object.keys(finalData[year]).forEach((key) => {
+            result[year][key] = finalData[year][key]?.done;
+          });
+        });
+        sampleData.labels = Object.keys(result[Object.keys(result)[0]]).map(
+          (i) => i.toUpperCase()
+        );
+        sampleData.datasets = [];
+        Object.keys(result).forEach((key) => {
+          console.log(result[key]);
+          const rgb = this.getRandomRGB();
+          const ds = {
+            label: key,
+            data: Object.values(result[key]),
+            backgroundColor: `rgba(${rgb}, 0.5)`,
+            borderColor: `rgba(${rgb}, 1)`,
+            borderWidth: 1,
+          };
+          sampleData.datasets.push(ds);
+        });
+        return this.sendResponse(req, res, {
+          data: sd,
+          status: 200,
+        });
+      case "library":
+        Object.keys(finalData).forEach((year) => {
+          result[year] = {};
+          Object.keys(finalData[year]).forEach((key) => {
+            result[year][key] = finalData[year][key];
+          });
+        });
+        sampleData.labels = Object.keys(result[Object.keys(result)[0]]).map(
+          (i) => i.toUpperCase()
+        );
+
+        sampleData.datasets = [];
+        Object.keys(result).forEach((key) => {
+          const rgb = this.getRandomRGB();
+          const ds = {
+            label: key,
+            data: Object.values(result[key]),
+            backgroundColor: `rgba(${rgb}, 0.5)`,
+            borderColor: `rgba(${rgb}, 1)`,
+            borderWidth: 1,
+          };
+
+          sampleData.datasets.push(ds);
+        });
+        return this.sendResponse(req, res, {
+          data: sd,
+          status: 200,
+        });
+      case "tanzeem":
+        Object.keys(finalData).forEach((year) => {
+          result[year] = {};
+          Object.keys(finalData[year]).forEach((key) => {
+            result[year][key] =
+              finalData[year][key]?.start +
+              finalData[year][key]?.increase -
+              finalData[year][key]?.decrease;
+          });
+        });
+        sampleData.labels = Object.keys(result[Object.keys(result)[0]]).map(
+          (i) => i.toUpperCase()
+        );
+
+        sampleData.datasets = [];
+        Object.keys(result).forEach((key) => {
+          const rgb = this.getRandomRGB();
+          const ds = {
+            label: key,
+            data: Object.values(result[key]),
+            backgroundColor: `rgba(${rgb}, 0.5)`,
+            borderColor: `rgba(${rgb}, 1)`,
+            borderWidth: 1,
+          };
+
+          sampleData.datasets.push(ds);
+        });
+        return this.sendResponse(req, res, {
+          data: sd,
+          status: 200,
+        });
+      case "other-activity":
+        Object.keys(finalData).forEach((year) => {
+          result[year] = {};
+          Object.keys(finalData[year]).forEach((key) => {
+            result[year][key] = finalData[year][key];
+          });
+        });
+        sampleData.labels = Object.keys(result[Object.keys(result)[0]]).map(
+          (i) => i.toUpperCase()
+        );
+
+        sampleData.datasets = [];
+        Object.keys(result).forEach((key) => {
+          const rgb = this.getRandomRGB();
+          const ds = {
+            label: duration_type === "year" ? key : key.month,
+            data: Object.values(result[key]),
+            backgroundColor: `rgba(${rgb}, 0.5)`,
+            borderColor: `rgba(${rgb}, 1)`,
+            borderWidth: 1,
+          };
+
+          sampleData.datasets.push(ds);
+        });
+        return this.sendResponse(req, res, {
+          data: sd,
+          status: 200,
+        });
+    }
+    return this.sendResponse(req, res, {
+      message: "ok",
+      status: 200,
+    });
+  };
 
   comparision = async (req, res) => {
     try {
@@ -507,6 +733,8 @@ class Compare extends Response {
           return this.createHalqaReport(req, res, sampleData);
         case "maqam":
           return this.createMaqamReport(req, res, sampleData);
+        case "division":
+          return this.createDivisionReport(req, res, sampleData);
       }
     } catch (err) {
       return this.sendResponse(req, res, {

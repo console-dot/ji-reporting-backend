@@ -59,15 +59,15 @@ class Halqa extends Response {
       }
       const halqaData = await HalqaModel.find(options).populate("parentId");
       // Dynamically populate based on parentType
-      for (const doc of halqaData) {
-        const method = getPopulateMethod(doc?.parentType);
-        if (method) {
-          await HalqaModel.populate(doc, {
-            path: "parentId",
-            populate: method,
-          });
-        }
-      }
+      // for (const doc of halqaData) {
+      //   const method = getPopulateMethod(doc?.parentType);
+      //   if (method) {
+      //     await HalqaModel.populate(doc, {
+      //       path: "parentId",
+      //       populate: method,
+      //     });
+      //   }
+      // }
 
       return this.sendResponse(req, res, { data: halqaData, status: 200 });
     } catch (err) {
