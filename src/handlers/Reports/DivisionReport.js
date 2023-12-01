@@ -1,4 +1,4 @@
-const { decode } = require('jsonwebtoken');
+const { decode } = require("jsonwebtoken");
 const {
   WorkerInfoModel,
   DivisionReportModel,
@@ -10,10 +10,10 @@ const {
   MaqamDivisionLibraryModel,
   PaighamDigestModel,
   RozShabBedariModel,
-} = require('../../model/reports');
-const { months, getRoleFlow } = require('../../utils');
-const Response = require('../Response');
-const { UserModel } = require('../../model');
+} = require("../../model/reports");
+const { months, getRoleFlow } = require("../../utils");
+const Response = require("../Response");
+const { UserModel } = require("../../model");
 
 const isDataComplete = ({
   month,
@@ -45,7 +45,6 @@ const isDataComplete = ({
   paighamEvent,
   dawatiWafud,
   rawabitParties,
-  hadithCircle,
   nazimSalah,
   shabBedari,
   anyOther,
@@ -95,7 +94,6 @@ const isDataComplete = ({
     !paighamEvent ||
     !dawatiWafud ||
     !rawabitParties ||
-    !hadithCircle ||
     !nazimSalah ||
     !shabBedari ||
     !anyOther ||
@@ -126,16 +124,16 @@ class DivisionReport extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
-      const decoded = decode(token.split(' ')[1]);
+      const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      if (user?.nazim !== 'division') {
+      if (user?.nazim !== "division") {
         return this.sendResponse(req, res, {
-          message: 'Access denied',
+          message: "Access denied",
           status: 401,
         });
       }
@@ -170,7 +168,6 @@ class DivisionReport extends Response {
         paighamEvent,
         dawatiWafud,
         rawabitParties,
-        hadithCircle,
         nazimSalah,
         shabBedari,
         anyOther,
@@ -193,7 +190,7 @@ class DivisionReport extends Response {
       } = req.body;
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
-          message: 'All fields are required',
+          message: "All fields are required",
           status: 400,
         });
       }
@@ -254,7 +251,6 @@ class DivisionReport extends Response {
       const newOtherActivity = new OtherActivitiesModel({
         dawatiWafud,
         rawabitParties,
-        hadithCircle,
         nazimSalah,
         shabBedari,
         anyOther,
@@ -309,13 +305,13 @@ class DivisionReport extends Response {
       });
       await newDivisionReport.save();
       return this.sendResponse(req, res, {
-        message: 'Division Report Added',
+        message: "Division Report Added",
         status: 201,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -325,52 +321,52 @@ class DivisionReport extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
-      const decoded = decode(token.split(' ')[1]);
+      const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      if (user?.nazim !== 'province') {
+      if (user?.nazim !== "province") {
         reports = await DivisionReportModel.find({
           divisionAreaId: accessList,
         }).populate([
-          { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
-          { path: 'divisionAreaId', populate: { path: 'province' } },
-          { path: 'maqamTanzeemId' },
-          { path: 'wiId' },
-          { path: 'divisionActivityId' },
-          { path: 'mentionedActivityId' },
-          { path: 'otherActivityId' },
-          { path: 'tdId' },
-          { path: 'maqamDivisionLibId' },
-          { path: 'paighamDigestId' },
-          { path: 'rsdId' },
+          { path: "userId", select: ["_id", "email", "name", "age"] },
+          { path: "divisionAreaId", populate: { path: "province" } },
+          { path: "maqamTanzeemId" },
+          { path: "wiId" },
+          { path: "divisionActivityId" },
+          { path: "mentionedActivityId" },
+          { path: "otherActivityId" },
+          { path: "tdId" },
+          { path: "maqamDivisionLibId" },
+          { path: "paighamDigestId" },
+          { path: "rsdId" },
         ]);
       } else {
         reports = await DivisionReportModel.find().populate([
-          { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
-          { path: 'divisionAreaId', populate: { path: 'province' } },
-          { path: 'maqamTanzeemId' },
-          { path: 'wiId' },
-          { path: 'divisionActivityId' },
-          { path: 'mentionedActivityId' },
-          { path: 'otherActivityId' },
-          { path: 'tdId' },
-          { path: 'maqamDivisionLibId' },
-          { path: 'paighamDigestId' },
-          { path: 'rsdId' },
+          { path: "userId", select: ["_id", "email", "name", "age"] },
+          { path: "divisionAreaId", populate: { path: "province" } },
+          { path: "maqamTanzeemId" },
+          { path: "wiId" },
+          { path: "divisionActivityId" },
+          { path: "mentionedActivityId" },
+          { path: "otherActivityId" },
+          { path: "tdId" },
+          { path: "maqamDivisionLibId" },
+          { path: "paighamDigestId" },
+          { path: "rsdId" },
         ]);
       }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -380,49 +376,49 @@ class DivisionReport extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
       const _id = req.params.id;
       if (!_id) {
         return this.sendResponse(req, res, {
-          message: 'Id is required',
+          message: "Id is required",
           status: 404,
         });
       }
-      const decoded = decode(token.split(' ')[1]);
+      const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       const { divisionAreaId } = await DivisionReportModel.findOne({
         _id,
-      }).select('divisionAreaId');
+      }).select("divisionAreaId");
       if (!accessList.includes(divisionAreaId.toString())) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
       const reports = await DivisionReportModel.findOne({ _id }).populate([
-        { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
-        { path: 'divisionAreaId', populate: { path: 'province' } },
-        { path: 'maqamTanzeemId' },
-        { path: 'wiId' },
-        { path: 'divisionActivityId' },
-        { path: 'mentionedActivityId' },
-        { path: 'otherActivityId' },
-        { path: 'tdId' },
-        { path: 'maqamDivisionLibId' },
-        { path: 'paighamDigestId' },
-        { path: 'rsdId' },
+        { path: "userId", select: ["_id", "email", "name", "age"] },
+        { path: "divisionAreaId", populate: { path: "province" } },
+        { path: "maqamTanzeemId" },
+        { path: "wiId" },
+        { path: "divisionActivityId" },
+        { path: "mentionedActivityId" },
+        { path: "otherActivityId" },
+        { path: "tdId" },
+        { path: "maqamDivisionLibId" },
+        { path: "paighamDigestId" },
+        { path: "rsdId" },
       ]);
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -432,69 +428,197 @@ class DivisionReport extends Response {
     try {
       const token = req.headers.authorization;
       const _id = req.params.id;
+
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
+
       if (!_id) {
         return this.sendResponse(req, res, {
-          message: 'Id is required',
+          message: "Id is required",
           status: 404,
         });
       }
-      const decoded = decode(token.split(' ')[1]);
+
+      const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const dataToUpdate = req.body;
+
       if (!isDataComplete(dataToUpdate)) {
         return this.sendResponse(req, res, {
-          message: 'All fields are required',
+          message: "All fields are required",
           status: 400,
         });
       }
+
       const isExist = await DivisionReportModel.findOne({ _id });
+
       if (!isExist) {
         return this.sendResponse(req, res, {
-          message: 'Report not found',
+          message: "Report not found",
           status: 404,
         });
       }
+
       if (isExist?.userId.toString() !== userId) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
+
       const startDate = new Date(isExist?.createdAt);
       const currentDate = new Date();
       const difference = currentDate - startDate;
       const millisecondsPerDay = 1000 * 60 * 60 * 24;
       const daysDifference = Math.floor(difference / millisecondsPerDay);
+
       if (daysDifference >= 5) {
         return this.sendResponse(req, res, {
-          message: 'Cannot update after 5 days',
+          message: "Cannot update after 5 days",
           status: 400,
         });
       }
 
-      const updated = await DivisionReportModel.updateOne(
+      // Update referenced models
+      const refsToUpdate = [
+        "maqamTanzeemId",
+        "wiId",
+        "divisionActivityId",
+        "mentionedActivityId",
+        "maqamDivisionLibId",
+        "paighamDigestId",
+        "rsdId",
+        "tdId",
+        "otherActivityId",
+      ];
+
+      const obj = {
+        maqamTanzeemId: [
+          "rehaishHalqay",
+          "taleemHalqay",
+          "totalHalqay",
+          "subRehaishHalqay",
+          "subTaleemHalqay",
+          "subTotalHalqay",
+          "busmSchoolUnits",
+          "busmRehaishUnits",
+          "busmTotalUnits",
+        ],
+        wiId: [
+          "arkan",
+          "umeedWaran",
+          "rafaqa",
+          "karkunan",
+          "shaheen",
+          "members",
+        ],
+        divisionActivityId: [
+          "studyCircle",
+          "ijtNazmeen",
+          "ijtUmeedwaran",
+          "sadurMeeting",
+        ],
+        mentionedActivityId: [
+          "ijtRafaqa",
+          "studyCircle",
+          "ijtKarkunan",
+          "darseQuran",
+          "shaheenMeeting",
+          "paighamEvent",
+        ],
+        maqamDivisionLibId: [
+          "totalLibraries",
+          "totalBooks",
+          "totalIncrease",
+          "totalDecrease",
+          "totalBookRent",
+        ],
+        paighamDigestId: ["totalReceived", "totalSold"],
+        rsdId: ["umeedwaranFilled", "rafaqaFilled"],
+        tdId: [
+          "registered",
+          "commonLiteratureDistribution",
+          "commonStudentMeetings",
+          "literatureDistribution",
+          "meetings",
+          "current",
+          "rawabitDecided",
+        ],
+        otherActivityId: [
+          "anyOther",
+          "shabBedari",
+          "nazimSalah",
+          "hadithCircle",
+          "rawabitParties",
+          "dawatiWafud",
+        ],
+      };
+
+      const returnData = (arr) => {
+        const rs = {};
+        arr.forEach((element) => {
+          rs[element] = dataToUpdate[element];
+        });
+
+        return rs;
+      };
+
+      const returnModel = (i) => {
+        switch (i) {
+          case "maqamTanzeemId":
+            return MaqamTanzeemModel;
+          case "wiId":
+            return WorkerInfoModel;
+          case "divisionActivityId":
+            return DivisionActivitiesModel;
+          case "mentionedActivityId":
+            return MentionedActivitiesModel;
+          case "maqamDivisionLibId":
+            return MaqamDivisionLibraryModel;
+          case "paighamDigestId":
+            return PaighamDigestModel;
+          case "rsdId":
+            return RozShabBedariModel;
+          case "tdId":
+            return ToseeDawatModel;
+          case "otherActivityId":
+            return OtherActivitiesModel;
+          default:
+            return null;
+        }
+      };
+
+      for (let i = 0; i < refsToUpdate.length; i++) {
+        await returnModel(refsToUpdate[i]).updateOne(
+          { _id: isExist?.[refsToUpdate[i]] },
+          { $set: returnData(obj[refsToUpdate[i]]) }
+        );
+      }
+
+      // Update the DivisionReportModel
+      const updatedDivisionReport = await DivisionReportModel.updateOne(
         { _id },
         { $set: dataToUpdate }
       );
-      if (updated?.modifiedCount > 0) {
+
+      if (updatedDivisionReport?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
-          message: 'Report updated',
+          message: "Report updated successfully",
         });
       }
+
       return this.sendResponse(req, res, {
-        message: 'Nothing to update',
+        message: "Nothing to update",
         status: 500,
       });
     } catch (err) {
-      console.log(err);
+      console.error(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
