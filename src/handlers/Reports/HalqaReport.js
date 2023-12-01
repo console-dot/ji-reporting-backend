@@ -423,6 +423,7 @@ class HalqaReport extends Response {
           "karkunan",
           "shaheen",
           "members",
+          "registered",
         ],
         halqaActivityId: [
           "ijtRafaqa",
@@ -451,10 +452,22 @@ class HalqaReport extends Response {
         ],
       };
 
-      const returnData = (arr) => {
+      const returnData = (arr, key) => {
         const rs = {};
         arr.forEach((element) => {
-          rs[element] = dataToUpdate[element];
+          if (element === "registered") {
+            if (key === "tdId") {
+              rs[element] = dataToUpdate["registeredTosee"] ? true : false;
+            }
+            if (key === "wiId") {
+              rs[element] = dataToUpdate["registeredWorker"] ? true : false;
+            }
+            if (key === "halqaLibId") {
+              rs[element] = dataToUpdate["registeredLibrary"] ? true : false;
+            }
+          } else {
+            rs[element] = dataToUpdate[element];
+          }
         });
 
         return rs;
@@ -482,12 +495,12 @@ class HalqaReport extends Response {
       for (let i = 0; i < refsToUpdate.length; i++) {
         await returnModel(refsToUpdate[i]).updateOne(
           { _id: isExist?.[refsToUpdate[i]] },
-          { $set: returnData(obj[refsToUpdate[i]]) }
+          { $set: returnData(obj[refsToUpdate[i]], refsToUpdate[i]) }
         );
       }
 
       // Update the DivisionReportModel
-      const updatedHalqaReport = await DivisionReportModel.updateOne(
+      const updatedHalqaReport = await HalqaReportModel.updateOne(
         { _id },
         { $set: dataToUpdate }
       );

@@ -478,10 +478,144 @@ class MaqamReport extends Response {
         });
       }
 
-      const updated = await MaqamReportModel.updateOne(
+      // Update referenced models
+      const refsToUpdate = [
+        "maqamTanzeemId",
+        "wiId",
+        "maqamActivityId",
+        "mentionedActivityId",
+        "otherActivityId",
+        "tdId",
+        "maqamDivisionLibId",
+        "paighamDigestId",
+        "rsdId",
+      ];
+
+      const obj = {
+        maqamTanzeemId: [
+          "rehaishHalqay",
+          "taleemHalqay",
+          "totalHalqay",
+          "subRehaishHalqay",
+          "subTaleemHalqay",
+          "subTotalHalqay",
+          "busmSchoolUnits",
+          "busmRehaishUnits",
+          "busmTotalUnits",
+        ],
+        wiId: [
+          "arkan",
+          "umeedWaran",
+          "rafaqa",
+          "karkunan",
+          "shaheen",
+          "members",
+          "registered",
+        ],
+        maqamActivityId: [
+          "ijtArkan",
+          "studyCircle",
+          "ijtNazmeen",
+          "ijtUmeedwaran",
+          "sadurMeeting",
+        ],
+        mentionedActivityId: [
+          "ijtRafaqa",
+          "studyCircle",
+          "ijtKarkunan",
+          "darseQuran",
+          "shaheenMeeting",
+          "paighamEvent",
+        ],
+        maqamDivisionLibId: [
+          "totalLibraries",
+          "totalBooks",
+          "totalIncrease",
+          "totalDecrease",
+          "totalBookRent",
+        ],
+        paighamDigestId: ["totalReceived", "totalSold"],
+        rsdId: ["umeedwaranFilled", "rafaqaFilled"],
+        tdId: [
+          "registered",
+          "commonLiteratureDistribution",
+          "commonStudentMeetings",
+          "literatureDistribution",
+          "meetings",
+          "current",
+          "rawabitDecided",
+        ],
+        otherActivityId: [
+          "anyOther",
+          "shabBedari",
+          "nazimSalah",
+          "hadithCircle",
+          "rawabitParties",
+          "dawatiWafud",
+        ],
+      };
+
+      const returnData = (arr, key) => {
+        const rs = {};
+        arr.forEach((element) => {
+          if (element === "registered") {
+            if (key === "tdId") {
+              rs[element] = dataToUpdate["registeredTosee"] ? true : false;
+            }
+            if (key === "wiId") {
+              rs[element] = dataToUpdate["registeredWorker"] ? true : false;
+            }
+          } else {
+            rs[element] = dataToUpdate[element];
+          }
+        });
+
+        return rs;
+      };
+
+      const returnModel = (i) => {
+        switch (i) {
+          case "maqamTanzeemId":
+            return MaqamTanzeemModel;
+          case "wiId":
+            return WorkerInfoModel;
+          case "maqamActivityId":
+            return MaqamActivitiesModel;
+          case "mentionedActivityId":
+            return MentionedActivitiesModel;
+          case "maqamDivisionLibId":
+            return MaqamDivisionLibraryModel;
+          case "paighamDigestId":
+            return PaighamDigestModel;
+          case "rsdId":
+            return RozShabBedariModel;
+          case "tdId":
+            return ToseeDawatModel;
+          case "otherActivityId":
+            return OtherActivitiesModel;
+          default:
+            return null;
+        }
+      };
+
+      for (let i = 0; i < refsToUpdate.length; i++) {
+        await returnModel(refsToUpdate[i]).updateOne(
+          { _id: isExist?.[refsToUpdate[i]] },
+          { $set: returnData(obj[refsToUpdate[i]], refsToUpdate[i]) }
+        );
+      }
+
+      // Update the DivisionReportModel
+      const updatedMaqamReport = await MaqamReportModel.updateOne(
         { _id },
         { $set: dataToUpdate }
       );
+
+      if (updatedMaqamReport?.modifiedCount > 0) {
+        return this.sendResponse(req, res, {
+          message: "Report updated successfully",
+        });
+      }
       if (updated?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
           message: "Report updated",
