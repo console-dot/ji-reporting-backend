@@ -220,7 +220,7 @@ class HalqaReport extends Response {
         increase,
         decrease,
         bookRent,
-        registered: registeredLibrary,
+        registered: registeredLibrary ? true : false,
       });
       const newRSD = new RozShabBedariModel({
         umeedwaranFilled,
@@ -405,11 +405,93 @@ class HalqaReport extends Response {
         });
       }
 
-      const updated = await HalqaReportModel.updateOne(
+      // Update referenced models
+      const refsToUpdate = [
+        "wiId",
+        "halqaActivityId",
+        "halqaLibId",
+        "rsdId",
+        "tdId",
+        "otherActivityId",
+      ];
+
+      const obj = {
+        wiId: [
+          "arkan",
+          "umeedWaran",
+          "rafaqa",
+          "karkunan",
+          "shaheen",
+          "members",
+        ],
+        halqaActivityId: [
+          "ijtRafaqa",
+          "ijtKarkunan",
+          "studyCircle",
+          "darseQuran",
+        ],
+        halqaLibId: ["books", "increase", "decrease", "bookRent", "registered"],
+        rsdId: ["umeedwaranFilled", "rafaqaFilled"],
+        tdId: [
+          "registered",
+          "commonLiteratureDistribution",
+          "commonStudentMeetings",
+          "literatureDistribution",
+          "meetings",
+          "current",
+          "rawabitDecided",
+        ],
+        otherActivityId: [
+          "anyOther",
+          "shabBedari",
+          "nazimSalah",
+          "hadithCircle",
+          "rawabitParties",
+          "dawatiWafud",
+        ],
+      };
+
+      const returnData = (arr) => {
+        const rs = {};
+        arr.forEach((element) => {
+          rs[element] = dataToUpdate[element];
+        });
+
+        return rs;
+      };
+
+      const returnModel = (i) => {
+        switch (i) {
+          case "wiId":
+            return WorkerInfoModel;
+          case "halqaActivityId":
+            return HalqaActivityModel;
+          case "halqaLibId":
+            return HalqaLibraryModel;
+          case "rsdId":
+            return RozShabBedariModel;
+          case "tdId":
+            return ToseeDawatModel;
+          case "otherActivityId":
+            return OtherActivitiesModel;
+          default:
+            return null;
+        }
+      };
+
+      for (let i = 0; i < refsToUpdate.length; i++) {
+        await returnModel(refsToUpdate[i]).updateOne(
+          { _id: isExist?.[refsToUpdate[i]] },
+          { $set: returnData(obj[refsToUpdate[i]]) }
+        );
+      }
+
+      // Update the DivisionReportModel
+      const updatedHalqaReport = await DivisionReportModel.updateOne(
         { _id },
         { $set: dataToUpdate }
       );
-      if (updated?.modifiedCount > 0) {
+      if (updatedHalqaReport?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
           message: "Report updated",
         });

@@ -428,45 +428,54 @@ class DivisionReport extends Response {
     try {
       const token = req.headers.authorization;
       const _id = req.params.id;
+
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
           status: 401,
         });
       }
+
       if (!_id) {
         return this.sendResponse(req, res, {
           message: "Id is required",
           status: 404,
         });
       }
+
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const dataToUpdate = req.body;
+
       if (!isDataComplete(dataToUpdate)) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
           status: 400,
         });
       }
+
       const isExist = await DivisionReportModel.findOne({ _id });
+
       if (!isExist) {
         return this.sendResponse(req, res, {
           message: "Report not found",
           status: 404,
         });
       }
+
       if (isExist?.userId.toString() !== userId) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
           status: 401,
         });
       }
+
       const startDate = new Date(isExist?.createdAt);
       const currentDate = new Date();
       const difference = currentDate - startDate;
       const millisecondsPerDay = 1000 * 60 * 60 * 24;
       const daysDifference = Math.floor(difference / millisecondsPerDay);
+
       if (daysDifference >= 5) {
         return this.sendResponse(req, res, {
           message: "Cannot update after 5 days",
@@ -474,21 +483,140 @@ class DivisionReport extends Response {
         });
       }
 
-      const updated = await DivisionReportModel.updateOne(
+      // Update referenced models
+      const refsToUpdate = [
+        "maqamTanzeemId",
+        "wiId",
+        "divisionActivityId",
+        "mentionedActivityId",
+        "maqamDivisionLibId",
+        "paighamDigestId",
+        "rsdId",
+        "tdId",
+        "otherActivityId",
+      ];
+
+      const obj = {
+        maqamTanzeemId: [
+          "rehaishHalqay",
+          "taleemHalqay",
+          "totalHalqay",
+          "subRehaishHalqay",
+          "subTaleemHalqay",
+          "subTotalHalqay",
+          "busmSchoolUnits",
+          "busmRehaishUnits",
+          "busmTotalUnits",
+        ],
+        wiId: [
+          "arkan",
+          "umeedWaran",
+          "rafaqa",
+          "karkunan",
+          "shaheen",
+          "members",
+        ],
+        divisionActivityId: [
+          "studyCircle",
+          "ijtNazmeen",
+          "ijtUmeedwaran",
+          "sadurMeeting",
+        ],
+        mentionedActivityId: [
+          "ijtRafaqa",
+          "studyCircle",
+          "ijtKarkunan",
+          "darseQuran",
+          "shaheenMeeting",
+          "paighamEvent",
+        ],
+        maqamDivisionLibId: [
+          "totalLibraries",
+          "totalBooks",
+          "totalIncrease",
+          "totalDecrease",
+          "totalBookRent",
+        ],
+        paighamDigestId: ["totalReceived", "totalSold"],
+        rsdId: ["umeedwaranFilled", "rafaqaFilled"],
+        tdId: [
+          "registered",
+          "commonLiteratureDistribution",
+          "commonStudentMeetings",
+          "literatureDistribution",
+          "meetings",
+          "current",
+          "rawabitDecided",
+        ],
+        otherActivityId: [
+          "anyOther",
+          "shabBedari",
+          "nazimSalah",
+          "hadithCircle",
+          "rawabitParties",
+          "dawatiWafud",
+        ],
+      };
+
+      const returnData = (arr) => {
+        const rs = {};
+        arr.forEach((element) => {
+          rs[element] = dataToUpdate[element];
+        });
+
+        return rs;
+      };
+
+      const returnModel = (i) => {
+        switch (i) {
+          case "maqamTanzeemId":
+            return MaqamTanzeemModel;
+          case "wiId":
+            return WorkerInfoModel;
+          case "divisionActivityId":
+            return DivisionActivitiesModel;
+          case "mentionedActivityId":
+            return MentionedActivitiesModel;
+          case "maqamDivisionLibId":
+            return MaqamDivisionLibraryModel;
+          case "paighamDigestId":
+            return PaighamDigestModel;
+          case "rsdId":
+            return RozShabBedariModel;
+          case "tdId":
+            return ToseeDawatModel;
+          case "otherActivityId":
+            return OtherActivitiesModel;
+          default:
+            return null;
+        }
+      };
+
+      for (let i = 0; i < refsToUpdate.length; i++) {
+        await returnModel(refsToUpdate[i]).updateOne(
+          { _id: isExist?.[refsToUpdate[i]] },
+          { $set: returnData(obj[refsToUpdate[i]]) }
+        );
+      }
+
+      // Update the DivisionReportModel
+      const updatedDivisionReport = await DivisionReportModel.updateOne(
         { _id },
         { $set: dataToUpdate }
       );
-      if (updated?.modifiedCount > 0) {
+
+      if (updatedDivisionReport?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
-          message: "Report updated",
+          message: "Report updated successfully",
         });
       }
+
       return this.sendResponse(req, res, {
         message: "Nothing to update",
         status: 500,
       });
     } catch (err) {
-      console.log(err);
+      console.error(err);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
         status: 500,
