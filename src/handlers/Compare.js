@@ -2,23 +2,23 @@ const {
   HalqaReportModel,
   MaqamReportModel,
   DivisionReportModel,
-} = require('../model/reports');
-const Response = require('./Response');
+} = require("../model/reports");
+const Response = require("./Response");
 
 const months = [
   null,
-  'Jan',
-  'Feb',
-  'Mar',
-  'Apr',
-  'May',
-  'June',
-  'July',
-  'Aug',
-  'Sep',
-  'Oct',
-  'Nov',
-  'Dec',
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "June",
+  "July",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
 ];
 
 class Compare extends Response {
@@ -33,14 +33,14 @@ class Compare extends Response {
     const { property } = req.params;
     const { duration, duration_type } = req.body;
     const fields = {
-      activity: 'halqaActivityId',
-      'other-activity': 'otherActivityId',
-      library: 'halqaLibId',
-      'ifradi-kuwat': 'wiId',
+      activity: "halqaActivityId",
+      "other-activity": "otherActivityId",
+      library: "halqaLibId",
+      "ifradi-kuwat": "wiId",
     };
     const db_data = {};
     switch (duration_type) {
-      case 'year':
+      case "year":
         for (let i = 0; i < duration.length; i++) {
           const temp = await HalqaReportModel.find(
             {
@@ -54,7 +54,7 @@ class Compare extends Response {
           db_data[duration[i]] = temp;
         }
         break;
-      case 'month':
+      case "month":
         for (let i = 0; i < duration.length; i++) {
           const temp = await HalqaReportModel.find(
             {
@@ -82,7 +82,7 @@ class Compare extends Response {
         delete accessor.__v;
         Object.keys(accessor).forEach((access_key) => {
           if (t_data?.[access_key]) {
-            if (typeof accessor?.[access_key] === 'object') {
+            if (typeof accessor?.[access_key] === "object") {
               Object.keys(accessor?.[access_key]?._doc).forEach((i) => {
                 t_data[access_key][i] += accessor?.[access_key]?.[i];
               });
@@ -99,7 +99,7 @@ class Compare extends Response {
     const result = {};
     const sd = sampleData;
     switch (property) {
-      case 'ifradi-kuwat':
+      case "ifradi-kuwat":
         Object.keys(finalData).forEach((year) => {
           result[year] = {};
           Object.keys(finalData[year]).forEach((key) => {
@@ -130,7 +130,7 @@ class Compare extends Response {
           data: sd,
           status: 200,
         });
-      case 'activity':
+      case "activity":
         Object.keys(finalData).forEach((year) => {
           result[year] = {};
           Object.keys(finalData[year]).forEach((key) => {
@@ -158,7 +158,7 @@ class Compare extends Response {
           data: sd,
           status: 200,
         });
-      case 'library':
+      case "library":
         Object.keys(finalData).forEach((year) => {
           result[year] = {};
           Object.keys(finalData[year]).forEach((key) => {
@@ -186,7 +186,7 @@ class Compare extends Response {
           data: sd,
           status: 200,
         });
-      case 'other-activity':
+      case "other-activity":
         Object.keys(finalData).forEach((year) => {
           result[year] = {};
           Object.keys(finalData[year]).forEach((key) => {
@@ -201,7 +201,7 @@ class Compare extends Response {
         Object.keys(result).forEach((key) => {
           const rgb = this.getRandomRGB();
           const ds = {
-            label: duration_type === 'year' ? key : key.month,
+            label: duration_type === "year" ? key : key.month,
             data: Object.values(result[key]),
             backgroundColor: `rgba(${rgb}, 0.5)`,
             borderColor: `rgba(${rgb}, 1)`,
@@ -216,7 +216,7 @@ class Compare extends Response {
         });
     }
     return this.sendResponse(req, res, {
-      message: 'ok',
+      message: "ok",
       status: 200,
     });
   };
@@ -224,15 +224,15 @@ class Compare extends Response {
     const { property } = req.params;
     const { duration, duration_type } = req.body;
     const fields = {
-      activity: 'maqamActivityId',
-      'other-activity': 'otherActivityId',
-      library: 'maqamDivisionLibId',
-      'ifradi-kuwat': 'wiId',
-      tanzeem: 'maqamTanzeemId',
+      activity: "maqamActivityId",
+      "other-activity": "otherActivityId",
+      library: "maqamDivisionLibId",
+      "ifradi-kuwat": "wiId",
+      tanzeem: "maqamTanzeemId",
     };
     const db_data = {};
     switch (duration_type) {
-      case 'year':
+      case "year":
         for (let i = 0; i < duration.length; i++) {
           const temp = await MaqamReportModel.find(
             {
@@ -246,7 +246,7 @@ class Compare extends Response {
           db_data[duration[i]] = temp;
         }
         break;
-      case 'month':
+      case "month":
         for (let i = 0; i < duration.length; i++) {
           const temp = await MaqamReportModel.find(
             {
@@ -274,7 +274,7 @@ class Compare extends Response {
         delete accessor.__v;
         Object.keys(accessor).forEach((access_key) => {
           if (t_data?.[access_key]) {
-            if (typeof accessor?.[access_key] === 'object') {
+            if (typeof accessor?.[access_key] === "object") {
               Object.keys(accessor?.[access_key]?._doc).forEach((i) => {
                 t_data[access_key][i] += accessor?.[access_key]?.[i];
               });
@@ -291,7 +291,7 @@ class Compare extends Response {
     const result = {};
     const sd = sampleData;
     switch (property) {
-      case 'ifradi-kuwat':
+      case "ifradi-kuwat":
         Object.keys(finalData).forEach((year) => {
           result[year] = {};
           Object.keys(finalData[year]).forEach((key) => {
@@ -322,7 +322,7 @@ class Compare extends Response {
           data: sd,
           status: 200,
         });
-      case 'activity':
+      case "activity":
         Object.keys(finalData).forEach((year) => {
           result[year] = {};
           Object.keys(finalData[year]).forEach((key) => {
@@ -349,7 +349,7 @@ class Compare extends Response {
           data: sd,
           status: 200,
         });
-      case 'library':
+      case "library":
         Object.keys(finalData).forEach((year) => {
           result[year] = {};
           Object.keys(finalData[year]).forEach((key) => {
@@ -377,7 +377,7 @@ class Compare extends Response {
           data: sd,
           status: 200,
         });
-      case 'tanzeem':
+      case "tanzeem":
         Object.keys(finalData).forEach((year) => {
           result[year] = {};
           Object.keys(finalData[year]).forEach((key) => {
@@ -408,7 +408,7 @@ class Compare extends Response {
           data: sd,
           status: 200,
         });
-      case 'other-activity':
+      case "other-activity":
         Object.keys(finalData).forEach((year) => {
           result[year] = {};
           Object.keys(finalData[year]).forEach((key) => {
@@ -423,7 +423,7 @@ class Compare extends Response {
         Object.keys(result).forEach((key) => {
           const rgb = this.getRandomRGB();
           const ds = {
-            label: duration_type === 'year' ? key : key.month,
+            label: duration_type === "year" ? key : key.month,
             data: Object.values(result[key]),
             backgroundColor: `rgba(${rgb}, 0.5)`,
             borderColor: `rgba(${rgb}, 1)`,
@@ -438,7 +438,7 @@ class Compare extends Response {
         });
     }
     return this.sendResponse(req, res, {
-      message: 'ok',
+      message: "ok",
       status: 200,
     });
   };
@@ -446,15 +446,15 @@ class Compare extends Response {
     const { property } = req.params;
     const { duration, duration_type } = req.body;
     const fields = {
-      activity: 'maqamActivityId',
-      'other-activity': 'otherActivityId',
-      library: 'maqamDivisionLibId',
-      'ifradi-kuwat': 'wiId',
-      tanzeem: 'maqamTanzeemId',
+      activity: "maqamActivityId",
+      "other-activity": "otherActivityId",
+      library: "maqamDivisionLibId",
+      "ifradi-kuwat": "wiId",
+      tanzeem: "maqamTanzeemId",
     };
     const db_data = {};
     switch (duration_type) {
-      case 'year':
+      case "year":
         for (let i = 0; i < duration.length; i++) {
           const temp = await DivisionReportModel.find(
             {
@@ -468,7 +468,7 @@ class Compare extends Response {
           db_data[duration[i]] = temp;
         }
         break;
-      case 'month':
+      case "month":
         for (let i = 0; i < duration.length; i++) {
           const temp = await DivisionReportModel.find(
             {
@@ -496,7 +496,7 @@ class Compare extends Response {
         delete accessor.__v;
         Object.keys(accessor).forEach((access_key) => {
           if (t_data?.[access_key]) {
-            if (typeof accessor?.[access_key] === 'object') {
+            if (typeof accessor?.[access_key] === "object") {
               Object.keys(accessor?.[access_key]?._doc).forEach((i) => {
                 t_data[access_key][i] += accessor?.[access_key]?.[i];
               });
@@ -513,7 +513,7 @@ class Compare extends Response {
     const result = {};
     const sd = sampleData;
     switch (property) {
-      case 'ifradi-kuwat':
+      case "ifradi-kuwat":
         Object.keys(finalData).forEach((year) => {
           result[year] = {};
           Object.keys(finalData[year]).forEach((key) => {
@@ -544,7 +544,7 @@ class Compare extends Response {
           data: sd,
           status: 200,
         });
-      case 'activity':
+      case "activity":
         Object.keys(finalData).forEach((year) => {
           result[year] = {};
           Object.keys(finalData[year]).forEach((key) => {
@@ -571,7 +571,7 @@ class Compare extends Response {
           data: sd,
           status: 200,
         });
-      case 'library':
+      case "library":
         Object.keys(finalData).forEach((year) => {
           result[year] = {};
           Object.keys(finalData[year]).forEach((key) => {
@@ -599,7 +599,7 @@ class Compare extends Response {
           data: sd,
           status: 200,
         });
-      case 'tanzeem':
+      case "tanzeem":
         Object.keys(finalData).forEach((year) => {
           result[year] = {};
           Object.keys(finalData[year]).forEach((key) => {
@@ -630,7 +630,7 @@ class Compare extends Response {
           data: sd,
           status: 200,
         });
-      case 'other-activity':
+      case "other-activity":
         Object.keys(finalData).forEach((year) => {
           result[year] = {};
           Object.keys(finalData[year]).forEach((key) => {
@@ -645,7 +645,7 @@ class Compare extends Response {
         Object.keys(result).forEach((key) => {
           const rgb = this.getRandomRGB();
           const ds = {
-            label: duration_type === 'year' ? key : key.month,
+            label: duration_type === "year" ? key : key.month,
             data: Object.values(result[key]),
             backgroundColor: `rgba(${rgb}, 0.5)`,
             borderColor: `rgba(${rgb}, 1)`,
@@ -660,7 +660,7 @@ class Compare extends Response {
         });
     }
     return this.sendResponse(req, res, {
-      message: 'ok',
+      message: "ok",
       status: 200,
     });
   };
@@ -669,75 +669,76 @@ class Compare extends Response {
     try {
       const { type, property } = req.params;
       const { duration, duration_type } = req.body;
+
       const valid_properties = [
-        'activity',
-        'other-activity',
-        'library',
-        'ifradi-kuwat',
-        'tanzeem',
+        "activity",
+        "other-activity",
+        "library",
+        "ifradi-kuwat",
+        "tanzeem",
       ];
-      console.log(duration_type);
-      const valid_duration_type = ['month', 'year'];
+
+      const valid_duration_type = ["month", "year"];
       const sampleData = {
         labels: duration,
         datasets: [
           {
             label: `${duration_type}ly progress`,
             data: [0, 50, 120, 100, 200, 300],
-            backgroundColor: 'rgba(255, 0, 55, 0.5)',
-            borderColor: 'rgba(255, 99, 132, 1)',
+            backgroundColor: "rgba(255, 0, 55, 0.5)",
+            borderColor: "rgba(255, 99, 132, 1)",
             borderWidth: 1,
           },
         ],
       };
       if (!duration_type) {
         return this.sendResponse(req, res, {
-          message: 'Duration type is required',
+          message: "Duration type is required",
           status: 400,
         });
       }
       if (!valid_duration_type.includes(duration_type)) {
         return this.sendResponse(req, res, {
-          message: 'Duration type not valid. Valid types are: month or year',
+          message: "Duration type not valid. Valid types are: month or year",
           status: 400,
         });
       }
       if (!property) {
         return this.sendResponse(req, res, {
-          message: 'Property is required',
+          message: "Property is required",
           status: 400,
         });
       }
       if (!valid_properties.includes(property)) {
         return this.sendResponse(req, res, {
           message:
-            'Property type not valid. Valid types are: activity, other-activity, library, ifradi-kuwat',
+            "Property type not valid. Valid types are: activity, other-activity, library, ifradi-kuwat",
           status: 400,
         });
       }
       if (!duration) {
         return this.sendResponse(req, res, {
-          message: 'Duration is required',
+          message: "Duration is required",
           status: 400,
         });
       }
       if (duration?.length < 2) {
         return this.sendResponse(req, res, {
-          message: 'Atleast 2 duration periods are required',
+          message: "Atleast 2 duration periods are required",
           status: 400,
         });
       }
       switch (type.toLowerCase()) {
-        case 'halqa':
+        case "halqa":
           return this.createHalqaReport(req, res, sampleData);
-        case 'maqam':
+        case "maqam":
           return this.createMaqamReport(req, res, sampleData);
-        case 'division':
+        case "division":
           return this.createDivisionReport(req, res, sampleData);
       }
     } catch (err) {
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
