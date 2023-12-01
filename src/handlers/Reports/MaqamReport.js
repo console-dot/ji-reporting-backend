@@ -46,7 +46,6 @@ const isDataComplete = ({
   paighamEvent,
   dawatiWafud,
   rawabitParties,
-  hadithCircle,
   nazimSalah,
   shabBedari,
   anyOther,
@@ -97,7 +96,6 @@ const isDataComplete = ({
     !paighamEvent ||
     !dawatiWafud ||
     !rawabitParties ||
-    !hadithCircle ||
     !nazimSalah ||
     !shabBedari ||
     !anyOther ||
@@ -173,7 +171,6 @@ class MaqamReport extends Response {
         paighamEvent,
         dawatiWafud,
         rawabitParties,
-        hadithCircle,
         nazimSalah,
         shabBedari,
         anyOther,
@@ -227,7 +224,7 @@ class MaqamReport extends Response {
         karkunan,
         shaheen,
         members,
-        registered: registeredWorker,
+        registered: registeredWorker ? true : false,
       });
       const newMaqamActivity = new MaqamActivitiesModel({
         ijtArkan,
@@ -258,7 +255,6 @@ class MaqamReport extends Response {
       const newOtherActivity = new OtherActivitiesModel({
         dawatiWafud,
         rawabitParties,
-        hadithCircle,
         nazimSalah,
         shabBedari,
         anyOther,
@@ -268,7 +264,7 @@ class MaqamReport extends Response {
         current,
         meetings,
         literatureDistribution,
-        registered: registeredTosee,
+        registered: registeredTosee ? true : false,
         commonStudentMeetings,
         commonLiteratureDistribution,
       });
