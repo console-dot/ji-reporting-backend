@@ -583,7 +583,10 @@ class User extends Response {
       const decoded = jwt.decode(t);
       if (decoded) {
         const { id } = decoded;
-        const user = await UserModel.findOne({ _id: id }, 'email name age _id');
+        const user = await UserModel.findOne(
+          { _id: id },
+          'email name age _id userAreaId'
+        ).populate({ path: 'userAreaId', refPath: 'userAreaType' });
         return this.sendResponse(req, res, {
           data: user,
           status: 200,

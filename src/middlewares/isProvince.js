@@ -17,7 +17,7 @@ const isProvince = async (req, res, next) => {
     const { nazim } = await UserModel.findOne({
       _id: userId,
     });
-    if (nazim === 'province') {
+    if (['province', 'maqam', 'division'].includes(nazim)) {
       next();
       return;
     }
