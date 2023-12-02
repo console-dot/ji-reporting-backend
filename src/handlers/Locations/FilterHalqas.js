@@ -7,7 +7,9 @@ const {
   TehsilModel,
   HalqaModel,
   MaqamModel,
+  DivisionModel,
 } = require("../../model");
+const { getRoleFlow } = require("../../utils");
 
 class FilterHalqas extends Response {
   getHalqas = async (req, res) => {
@@ -38,7 +40,7 @@ class FilterHalqas extends Response {
         });
       }
 
-      const { userAreaId, userAreaType } = userExist;
+      let { userAreaId, userAreaType } = userExist;
 
       if (userAreaType == "Maqam") {
         const maqam = await MaqamModel.findOne({ _id: userAreaId });
@@ -58,10 +60,15 @@ class FilterHalqas extends Response {
             parentId: tehsil._id,
           });
         });
-        const halqas = await Promise.all(halqaPromises);
-        console.log(allTehsils);
+        const allhalqa = await Promise.all(halqaPromises);
+        const halqas = [].concat(...allhalqa);
         return this.sendResponse(req, res, { data: halqas, status: 200 });
       }
+      userAreaType = userAreaType.toLowerCase();
+      const temp = await getRoleFlow(userAreaId, userAreaType);
+      const temp2 = temp.map((i) => i.toString());
+      const data = await HalqaModel.find({ _id: temp2 });
+      return this.sendResponse(req, res, { data: data, status: 200 });
     } catch (error) {
       console.log(error);
       return this.sendResponse(req, res, {

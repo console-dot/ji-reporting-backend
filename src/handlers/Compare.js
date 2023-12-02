@@ -31,7 +31,7 @@ class Compare extends Response {
   };
   createHalqaReport = async (req, res, sampleData) => {
     const { property } = req.params;
-    const { duration, duration_type } = req.body;
+    const { duration, duration_type, areaId } = req.body;
     const fields = {
       activity: "halqaActivityId",
       "other-activity": "otherActivityId",
@@ -48,6 +48,7 @@ class Compare extends Response {
                 $gte: new Date(duration[i] - 1, 12),
                 $lte: new Date(duration[i], 12),
               },
+              halqaAreaId: areaId,
             },
             fields[property]
           ).populate(fields[property]);
@@ -62,6 +63,7 @@ class Compare extends Response {
                 $gte: new Date(duration[i].year, duration[i].month - 1),
                 $lte: new Date(duration[i].year, duration[i].month),
               },
+              halqaAreaId: areaId,
             },
             fields[property]
           ).populate(fields[property]);
@@ -221,7 +223,7 @@ class Compare extends Response {
     });
   };
   createMaqamReport = async (req, res, sampleData) => {
-    const { property } = req.params;
+    const { property, areaId } = req.params;
     const { duration, duration_type } = req.body;
     const fields = {
       activity: "maqamActivityId",
@@ -240,6 +242,7 @@ class Compare extends Response {
                 $gte: new Date(duration[i] - 1, 12),
                 $lte: new Date(duration[i], 12),
               },
+              maqamAreaId: areaId,
             },
             fields[property]
           ).populate(fields[property]);
@@ -254,6 +257,7 @@ class Compare extends Response {
                 $gte: new Date(duration[i].year, duration[i].month - 1),
                 $lte: new Date(duration[i].year, duration[i].month),
               },
+              maqamAreaId: areaId,
             },
             fields[property]
           ).populate(fields[property]);
@@ -444,7 +448,7 @@ class Compare extends Response {
   };
   createDivisionReport = async (req, res, sampleData) => {
     const { property } = req.params;
-    const { duration, duration_type } = req.body;
+    const { duration, duration_type, areaId } = req.body;
     const fields = {
       activity: "maqamActivityId",
       "other-activity": "otherActivityId",
@@ -462,6 +466,7 @@ class Compare extends Response {
                 $gte: new Date(duration[i] - 1, 12),
                 $lte: new Date(duration[i], 12),
               },
+              divisionAreaId: areaId,
             },
             fields[property]
           ).populate(fields[property]);
@@ -476,6 +481,7 @@ class Compare extends Response {
                 $gte: new Date(duration[i].year, duration[i].month - 1),
                 $lte: new Date(duration[i].year, duration[i].month),
               },
+              divisionAreaId: areaId,
             },
             fields[property]
           ).populate(fields[property]);
