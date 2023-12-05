@@ -338,7 +338,6 @@ class Compare extends Response {
         );
         sampleData.datasets = [];
         Object.keys(result).forEach((key) => {
-          console.log(result[key]);
           const rgb = this.getRandomRGB();
           const ds = {
             label: key,
@@ -450,7 +449,7 @@ class Compare extends Response {
     const { property } = req.params;
     const { duration, duration_type, areaId } = req.body;
     const fields = {
-      activity: "maqamActivityId",
+      activity: "divisionActivityId",
       "other-activity": "otherActivityId",
       library: "maqamDivisionLibId",
       "ifradi-kuwat": "wiId",
@@ -562,7 +561,6 @@ class Compare extends Response {
         );
         sampleData.datasets = [];
         Object.keys(result).forEach((key) => {
-          console.log(result[key]);
           const rgb = this.getRandomRGB();
           const ds = {
             label: key,
@@ -651,7 +649,7 @@ class Compare extends Response {
         Object.keys(result).forEach((key) => {
           const rgb = this.getRandomRGB();
           const ds = {
-            label: duration_type === "year" ? key : key.month,
+            label: key,
             data: Object.values(result[key]),
             backgroundColor: `rgba(${rgb}, 0.5)`,
             borderColor: `rgba(${rgb}, 1)`,
