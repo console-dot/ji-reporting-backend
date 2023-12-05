@@ -673,6 +673,18 @@ class User extends Response {
       });
     }
   };
+  getAllNazim = async (req, res) => {
+    try {
+      const data = await UserModel.find({}, 'email name age');
+      this.sendResponse(req, res, { data, status: 200 });
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: 'Internal Server Error',
+        status: 500,
+      });
+    }
+  };
 }
 
 module.exports = User;
