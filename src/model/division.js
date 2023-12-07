@@ -10,6 +10,10 @@ const division = mongoose.Schema({
     required: true,
     ref: 'Province',
   },
+  disabled: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 const DivisionModel = mongoose.model('Division', division);

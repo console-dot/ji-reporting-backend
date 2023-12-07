@@ -9,5 +9,6 @@ router.get("/", handler.getAll);
 router.get("/:id", handler.getOne);
 router.put("/:id", isProvince, handler.updateOne);
 router.delete("/:id", isProvince, handler.deleteOne);
+router.patch("/disable-location/:id", isProvince, handler.toggleDisable);
 
 module.exports = router;

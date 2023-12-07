@@ -10,6 +10,10 @@ const maqam = mongoose.Schema({
     required: true,
     ref: 'Province',
   },
+  disabled: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 const MaqamModel = mongoose.model("Maqam", maqam);
