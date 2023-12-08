@@ -10,6 +10,10 @@ const district = mongoose.Schema({
     required: true,
     ref: 'Division',
   },
+  disabled: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 const DistrictModel = mongoose.model("District", district);

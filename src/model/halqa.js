@@ -15,6 +15,10 @@ const halqa = mongoose.Schema({
     required: true,
     enum: ['Tehsil', 'Maqam'],
   },
+  disabled: {
+    type: Boolean,
+    default: false,
+  }
 });
 
 const HalqaModel = mongoose.model('Halqa', halqa);

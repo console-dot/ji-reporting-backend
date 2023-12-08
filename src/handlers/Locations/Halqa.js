@@ -164,6 +164,42 @@ class Halqa extends Response {
       });
     }
   };
+  toggleDisable = async (req, res) => {
+    try {
+      const _id = req.params.id;
+      const { disabled } = req.body;
+      const isExist = await HalqaModel.findOne({ _id });
+      if (!isExist) {
+        return this.sendResponse(req, res, {
+          message: "Not found!",
+          status: 404,
+        });
+      }
+      const updatedLocation = await HalqaModel.updateOne(
+        { _id },
+        {
+          $set: { disabled },
+        }
+      );
+      console.log(updatedLocation);
+      if (updatedLocation?.modifiedCount > 0) {
+        return this.sendResponse(req, res, {
+          message: "Halqa Updated",
+          status: 200,
+        });
+      }
+      return this.sendResponse(req, res, {
+        message: "Nothing to update",
+        status: 400,
+      });
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: "Internal Server Error",
+        status: 500,
+      });
+    }
+  };
 }
 
 module.exports = Halqa;

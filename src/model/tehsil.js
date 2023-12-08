@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const tehsil = mongoose.Schema({
   name: {
@@ -8,11 +8,15 @@ const tehsil = mongoose.Schema({
   district: {
     type: mongoose.Types.ObjectId,
     required: true,
-    ref: 'District',
+    ref: "District",
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
   },
 });
 
-const TehsilModel = mongoose.model('Tehsil', tehsil);
+const TehsilModel = mongoose.model("Tehsil", tehsil);
 
 module.exports = {
   TehsilModel,
