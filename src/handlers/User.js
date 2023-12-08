@@ -745,16 +745,22 @@ class User extends Response {
           break;
 
         case "division":
-          maqams = (await MaqamModel.find({ parentId: areaId })).map((i) =>
-            i?._id?.toString()
+          const temp = await HalqaModel.find({ parentType: "Tehsil" }).populate(
+            {
+              path: "parentId",
+              populate: { path: "district", populate: { path: "division" } },
+            }
           );
+          halqas = temp
+            .filter((i) => i?.parentId?.district?.division?._id === areaId)
+            .map((i) => i?._id?.toString());
           totalUsers = (
             await UserModel.find({
               userAreaId: maqams,
             })
           ).map((i) => i?._id?.toString());
           filled = (
-            await MaqamReportModel.find({
+            await HalqaReportModel.find({
               userId: totalUsers,
               month: data.month,
             })
