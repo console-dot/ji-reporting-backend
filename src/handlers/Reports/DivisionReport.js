@@ -45,7 +45,7 @@ const isDataComplete = ({
   paighamEvent,
   dawatiWafud,
   rawabitParties,
-  nazimSalah,
+  nizamSalah,
   shabBedari,
   anyOther,
   rawabitDecided,
@@ -94,7 +94,7 @@ const isDataComplete = ({
     !paighamEvent ||
     !dawatiWafud ||
     !rawabitParties ||
-    !nazimSalah ||
+    !nizamSalah ||
     !shabBedari ||
     !anyOther ||
     !rawabitDecided ||
@@ -168,7 +168,7 @@ class DivisionReport extends Response {
         paighamEvent,
         dawatiWafud,
         rawabitParties,
-        nazimSalah,
+        nizamSalah,
         shabBedari,
         anyOther,
         rawabitDecided,
@@ -188,6 +188,7 @@ class DivisionReport extends Response {
         umeedwaranFilled,
         rafaqaFilled,
       } = req.body;
+      
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
@@ -214,6 +215,11 @@ class DivisionReport extends Response {
           status: 400,
         });
       }
+      umeedWaran.registered = umeedWaran?.registered ? true : false;
+      rafaqa.registered = rafaqa?.registered ? true : false;
+      karkunan.registered = karkunan?.registered ? true : false;
+      shaheen.registered = shaheen?.registered ? true : false;
+      members.registered = members?.registered ? true : false;
       const newWI = new WorkerInfoModel({
         arkan,
         umeedWaran,
@@ -223,6 +229,10 @@ class DivisionReport extends Response {
         members,
         registered: registeredWorker,
       });
+      studyCircle.registered = studyCircle?.registered ? true : false;
+      ijtNazmeen.registered = ijtNazmeen?.registered ? true : false;
+      ijtUmeedwaran.registered = ijtUmeedwaran?.registered ? true : false;
+      sadurMeeting.registered = sadurMeeting?.registered ? true : false;
       const newDivisionActivity = new DivisionActivitiesModel({
         studyCircle,
         ijtNazmeen,
@@ -240,6 +250,12 @@ class DivisionReport extends Response {
         busmRehaishUnits,
         busmTotalUnits,
       });
+      ijtRafaqa.registered = ijtRafaqa?.registered ? true : false;
+      studyCircle.registered = studyCircle?.registered ? true : false;
+      ijtKarkunan.registered = ijtKarkunan?.registered ? true : false;
+      darseQuran.registered = darseQuran?.registered ? true : false;
+      shaheenMeeting.registered = shaheenMeeting?.registered ? true : false;
+      paighamEvent.registered = paighamEvent?.registered ? true : false;
       const newMentionedActivity = new MentionedActivitiesModel({
         ijtRafaqa,
         studyCircle: studyCircleMentioned,
@@ -251,7 +267,7 @@ class DivisionReport extends Response {
       const newOtherActivity = new OtherActivitiesModel({
         dawatiWafud,
         rawabitParties,
-        nazimSalah,
+        nizamSalah,
         shabBedari,
         anyOther,
       });
@@ -551,7 +567,7 @@ class DivisionReport extends Response {
         otherActivityId: [
           "anyOther",
           "shabBedari",
-          "nazimSalah",
+          "nizamSalah",
           "hadithCircle",
           "rawabitParties",
           "dawatiWafud",

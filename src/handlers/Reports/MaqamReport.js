@@ -46,7 +46,7 @@ const isDataComplete = ({
   paighamEvent,
   dawatiWafud,
   rawabitParties,
-  nazimSalah,
+  nizamSalah,
   shabBedari,
   anyOther,
   rawabitDecided,
@@ -65,6 +65,54 @@ const isDataComplete = ({
   umeedwaranFilled,
   rafaqaFilled,
 }) => {
+  console.log( month,
+    comments,
+    arkan,
+    umeedWaran,
+    rafaqa,
+    karkunan,
+    shaheen,
+    members,
+    ijtArkan,
+    studyCircle,
+    ijtNazmeen,
+    ijtUmeedwaran,
+    sadurMeeting,
+    rehaishHalqay,
+    taleemHalqay,
+    totalHalqay,
+    subRehaishHalqay,
+    subTaleemHalqay,
+    subTotalHalqay,
+    busmSchoolUnits,
+    busmRehaishUnits,
+    busmTotalUnits,
+    ijtRafaqa,
+    studyCircleMentioned,
+    ijtKarkunan,
+    darseQuran,
+    shaheenMeeting,
+    paighamEvent,
+    dawatiWafud,
+    rawabitParties,
+    nizamSalah,
+    shabBedari,
+    anyOther,
+    rawabitDecided,
+    current,
+    meetings,
+    literatureDistribution,
+    commonStudentMeetings,
+    commonLiteratureDistribution,
+    totalLibraries,
+    totalBooks,
+    totalIncrease,
+    totalDecrease,
+    totalBookRent,
+    totalReceived,
+    totalSold,
+    umeedwaranFilled,
+    rafaqaFilled,)
   if (
     !month ||
     !comments ||
@@ -96,7 +144,7 @@ const isDataComplete = ({
     !paighamEvent ||
     !dawatiWafud ||
     !rawabitParties ||
-    !nazimSalah ||
+    !nizamSalah ||
     !shabBedari ||
     !anyOther ||
     !rawabitDecided ||
@@ -171,7 +219,7 @@ class MaqamReport extends Response {
         paighamEvent,
         dawatiWafud,
         rawabitParties,
-        nazimSalah,
+        nizamSalah,
         shabBedari,
         anyOther,
         rawabitDecided,
@@ -217,6 +265,11 @@ class MaqamReport extends Response {
           status: 400,
         });
       }
+      umeedWaran.registered = umeedWaran?.registered ? true : false;
+      rafaqa.registered = rafaqa?.registered ? true : false;
+      karkunan.registered = karkunan?.registered ? true : false;
+      shaheen.registered = shaheen?.registered ? true : false;
+      members.registered = members?.registered ? true : false;
       const newWI = new WorkerInfoModel({
         arkan,
         umeedWaran,
@@ -224,8 +277,13 @@ class MaqamReport extends Response {
         karkunan,
         shaheen,
         members,
-        registered: registeredWorker ? true : false,
+        registered:  false,
       });
+      ijtArkan.registered = ijtArkan?.registered ? true : false;
+      studyCircle.registered = studyCircle?.registered ? true : false;
+      ijtNazmeen.registered = ijtNazmeen?.registered ? true : false;
+      ijtUmeedwaran.registered = ijtUmeedwaran?.registered ? true : false;
+      sadurMeeting.registered = sadurMeeting?.registered ? true : false;
       const newMaqamActivity = new MaqamActivitiesModel({
         ijtArkan,
         studyCircle,
@@ -244,6 +302,12 @@ class MaqamReport extends Response {
         busmRehaishUnits,
         busmTotalUnits,
       });
+      ijtRafaqa.registered = ijtRafaqa?.registered ? true : false;
+      studyCircle.registered = studyCircle?.registered ? true : false;
+      ijtKarkunan.registered = ijtKarkunan?.registered ? true : false;
+      darseQuran.registered = darseQuran?.registered ? true : false;
+      shaheenMeeting.registered = shaheenMeeting?.registered ? true : false;
+      paighamEvent.registered = paighamEvent?.registered ? true : false;
       const newMentionedActivity = new MentionedActivitiesModel({
         ijtRafaqa,
         studyCircle: studyCircleMentioned,
@@ -255,7 +319,7 @@ class MaqamReport extends Response {
       const newOtherActivity = new OtherActivitiesModel({
         dawatiWafud,
         rawabitParties,
-        nazimSalah,
+        nizamSalah,
         shabBedari,
         anyOther,
       });
@@ -548,7 +612,7 @@ class MaqamReport extends Response {
         otherActivityId: [
           "anyOther",
           "shabBedari",
-          "nazimSalah",
+          "nizamSalah",
           "hadithCircle",
           "rawabitParties",
           "dawatiWafud",
