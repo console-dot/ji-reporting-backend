@@ -6,6 +6,7 @@ const divisionActivitiesModel = mongoose.Schema({
       decided: { type: Number, required: true },
       done: { type: Number, required: true },
       averageAttendance: { type: Number, required: true },
+      registered: {type : Boolean, default:false}
     },
     required: true,
   },
@@ -14,6 +15,7 @@ const divisionActivitiesModel = mongoose.Schema({
       decided: { type: Number, required: true },
       done: { type: Number, required: true },
       averageAttendance: { type: Number, required: true },
+      registered: {type : Boolean, default:false}
     },
     required: true,
   },
@@ -22,6 +24,7 @@ const divisionActivitiesModel = mongoose.Schema({
       decided: { type: Number, required: true },
       done: { type: Number, required: true },
       averageAttendance: { type: Number, required: true },
+      registered: {type : Boolean, default:false}
     },
     required: true,
   },
@@ -30,6 +33,7 @@ const divisionActivitiesModel = mongoose.Schema({
       decided: { type: Number, required: true },
       done: { type: Number, required: true },
       averageAttendance: { type: Number, required: true },
+      registered: {type : Boolean, default:false}
     },
     required: true,
   },
@@ -38,6 +42,7 @@ const divisionActivitiesModel = mongoose.Schema({
       decided: { type: Number, required: true },
       done: { type: Number, required: true },
       averageAttendance: { type: Number, required: true },
+      registered: {type : Boolean, default:false}
     },
     required: true,
   },
