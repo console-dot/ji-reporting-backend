@@ -26,7 +26,7 @@ const isDataComplete = ({
   dawatiWafud,
   rawabitParties,
   hadithCircle,
-  nazimSalah,
+  nizamSalah,
   shabBedari,
   anyOther,
   rawabitDecided,
@@ -56,7 +56,7 @@ const isDataComplete = ({
     !dawatiWafud ||
     !rawabitParties ||
     !hadithCircle ||
-    !nazimSalah ||
+    !nizamSalah ||
     !shabBedari ||
     !anyOther ||
     !rawabitDecided ||
@@ -111,7 +111,7 @@ class HalqaReport extends Response {
         dawatiWafud,
         rawabitParties,
         hadithCircle,
-        nazimSalah,
+        nizamSalah,
         shabBedari,
         anyOther,
         rawabitDecided,
@@ -144,7 +144,7 @@ class HalqaReport extends Response {
         !dawatiWafud ||
         !rawabitParties ||
         !hadithCircle ||
-        !nazimSalah ||
+        !nizamSalah ||
         !shabBedari ||
         !anyOther ||
         !rawabitDecided ||
@@ -202,7 +202,7 @@ class HalqaReport extends Response {
         dawatiWafud,
         rawabitParties,
         hadithCircle,
-        nazimSalah,
+        nizamSalah,
         shabBedari,
         anyOther,
       });
@@ -444,7 +444,7 @@ class HalqaReport extends Response {
         otherActivityId: [
           "anyOther",
           "shabBedari",
-          "nazimSalah",
+          "nizamSalah",
           "hadithCircle",
           "rawabitParties",
           "dawatiWafud",

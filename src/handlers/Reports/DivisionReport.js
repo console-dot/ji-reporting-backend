@@ -45,7 +45,7 @@ const isDataComplete = ({
   paighamEvent,
   dawatiWafud,
   rawabitParties,
-  nazimSalah,
+  nizamSalah,
   shabBedari,
   anyOther,
   rawabitDecided,
@@ -94,7 +94,7 @@ const isDataComplete = ({
     !paighamEvent ||
     !dawatiWafud ||
     !rawabitParties ||
-    !nazimSalah ||
+    !nizamSalah ||
     !shabBedari ||
     !anyOther ||
     !rawabitDecided ||
@@ -168,7 +168,7 @@ class DivisionReport extends Response {
         paighamEvent,
         dawatiWafud,
         rawabitParties,
-        nazimSalah,
+        nizamSalah,
         shabBedari,
         anyOther,
         rawabitDecided,
@@ -251,7 +251,7 @@ class DivisionReport extends Response {
       const newOtherActivity = new OtherActivitiesModel({
         dawatiWafud,
         rawabitParties,
-        nazimSalah,
+        nizamSalah,
         shabBedari,
         anyOther,
       });
@@ -551,7 +551,7 @@ class DivisionReport extends Response {
         otherActivityId: [
           "anyOther",
           "shabBedari",
-          "nazimSalah",
+          "nizamSalah",
           "hadithCircle",
           "rawabitParties",
           "dawatiWafud",

@@ -46,7 +46,7 @@ const isDataComplete = ({
   paighamEvent,
   dawatiWafud,
   rawabitParties,
-  nazimSalah,
+  nizamSalah,
   shabBedari,
   anyOther,
   rawabitDecided,
@@ -96,7 +96,7 @@ const isDataComplete = ({
     !paighamEvent ||
     !dawatiWafud ||
     !rawabitParties ||
-    !nazimSalah ||
+    !nizamSalah ||
     !shabBedari ||
     !anyOther ||
     !rawabitDecided ||
@@ -171,7 +171,7 @@ class MaqamReport extends Response {
         paighamEvent,
         dawatiWafud,
         rawabitParties,
-        nazimSalah,
+        nizamSalah,
         shabBedari,
         anyOther,
         rawabitDecided,
@@ -255,7 +255,7 @@ class MaqamReport extends Response {
       const newOtherActivity = new OtherActivitiesModel({
         dawatiWafud,
         rawabitParties,
-        nazimSalah,
+        nizamSalah,
         shabBedari,
         anyOther,
       });
@@ -548,7 +548,7 @@ class MaqamReport extends Response {
         otherActivityId: [
           "anyOther",
           "shabBedari",
-          "nazimSalah",
+          "nizamSalah",
           "hadithCircle",
           "rawabitParties",
           "dawatiWafud",
