@@ -3,12 +3,29 @@ const mongoose = require('mongoose');
 const paighamDigestModel = mongoose.Schema({
   totalReceived: {
     type: Number,
-    required: true,
+    
   },
   totalSold: {
     type: Number,
-    required: true,
+    
   },
+  totalPrinted: {
+    type: Number,
+   
+  },
+  totalSoldMarket: {
+    type: Number,
+   
+  },
+  totalSoldTanzeemi: {
+    type: Number,
+   
+  },
+  gift: {
+    type: Number,
+   
+  }
+
 });
 
 const PaighamDigestModel = mongoose.model('PaighamDigest', paighamDigestModel);

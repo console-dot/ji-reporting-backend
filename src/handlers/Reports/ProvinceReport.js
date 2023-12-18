@@ -1,62 +1,113 @@
 const { decode } = require("jsonwebtoken");
 const {
   WorkerInfoModel,
-  HalqaActivityModel,
+  ProvinceReportModel,
+  MaqamActivitiesModel,
+  MaqamTanzeemModel,
+  MentionedActivitiesModel,
   OtherActivitiesModel,
   ToseeDawatModel,
-  HalqaLibraryModel,
+  MaqamDivisionLibraryModel,
+  PaighamDigestModel,
   RozShabBedariModel,
-  HalqaReportModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
-const { UserModel } = require("../../model");
+const { UserModel, ProvinceModel } = require("../../model");
 
 const isDataComplete = ({
-  month,
-  comments,
-  arkan,
-  umeedWaran,
-  rafaqa,
-  karkunan,
-  ijtRafaqa,
-  ijtKarkunan,
-  studyCircle,
-  darseQuran,
-  dawatiWafud,
-  rawabitParties,
-  hadithCircle,
-  nizamSalah,
-  shabBedari,
-  anyOther,
-  rawabitDecided,
-  current,
-  meetings,
-  literatureDistribution,
-  commonStudentMeetings,
-  commonLiteratureDistribution,
-  books,
-  increase,
-  decrease,
-  bookRent,
-  umeedwaranFilled,
-  rafaqaFilled,
-  arkanFilled,
+    arkanFilled,
+    tanzeemiRound,
+    divMushawarat,
+    ijtNazmeen,
+    month,
+    comments,
+    arkan,
+    umeedWaran,
+    rafaqa,
+    gift,
+    karkunan,
+    shaheen,
+    members,
+    ijtArkan,
+    studyCircle,
+    ijtUmeedwaran,
+    sadurMeeting,
+    rehaishHalqay,
+    taleemHalqay,
+    totalHalqay,
+    subRehaishHalqay,
+    subTaleemHalqay,
+    subTotalHalqay,
+    busmSchoolUnits,
+    busmRehaishUnits,
+    busmTotalUnits,
+    ijtRafaqa,
+    studyCircleMentioned,
+    ijtKarkunan,
+    darseQuran,
+    shaheenMeeting,
+    paighamEvent,
+    dawatiWafud,
+    rawabitParties,
+    nizamSalah,
+    shabBedari,
+    anyOther,
+    rawabitDecided,
+    current,
+    meetings,
+    literatureDistribution,
+    commonStudentMeetings,
+    commonLiteratureDistribution,
+    totalLibraries,
+    totalBooks,
+    totalIncrease,
+    totalDecrease,
+    totalBookRent,
+    totalSoldMarket,
+    totalPrinted,
+    totalSoldTanzeemi,
+    umeedwaranFilled,
+    rafaqaFilled,
 }) => {
   if (
+    !arkanFilled ||
+    !tanzeemiRound ||
+    !divMushawarat ||
+    !ijtNazmeen ||
     !month ||
     !comments ||
+    !totalSoldMarket ||
+    !totalSoldTanzeemi ||
     !arkan ||
     !umeedWaran ||
     !rafaqa ||
+    !totalPrinted ||
     !karkunan ||
-    !ijtRafaqa ||
-    !ijtKarkunan ||
+    !shaheen ||
+    !members ||
+    !ijtArkan ||
     !studyCircle ||
+    !gift||
+    !ijtUmeedwaran ||
+    !sadurMeeting ||
+    !rehaishHalqay ||
+    !taleemHalqay ||
+    !totalHalqay ||
+    !subRehaishHalqay ||
+    !subTaleemHalqay ||
+    !subTotalHalqay ||
+    !busmSchoolUnits ||
+    !busmRehaishUnits ||
+    !busmTotalUnits ||
+    !ijtRafaqa ||
+    !studyCircleMentioned ||
+    !ijtKarkunan ||
     !darseQuran ||
+    !shaheenMeeting ||
+    !paighamEvent ||
     !dawatiWafud ||
     !rawabitParties ||
-    !hadithCircle ||
     !nizamSalah ||
     !shabBedari ||
     !anyOther ||
@@ -66,20 +117,22 @@ const isDataComplete = ({
     !literatureDistribution ||
     !commonStudentMeetings ||
     !commonLiteratureDistribution ||
-    !books ||
-    !increase ||
-    !decrease ||
-    !bookRent ||
+    !totalLibraries ||
+    !totalBooks ||
+    !totalIncrease ||
+    !totalDecrease ||
+    !totalBookRent ||
+    
     !umeedwaranFilled ||
     !rafaqaFilled ||
-    !arkanFilled
+    !totalPrinted
   ) {
     return false;
   }
   return true;
 };
 
-class HalqaReport extends Response {
+class ProvinceReport extends Response {
   createReport = async (req, res) => {
     try {
       const token = req.headers.authorization;
@@ -92,77 +145,70 @@ class HalqaReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      if (user?.nazim !== "halqa") {
+      if (user?.nazim !== "province") {
         return this.sendResponse(req, res, {
           message: "Access denied",
           status: 401,
         });
       }
       const {
+        arkanFilled,
+        tanzeemiRound,
+        divMushawarat,
+        ijtNazmeen,
         month,
         comments,
         arkan,
         umeedWaran,
         rafaqa,
+        gift,
         karkunan,
-        ijtRafaqa,
-        ijtKarkunan,
+        shaheen,
+        members,
+        ijtArkan,
         studyCircle,
+        ijtUmeedwaran,
+        sadurMeeting,
+        rehaishHalqay,
+        taleemHalqay,
+        totalHalqay,
+        subRehaishHalqay,
+        subTaleemHalqay,
+        subTotalHalqay,
+        busmSchoolUnits,
+        busmRehaishUnits,
+        busmTotalUnits,
+        ijtRafaqa,
+        studyCircleMentioned,
+        ijtKarkunan,
         darseQuran,
+        shaheenMeeting,
+        paighamEvent,
         dawatiWafud,
         rawabitParties,
-        hadithCircle,
         nizamSalah,
         shabBedari,
         anyOther,
         rawabitDecided,
         current,
         meetings,
-        literatureDistribution,
         registeredTosee,
+        literatureDistribution,
         commonStudentMeetings,
         commonLiteratureDistribution,
-        books,
-        increase,
-        decrease,
-        bookRent,
-        registeredLibrary,
+        totalLibraries,
+        totalBooks,
+        totalIncrease,
+        totalDecrease,
+        totalBookRent,
+        totalSoldMarket,
+        totalPrinted,
+        totalSoldTanzeemi,
         umeedwaranFilled,
         rafaqaFilled,
-        arkanFilled,
       } = req.body;
-
-      if (
-        !month ||
-        !comments ||
-        !arkan ||
-        !umeedWaran ||
-        !rafaqa ||
-        !karkunan ||
-        !ijtRafaqa ||
-        !ijtKarkunan ||
-        !studyCircle ||
-        !darseQuran ||
-        !dawatiWafud ||
-        !rawabitParties ||
-        !hadithCircle ||
-        !nizamSalah ||
-        !shabBedari ||
-        !anyOther ||
-        !rawabitDecided ||
-        !current ||
-        !meetings ||
-        !literatureDistribution ||
-        !commonStudentMeetings ||
-        !commonLiteratureDistribution ||
-        !books ||
-        !increase ||
-        !decrease ||
-        !bookRent ||
-        !umeedwaranFilled ||
-        !rafaqaFilled ||
-        !arkanFilled
-      ) {
+      
+      if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
           status: 400,
@@ -173,7 +219,7 @@ class HalqaReport extends Response {
         yearExist: monthDate.getFullYear(),
         monthExist: monthDate.getMonth(),
       };
-      const reportExist = await HalqaReportModel.findOne({
+      const reportExist = await ProvinceModel.findOne({
         month: {
           $gte: new Date(yearExist, monthExist, 1),
           $lt: new Date(yearExist, monthExist + 1, 1),
@@ -191,27 +237,65 @@ class HalqaReport extends Response {
       umeedWaran.registered = umeedWaran?.registered ? true : false;
       rafaqa.registered = rafaqa?.registered ? true : false;
       karkunan.registered = karkunan?.registered ? true : false;
+      shaheen.registered = shaheen?.registered ? true : false;
+      members.registered = members?.registered ? true : false;
       const newWI = new WorkerInfoModel({
         arkan,
         umeedWaran,
         rafaqa,
         karkunan,
+        shaheen,
+        members,
       });
-      const newHalqaActivity = new HalqaActivityModel({
-        ijtRafaqa,
-        ijtKarkunan,
+      ijtArkan.registered = ijtArkan?.registered ? true : false;
+      studyCircle.registered = studyCircle?.registered ? true : false;
+      ijtUmeedwaran.registered = ijtUmeedwaran?.registered ? true : false;
+      sadurMeeting.registered = sadurMeeting?.registered ? true : false;
+      const newMaqamActivity = new MaqamActivitiesModel({
+        divMushawarat,
+        ijtArkan,
         studyCircle,
+        ijtNazmeen,
+        ijtUmeedwaran,
+        sadurMeeting,
+      });
+      const newMaqamTanzeem = new MaqamTanzeemModel({
+        rehaishHalqay,
+        taleemHalqay,
+        totalHalqay,
+        subRehaishHalqay,
+        subTaleemHalqay,
+        subTotalHalqay,
+        busmSchoolUnits,
+        busmRehaishUnits,
+        busmTotalUnits,
+      });
+      ijtRafaqa.registered = ijtRafaqa?.registered ? true : false;
+      studyCircleMentioned.registered = studyCircleMentioned?.registered
+        ? true
+        : false;
+      ijtKarkunan.registered = ijtKarkunan?.registered ? true : false;
+      darseQuran.registered = darseQuran?.registered ? true : false;
+      shaheenMeeting.registered = shaheenMeeting?.registered ? true : false;
+      paighamEvent.registered = paighamEvent?.registered ? true : false;
+      const newMentionedActivity = new MentionedActivitiesModel({
+        ijtRafaqa,
+        studyCircle: studyCircleMentioned,
+        ijtKarkunan,
         darseQuran,
+        shaheenMeeting,
+        paighamEvent,
       });
       const newOtherActivity = new OtherActivitiesModel({
         dawatiWafud,
         rawabitParties,
-        hadithCircle,
         nizamSalah,
         shabBedari,
         anyOther,
+        tanzeemiRound
+
       });
-      const newTD = new ToseeDawatModel({
+      const newTd = new ToseeDawatModel({
         rawabitDecided,
         current,
         meetings,
@@ -220,39 +304,52 @@ class HalqaReport extends Response {
         commonStudentMeetings,
         commonLiteratureDistribution,
       });
-      const newHalqaLib = new HalqaLibraryModel({
-        books,
-        increase,
-        decrease,
-        bookRent,
-        registered: registeredLibrary ? true : false,
+      const newMaqamDivisionLib = new MaqamDivisionLibraryModel({
+        totalLibraries,
+        totalBooks,
+        totalIncrease,
+        totalDecrease,
+        totalBookRent,
       });
-      const newRSD = new RozShabBedariModel({
+      const newPaighamDigest = new PaighamDigestModel({
+        totalPrinted,
+        totalSoldMarket,
+        totalSoldTanzeemi,
+        gift
+        
+      });
+      const newRsd = new RozShabBedariModel({
         umeedwaranFilled,
         rafaqaFilled,
-        arkanFilled,
+        arkanFilled
       });
       const wi = await newWI.save();
-      const halqaActivity = await newHalqaActivity.save();
+      const provinceActivity = await newMaqamActivity.save();
+      const provinceTanzeem = await newMaqamTanzeem.save();
+      const mentionedActivity = await newMentionedActivity.save();
       const otherActivity = await newOtherActivity.save();
-      const td = await newTD.save();
-      const halqaLib = await newHalqaLib.save();
-      const rsd = await newRSD.save();
-      const newHalqaReport = new HalqaReportModel({
-        comments,
+      const td = await newTd.save();
+      const provinceDivisionLib = await newMaqamDivisionLib.save();
+      const paighamDigest = await newPaighamDigest.save();
+      const rsd = await newRsd.save();
+      const newProvinceReport = new ProvinceReportModel({
         month,
+        comments,
         userId,
-        halqaAreaId: user?.userAreaId,
+        provinceAreaId: user?.userAreaId,
+        provinceTanzeemId: provinceTanzeem?._id,
         wiId: wi._id,
-        halqaActivityId: halqaActivity._id,
+        provinceActivityId: provinceActivity._id,
+        mentionedActivityId: mentionedActivity._id,
         otherActivityId: otherActivity._id,
         tdId: td._id,
-        halqaLibId: halqaLib._id,
+        provinceDivisionLibId: provinceDivisionLib?._id,
+        paighamDigestId: paighamDigest?._id,
         rsdId: rsd._id,
       });
-      await newHalqaReport.save();
+      await newProvinceReport.save();
       return this.sendResponse(req, res, {
-        message: "Halqa Report Added",
+        message: "Province Report Added",
         status: 201,
       });
     } catch (err) {
@@ -279,28 +376,34 @@ class HalqaReport extends Response {
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
       if (user?.nazim !== "province") {
-        reports = await HalqaReportModel.find({
-          halqaAreaId: accessList,
+        reports = await ProvinceReportModel.find({
+          provinceareaId: accessList,
         }).populate([
           { path: "userId", select: ["_id", "email", "name", "age"] },
+          { path: "provinceAreaId", populate: { path: "province" } },
+          { path: "provinceTanzeemId" },
           { path: "wiId" },
-          { path: "halqaActivityId" },
+          { path: "provinceActivityId" },
+          { path: "mentionedActivityId" },
           { path: "otherActivityId" },
           { path: "tdId" },
-          { path: "halqaLibId" },
+          { path: "provinceDivisionLibId" },
+          { path: "paighamDigestId" },
           { path: "rsdId" },
-          { path: "halqaAreaId" },
         ]);
       } else {
-        reports = await HalqaReportModel.find().populate([
+        reports = await ProvinceReportModel.find().populate([
           { path: "userId", select: ["_id", "email", "name", "age"] },
+          { path: "provinceAreaId", populate: { path: "province" } },
+          { path: "provinceTanzeemId" },
           { path: "wiId" },
-          { path: "halqaActivityId" },
+          { path: "provinceActivityId" },
+          { path: "mentionedActivityId" },
           { path: "otherActivityId" },
           { path: "tdId" },
-          { path: "halqaLibId" },
+          { path: "provinceDivisionLibId" },
+          { path: "paighamDigestId" },
           { path: "rsdId" },
-          { path: "halqaAreaId" },
         ]);
       }
       return this.sendResponse(req, res, { data: reports });
@@ -333,23 +436,27 @@ class HalqaReport extends Response {
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      const hr = await HalqaReportModel.findOne({ _id }).select("halqaAreaId");
-      const halqaAreaId = hr?.halqaAreaId || "";
-      if (!accessList.includes(halqaAreaId.toString())) {
+      const { provinceAreaId } = await ProvinceReportModel.findOne({ _id }).select(
+        "provinceAreaId"
+      );
+      if (!accessList.includes(provinceAreaId.toString())) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
           status: 401,
         });
       }
-      const reports = await HalqaReportModel.findOne({ _id }).populate([
+      const reports = await ProvinceReportModel.findOne({ _id }).populate([
         { path: "userId", select: ["_id", "email", "name", "age"] },
+        { path: "provinceAreaId", populate: { path: "province" } },
+        { path: "provinceTanzeemId" },
         { path: "wiId" },
-        { path: "halqaActivityId" },
+        { path: "provinceActivityId" },
+        { path: "mentionedActivityId" },
         { path: "otherActivityId" },
         { path: "tdId" },
-        { path: "halqaLibId" },
+        { path: "provinceDivisionLibId" },
+        { path: "paighamDigestId" },
         { path: "rsdId" },
-        { path: "halqaAreaId" },
       ]);
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
@@ -360,6 +467,7 @@ class HalqaReport extends Response {
       });
     }
   };
+
   editReport = async (req, res) => {
     try {
       const token = req.headers.authorization;
@@ -385,7 +493,7 @@ class HalqaReport extends Response {
           status: 400,
         });
       }
-      const isExist = await HalqaReportModel.findOne({ _id });
+      const isExist = await ProvinceReportModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
           message: "Report not found",
@@ -412,15 +520,29 @@ class HalqaReport extends Response {
 
       // Update referenced models
       const refsToUpdate = [
+        "provinceTanzeemId",
         "wiId",
-        "halqaActivityId",
-        "halqaLibId",
-        "rsdId",
-        "tdId",
+        "provinceActivityId",
+        "mentionedActivityId",
         "otherActivityId",
+        "tdId",
+        "provinceDivisionLibId",
+        "paighamDigestId",
+        "rsdId",
       ];
 
       const obj = {
+        provinceTanzeemId: [
+          "rehaishHalqay",
+          "taleemHalqay",
+          "totalHalqay",
+          "subRehaishHalqay",
+          "subTaleemHalqay",
+          "subTotalHalqay",
+          "busmSchoolUnits",
+          "busmRehaishUnits",
+          "busmTotalUnits",
+        ],
         wiId: [
           "arkan",
           "umeedWaran",
@@ -428,16 +550,31 @@ class HalqaReport extends Response {
           "karkunan",
           "shaheen",
           "members",
-          "registered",
         ],
-        halqaActivityId: [
-          "ijtRafaqa",
-          "ijtKarkunan",
+        provinceActivityId: [
+          "ijtArkan",
           "studyCircle",
-          "darseQuran",
+          "ijtNazmeen",
+          "ijtUmeedwaran",
+          "sadurMeeting",
         ],
-        halqaLibId: ["books", "increase", "decrease", "bookRent", "registered"],
-        rsdId: ["umeedwaranFilled", "rafaqaFilled", "arkanFilled"],
+        mentionedActivityId: [
+          "ijtRafaqa",
+          "studyCircle",
+          "ijtKarkunan",
+          "darseQuran",
+          "shaheenMeeting",
+          "paighamEvent",
+        ],
+        provinceDivisionLibId: [
+          "totalLibraries",
+          "totalBooks",
+          "totalIncrease",
+          "totalDecrease",
+          "totalBookRent",
+        ],
+        paighamDigestId: ["totalReceived", "totalSold"],
+        rsdId: ["umeedwaranFilled", "rafaqaFilled"],
         tdId: [
           "registered",
           "commonLiteratureDistribution",
@@ -467,13 +604,22 @@ class HalqaReport extends Response {
             if (key === "wiId") {
               rs[element] = dataToUpdate["registeredWorker"] ? true : false;
             }
-            if (key === "halqaLibId") {
-              rs[element] = dataToUpdate["registeredLibrary"] ? true : false;
-            }
           } else if (
             element === "umeedWaran" ||
             element === "rafaqa" ||
-            element === "karkunan"
+            element === "karkunan" ||
+            element === "shaheen" ||
+            element === "members" ||
+            element === "ijtArkan" ||
+            element === "studyCircle" ||
+            element === "ijtNazmeen" ||
+            element === "sadurMeeting" ||
+            element === "ijtUmeedWaran" ||
+            element === "ijtRafaqa" ||
+            element === "ijtKarkunan" ||
+            element === "darseQuran" ||
+            element === "shaheenMeeting" ||
+            element === "paighamEvent"
           ) {
             if (
               dataToUpdate[element] &&
@@ -481,7 +627,7 @@ class HalqaReport extends Response {
             ) {
               rs[element] = { ...dataToUpdate[element], registered: true };
             } else {
-              rs[element] = { registered: false }; 
+              rs[element] = { registered: false };
             }
           } else {
             rs[element] = dataToUpdate[element];
@@ -490,15 +636,20 @@ class HalqaReport extends Response {
 
         return rs;
       };
-
       const returnModel = (i) => {
         switch (i) {
+          case "provinceTanzeemId":
+            return provinceTanzeemModel;
           case "wiId":
             return WorkerInfoModel;
-          case "halqaActivityId":
-            return HalqaActivityModel;
-          case "halqaLibId":
-            return HalqaLibraryModel;
+          case "provinceActivityId":
+            return provinceActivitiesModel;
+          case "mentionedActivityId":
+            return MentionedActivitiesModel;
+          case "provinceDivisionLibId":
+            return provinceDivisionLibraryModel;
+          case "paighamDigestId":
+            return PaighamDigestModel;
           case "rsdId":
             return RozShabBedariModel;
           case "tdId":
@@ -509,11 +660,8 @@ class HalqaReport extends Response {
             return null;
         }
       };
+
       for (let i = 0; i < refsToUpdate.length; i++) {
-        console.log(
-          returnData(obj[refsToUpdate[i]], refsToUpdate[i]),
-          "returnData(obj[refsToUpdate[i]], refsToUpdate[i])"
-        );
         await returnModel(refsToUpdate[i]).updateOne(
           { _id: isExist?.[refsToUpdate[i]] },
           { $set: returnData(obj[refsToUpdate[i]], refsToUpdate[i]) }
@@ -521,11 +669,17 @@ class HalqaReport extends Response {
       }
 
       // Update the DivisionReportModel
-      const updatedHalqaReport = await HalqaReportModel.updateOne(
+      const updatedProvinceReport = await ProvinceReportModel.updateOne(
         { _id },
         { $set: dataToUpdate }
       );
-      if (updatedHalqaReport?.modifiedCount > 0) {
+
+      if (updatedProvinceReport?.modifiedCount > 0) {
+        return this.sendResponse(req, res, {
+          message: "Report updated successfully",
+        });
+      }
+      if (updated?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
           message: "Report updated",
         });
@@ -544,4 +698,4 @@ class HalqaReport extends Response {
   };
 }
 
-module.exports = HalqaReport;
+module.exports = ProvinceReport;
