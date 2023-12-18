@@ -67,6 +67,7 @@ class Compare extends Response {
             },
             fields[property]
           ).populate(fields[property]);
+          console.log(new Date(duration[i].year, duration[i].month - 1))
           db_data[
             `${months[parseInt(duration[i].month)]}, ${duration[i].year}`
           ] = temp;
