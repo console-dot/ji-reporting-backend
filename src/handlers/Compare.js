@@ -224,8 +224,8 @@ class Compare extends Response {
     });
   };
   createMaqamReport = async (req, res, sampleData) => {
-    const { property, areaId } = req.params;
-    const { duration, duration_type } = req.body;
+    const { property } = req.params;
+    const { duration, duration_type, areaId } = req.body;
     const fields = {
       activity: "maqamActivityId",
       "other-activity": "otherActivityId",
@@ -234,6 +234,7 @@ class Compare extends Response {
       tanzeem: "maqamTanzeemId",
     };
     const db_data = {};
+    console.log(areaId)
     switch (duration_type) {
       case "year":
         for (let i = 0; i < duration.length; i++) {

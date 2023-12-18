@@ -24,7 +24,7 @@ const provinceReportModel = mongoose.Schema(
     provinceTanzeemId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'ProvinceTanzeem',
+      ref: 'MaqamTanzeem',
     },
     wiId: {
       type: mongoose.Types.ObjectId,
@@ -34,7 +34,7 @@ const provinceReportModel = mongoose.Schema(
     provinceActivityId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'ProvinceActivities',
+      ref: 'MaqamActivities',
     },
     mentionedActivityId: {
       type: mongoose.Types.ObjectId,
@@ -54,7 +54,7 @@ const provinceReportModel = mongoose.Schema(
     provinceDivisionLibId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'ProvinceDivisionLibrary',
+      ref: 'MaqamDivisionLibrary',
     },
     paighamDigestId: {
       type: mongoose.Types.ObjectId,

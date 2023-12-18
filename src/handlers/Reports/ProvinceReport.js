@@ -1,4 +1,4 @@
-const { decode } = require("jsonwebtoken");
+const { decode } = require('jsonwebtoken');
 const {
   WorkerInfoModel,
   ProvinceReportModel,
@@ -10,65 +10,65 @@ const {
   MaqamDivisionLibraryModel,
   PaighamDigestModel,
   RozShabBedariModel,
-} = require("../../model/reports");
-const { months, getRoleFlow } = require("../../utils");
-const Response = require("../Response");
-const { UserModel, ProvinceModel } = require("../../model");
+} = require('../../model/reports');
+const { months, getRoleFlow } = require('../../utils');
+const Response = require('../Response');
+const { UserModel, ProvinceModel } = require('../../model');
 
 const isDataComplete = ({
-    arkanFilled,
-    tanzeemiRound,
-    divMushawarat,
-    ijtNazmeen,
-    month,
-    comments,
-    arkan,
-    umeedWaran,
-    rafaqa,
-    gift,
-    karkunan,
-    shaheen,
-    members,
-    ijtArkan,
-    studyCircle,
-    ijtUmeedwaran,
-    sadurMeeting,
-    rehaishHalqay,
-    taleemHalqay,
-    totalHalqay,
-    subRehaishHalqay,
-    subTaleemHalqay,
-    subTotalHalqay,
-    busmSchoolUnits,
-    busmRehaishUnits,
-    busmTotalUnits,
-    ijtRafaqa,
-    studyCircleMentioned,
-    ijtKarkunan,
-    darseQuran,
-    shaheenMeeting,
-    paighamEvent,
-    dawatiWafud,
-    rawabitParties,
-    nizamSalah,
-    shabBedari,
-    anyOther,
-    rawabitDecided,
-    current,
-    meetings,
-    literatureDistribution,
-    commonStudentMeetings,
-    commonLiteratureDistribution,
-    totalLibraries,
-    totalBooks,
-    totalIncrease,
-    totalDecrease,
-    totalBookRent,
-    totalSoldMarket,
-    totalPrinted,
-    totalSoldTanzeemi,
-    umeedwaranFilled,
-    rafaqaFilled,
+  arkanFilled,
+  tanzeemiRound,
+  divMushawarat,
+  ijtNazmeen,
+  month,
+  comments,
+  arkan,
+  umeedWaran,
+  rafaqa,
+  gift,
+  karkunan,
+  shaheen,
+  members,
+  ijtArkan,
+  studyCircle,
+  ijtUmeedwaran,
+  sadurMeeting,
+  rehaishHalqay,
+  taleemHalqay,
+  totalHalqay,
+  subRehaishHalqay,
+  subTaleemHalqay,
+  subTotalHalqay,
+  busmSchoolUnits,
+  busmRehaishUnits,
+  busmTotalUnits,
+  ijtRafaqa,
+  studyCircleMentioned,
+  ijtKarkunan,
+  darseQuran,
+  shaheenMeeting,
+  paighamEvent,
+  dawatiWafud,
+  rawabitParties,
+  nizamSalah,
+  shabBedari,
+  anyOther,
+  rawabitDecided,
+  current,
+  meetings,
+  literatureDistribution,
+  commonStudentMeetings,
+  commonLiteratureDistribution,
+  totalLibraries,
+  totalBooks,
+  totalIncrease,
+  totalDecrease,
+  totalBookRent,
+  totalSoldMarket,
+  totalPrinted,
+  totalSoldTanzeemi,
+  umeedwaranFilled,
+  rafaqaFilled,
 }) => {
   if (
     !arkanFilled ||
@@ -88,7 +88,7 @@ const isDataComplete = ({
     !members ||
     !ijtArkan ||
     !studyCircle ||
-    !gift||
+    !gift ||
     !ijtUmeedwaran ||
     !sadurMeeting ||
     !rehaishHalqay ||
@@ -122,7 +122,6 @@ const isDataComplete = ({
     !totalIncrease ||
     !totalDecrease ||
     !totalBookRent ||
-    
     !umeedwaranFilled ||
     !rafaqaFilled ||
     !totalPrinted
@@ -138,16 +137,16 @@ class ProvinceReport extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: "Access Denied",
+          message: 'Access Denied',
           status: 401,
         });
       }
-      const decoded = decode(token.split(" ")[1]);
+      const decoded = decode(token.split(' ')[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      if (user?.nazim !== "province") {
+      if (user?.nazim !== 'province') {
         return this.sendResponse(req, res, {
-          message: "Access denied",
+          message: 'Access denied',
           status: 401,
         });
       }
@@ -192,7 +191,6 @@ class ProvinceReport extends Response {
         rawabitDecided,
         current,
         meetings,
-        registeredTosee,
         literatureDistribution,
         commonStudentMeetings,
         commonLiteratureDistribution,
@@ -206,11 +204,12 @@ class ProvinceReport extends Response {
         totalSoldTanzeemi,
         umeedwaranFilled,
         rafaqaFilled,
+        registeredTosee,
       } = req.body;
-      
+
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
-          message: "All fields are required",
+          message: 'All fields are required',
           status: 400,
         });
       }
@@ -292,8 +291,7 @@ class ProvinceReport extends Response {
         nizamSalah,
         shabBedari,
         anyOther,
-        tanzeemiRound
-
+        tanzeemiRound,
       });
       const newTd = new ToseeDawatModel({
         rawabitDecided,
@@ -315,13 +313,12 @@ class ProvinceReport extends Response {
         totalPrinted,
         totalSoldMarket,
         totalSoldTanzeemi,
-        gift
-        
+        gift,
       });
       const newRsd = new RozShabBedariModel({
         umeedwaranFilled,
         rafaqaFilled,
-        arkanFilled
+        arkanFilled,
       });
       const wi = await newWI.save();
       const provinceActivity = await newMaqamActivity.save();
@@ -349,13 +346,13 @@ class ProvinceReport extends Response {
       });
       await newProvinceReport.save();
       return this.sendResponse(req, res, {
-        message: "Province Report Added",
+        message: 'Province Report Added',
         status: 201,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: "Internal Server Error",
+        message: 'Internal Server Error',
         status: 500,
       });
     }
@@ -365,52 +362,52 @@ class ProvinceReport extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: "Access Denied",
+          message: 'Access Denied',
           status: 401,
         });
       }
-      const decoded = decode(token.split(" ")[1]);
+      const decoded = decode(token.split(' ')[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      if (user?.nazim !== "province") {
+      if (user?.nazim !== 'province') {
         reports = await ProvinceReportModel.find({
           provinceareaId: accessList,
         }).populate([
-          { path: "userId", select: ["_id", "email", "name", "age"] },
-          { path: "provinceAreaId", populate: { path: "province" } },
-          { path: "provinceTanzeemId" },
-          { path: "wiId" },
-          { path: "provinceActivityId" },
-          { path: "mentionedActivityId" },
-          { path: "otherActivityId" },
-          { path: "tdId" },
-          { path: "provinceDivisionLibId" },
-          { path: "paighamDigestId" },
-          { path: "rsdId" },
+          { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
+          { path: 'provinceAreaId' },
+          { path: 'provinceTanzeemId' },
+          { path: 'wiId' },
+          { path: 'provinceActivityId' },
+          { path: 'mentionedActivityId' },
+          { path: 'otherActivityId' },
+          { path: 'tdId' },
+          { path: 'provinceDivisionLibId' },
+          { path: 'paighamDigestId' },
+          { path: 'rsdId' },
         ]);
       } else {
         reports = await ProvinceReportModel.find().populate([
-          { path: "userId", select: ["_id", "email", "name", "age"] },
-          { path: "provinceAreaId", populate: { path: "province" } },
-          { path: "provinceTanzeemId" },
-          { path: "wiId" },
-          { path: "provinceActivityId" },
-          { path: "mentionedActivityId" },
-          { path: "otherActivityId" },
-          { path: "tdId" },
-          { path: "provinceDivisionLibId" },
-          { path: "paighamDigestId" },
-          { path: "rsdId" },
+          { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
+          { path: 'provinceAreaId' },
+          { path: 'provinceTanzeemId' },
+          { path: 'wiId' },
+          { path: 'provinceActivityId' },
+          { path: 'mentionedActivityId' },
+          { path: 'otherActivityId' },
+          { path: 'tdId' },
+          { path: 'provinceDivisionLibId' },
+          { path: 'paighamDigestId' },
+          { path: 'rsdId' },
         ]);
       }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: "Internal Server Error",
+        message: 'Internal Server Error',
         status: 500,
       });
     }
@@ -420,49 +417,49 @@ class ProvinceReport extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: "Access Denied",
+          message: 'Access Denied',
           status: 401,
         });
       }
       const _id = req.params.id;
       if (!_id) {
         return this.sendResponse(req, res, {
-          message: "Id is required",
+          message: 'Id is required',
           status: 404,
         });
       }
-      const decoded = decode(token.split(" ")[1]);
+      const decoded = decode(token.split(' ')[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      const { provinceAreaId } = await ProvinceReportModel.findOne({ _id }).select(
-        "provinceAreaId"
-      );
+      const { provinceAreaId } = await ProvinceReportModel.findOne({
+        _id,
+      }).select('provinceAreaId');
       if (!accessList.includes(provinceAreaId.toString())) {
         return this.sendResponse(req, res, {
-          message: "Access Denied",
+          message: 'Access Denied',
           status: 401,
         });
       }
       const reports = await ProvinceReportModel.findOne({ _id }).populate([
-        { path: "userId", select: ["_id", "email", "name", "age"] },
-        { path: "provinceAreaId", populate: { path: "province" } },
-        { path: "provinceTanzeemId" },
-        { path: "wiId" },
-        { path: "provinceActivityId" },
-        { path: "mentionedActivityId" },
-        { path: "otherActivityId" },
-        { path: "tdId" },
-        { path: "provinceDivisionLibId" },
-        { path: "paighamDigestId" },
-        { path: "rsdId" },
+        { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
+        { path: 'provinceAreaId' },
+        { path: 'provinceTanzeemId' },
+        { path: 'wiId' },
+        { path: 'provinceActivityId' },
+        { path: 'mentionedActivityId' },
+        { path: 'otherActivityId' },
+        { path: 'tdId' },
+        { path: 'provinceDivisionLibId' },
+        { path: 'paighamDigestId' },
+        { path: 'rsdId' },
       ]);
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: "Internal Server Error",
+        message: 'Internal Server Error',
         status: 500,
       });
     }
@@ -474,35 +471,35 @@ class ProvinceReport extends Response {
       const _id = req.params.id;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: "Access Denied",
+          message: 'Access Denied',
           status: 401,
         });
       }
       if (!_id) {
         return this.sendResponse(req, res, {
-          message: "Id is required",
+          message: 'Id is required',
           status: 404,
         });
       }
-      const decoded = decode(token.split(" ")[1]);
+      const decoded = decode(token.split(' ')[1]);
       const userId = decoded?.id;
       const dataToUpdate = req.body;
       if (!isDataComplete(dataToUpdate)) {
         return this.sendResponse(req, res, {
-          message: "All fields are required",
+          message: 'All fields are required',
           status: 400,
         });
       }
       const isExist = await ProvinceReportModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
-          message: "Report not found",
+          message: 'Report not found',
           status: 404,
         });
       }
       if (isExist?.userId.toString() !== userId) {
         return this.sendResponse(req, res, {
-          message: "Access Denied",
+          message: 'Access Denied',
           status: 401,
         });
       }
@@ -513,117 +510,118 @@ class ProvinceReport extends Response {
       const daysDifference = Math.floor(difference / millisecondsPerDay);
       if (daysDifference >= 5) {
         return this.sendResponse(req, res, {
-          message: "Cannot update after 5 days",
+          message: 'Cannot update after 5 days',
           status: 400,
         });
       }
 
       // Update referenced models
       const refsToUpdate = [
-        "provinceTanzeemId",
-        "wiId",
-        "provinceActivityId",
-        "mentionedActivityId",
-        "otherActivityId",
-        "tdId",
-        "provinceDivisionLibId",
-        "paighamDigestId",
-        "rsdId",
+        'provinceTanzeemId',
+        'wiId',
+        'provinceActivityId',
+        'mentionedActivityId',
+        'otherActivityId',
+        'tdId',
+        'provinceDivisionLibId',
+        'paighamDigestId',
+        'rsdId',
       ];
 
       const obj = {
         provinceTanzeemId: [
-          "rehaishHalqay",
-          "taleemHalqay",
-          "totalHalqay",
-          "subRehaishHalqay",
-          "subTaleemHalqay",
-          "subTotalHalqay",
-          "busmSchoolUnits",
-          "busmRehaishUnits",
-          "busmTotalUnits",
+          'rehaishHalqay',
+          'taleemHalqay',
+          'totalHalqay',
+          'subRehaishHalqay',
+          'subTaleemHalqay',
+          'subTotalHalqay',
+          'busmSchoolUnits',
+          'busmRehaishUnits',
+          'busmTotalUnits',
         ],
         wiId: [
-          "arkan",
-          "umeedWaran",
-          "rafaqa",
-          "karkunan",
-          "shaheen",
-          "members",
+          'arkan',
+          'umeedWaran',
+          'rafaqa',
+          'karkunan',
+          'shaheen',
+          'members',
         ],
         provinceActivityId: [
-          "ijtArkan",
-          "studyCircle",
-          "ijtNazmeen",
-          "ijtUmeedwaran",
-          "sadurMeeting",
+          'ijtArkan',
+          'studyCircle',
+          'ijtNazmeen',
+          'ijtUmeedwaran',
+          'sadurMeeting',
+          'divMushawarat'
         ],
         mentionedActivityId: [
-          "ijtRafaqa",
-          "studyCircle",
-          "ijtKarkunan",
-          "darseQuran",
-          "shaheenMeeting",
-          "paighamEvent",
+          'ijtRafaqa',
+          'studyCircle',
+          'ijtKarkunan',
+          'darseQuran',
+          'shaheenMeeting',
+          'paighamEvent',
         ],
         provinceDivisionLibId: [
-          "totalLibraries",
-          "totalBooks",
-          "totalIncrease",
-          "totalDecrease",
-          "totalBookRent",
+          'totalLibraries',
+          'totalBooks',
+          'totalIncrease',
+          'totalDecrease',
+          'totalBookRent',
         ],
-        paighamDigestId: ["totalReceived", "totalSold"],
-        rsdId: ["umeedwaranFilled", "rafaqaFilled"],
+        paighamDigestId: ['totalPrinted', 'totalSoldTanzeemi', 'totalSoldMarket', 'gift'],
+        rsdId: ['umeedwaranFilled', 'rafaqaFilled'],
         tdId: [
-          "registered",
-          "commonLiteratureDistribution",
-          "commonStudentMeetings",
-          "literatureDistribution",
-          "meetings",
-          "current",
-          "rawabitDecided",
+          'registered',
+          'commonLiteratureDistribution',
+          'commonStudentMeetings',
+          'literatureDistribution',
+          'meetings',
+          'current',
+          'rawabitDecided',
         ],
         otherActivityId: [
-          "anyOther",
-          "shabBedari",
-          "nizamSalah",
-          "hadithCircle",
-          "rawabitParties",
-          "dawatiWafud",
+          'anyOther',
+          'shabBedari',
+          'nizamSalah',
+          'hadithCircle',
+          'rawabitParties',
+          'dawatiWafud',
         ],
       };
 
       const returnData = (arr, key) => {
         const rs = {};
         arr.forEach((element) => {
-          if (element === "registered") {
-            if (key === "tdId") {
-              rs[element] = dataToUpdate["registeredTosee"] ? true : false;
+          if (element === 'registered') {
+            if (key === 'tdId') {
+              rs[element] = dataToUpdate['registeredTosee'] ? true : false;
             }
-            if (key === "wiId") {
-              rs[element] = dataToUpdate["registeredWorker"] ? true : false;
+            if (key === 'wiId') {
+              rs[element] = dataToUpdate['registeredWorker'] ? true : false;
             }
           } else if (
-            element === "umeedWaran" ||
-            element === "rafaqa" ||
-            element === "karkunan" ||
-            element === "shaheen" ||
-            element === "members" ||
-            element === "ijtArkan" ||
-            element === "studyCircle" ||
-            element === "ijtNazmeen" ||
-            element === "sadurMeeting" ||
-            element === "ijtUmeedWaran" ||
-            element === "ijtRafaqa" ||
-            element === "ijtKarkunan" ||
-            element === "darseQuran" ||
-            element === "shaheenMeeting" ||
-            element === "paighamEvent"
+            element === 'umeedWaran' ||
+            element === 'rafaqa' ||
+            element === 'karkunan' ||
+            element === 'shaheen' ||
+            element === 'members' ||
+            element === 'ijtArkan' ||
+            element === 'studyCircle' ||
+            element === 'ijtNazmeen' ||
+            element === 'sadurMeeting' ||
+            element === 'ijtUmeedWaran' ||
+            element === 'ijtRafaqa' ||
+            element === 'ijtKarkunan' ||
+            element === 'darseQuran' ||
+            element === 'shaheenMeeting' ||
+            element === 'paighamEvent'
           ) {
             if (
               dataToUpdate[element] &&
-              dataToUpdate[element].hasOwnProperty("registered")
+              dataToUpdate[element].hasOwnProperty('registered')
             ) {
               rs[element] = { ...dataToUpdate[element], registered: true };
             } else {
@@ -638,23 +636,23 @@ class ProvinceReport extends Response {
       };
       const returnModel = (i) => {
         switch (i) {
-          case "provinceTanzeemId":
-            return provinceTanzeemModel;
-          case "wiId":
+          case 'provinceTanzeemId':
+            return MaqamTanzeemModel;
+          case 'wiId':
             return WorkerInfoModel;
-          case "provinceActivityId":
-            return provinceActivitiesModel;
-          case "mentionedActivityId":
+          case 'provinceActivityId':
+            return MaqamActivitiesModel;
+          case 'mentionedActivityId':
             return MentionedActivitiesModel;
-          case "provinceDivisionLibId":
-            return provinceDivisionLibraryModel;
-          case "paighamDigestId":
+          case 'provinceDivisionLibId':
+            return MaqamDivisionLibraryModel;
+          case 'paighamDigestId':
             return PaighamDigestModel;
-          case "rsdId":
+          case 'rsdId':
             return RozShabBedariModel;
-          case "tdId":
+          case 'tdId':
             return ToseeDawatModel;
-          case "otherActivityId":
+          case 'otherActivityId':
             return OtherActivitiesModel;
           default:
             return null;
@@ -676,22 +674,22 @@ class ProvinceReport extends Response {
 
       if (updatedProvinceReport?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
-          message: "Report updated successfully",
+          message: 'Report updated successfully',
         });
       }
       if (updated?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
-          message: "Report updated",
+          message: 'Report updated',
         });
       }
       return this.sendResponse(req, res, {
-        message: "Nothing to update",
+        message: 'Nothing to update',
         status: 500,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: "Internal Server Error",
+        message: 'Internal Server Error',
         status: 500,
       });
     }

@@ -1,4 +1,4 @@
-const { decode } = require("jsonwebtoken");
+const { decode } = require('jsonwebtoken');
 const {
   WorkerInfoModel,
   MaqamReportModel,
@@ -10,16 +10,17 @@ const {
   MaqamDivisionLibraryModel,
   PaighamDigestModel,
   RozShabBedariModel,
-} = require("../../model/reports");
-const { months, getRoleFlow } = require("../../utils");
-const Response = require("../Response");
-const { UserModel } = require("../../model");
+} = require('../../model/reports');
+const { months, getRoleFlow } = require('../../utils');
+const Response = require('../Response');
+const { UserModel } = require('../../model');
 
 const isDataComplete = ({
   month,
   comments,
   arkan,
   umeedWaran,
+  tarbiyatGaah,
   rafaqa,
   karkunan,
   shaheen,
@@ -88,6 +89,7 @@ const isDataComplete = ({
     !busmSchoolUnits ||
     !busmRehaishUnits ||
     !busmTotalUnits ||
+    !tarbiyatGaah ||
     !ijtRafaqa ||
     !studyCircleMentioned ||
     !ijtKarkunan ||
@@ -126,16 +128,16 @@ class MaqamReport extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: "Access Denied",
+          message: 'Access Denied',
           status: 401,
         });
       }
-      const decoded = decode(token.split(" ")[1]);
+      const decoded = decode(token.split(' ')[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      if (user?.nazim !== "maqam") {
+      if (user?.nazim !== 'maqam') {
         return this.sendResponse(req, res, {
-          message: "Access denied",
+          message: 'Access denied',
           status: 401,
         });
       }
@@ -189,10 +191,11 @@ class MaqamReport extends Response {
         totalSold,
         umeedwaranFilled,
         rafaqaFilled,
+        tarbiyatGaah
       } = req.body;
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
-          message: "All fields are required",
+          message: 'All fields are required',
           status: 400,
         });
       }
@@ -269,6 +272,7 @@ class MaqamReport extends Response {
         paighamEvent,
       });
       const newOtherActivity = new OtherActivitiesModel({
+        tarbiyatGaah,
         dawatiWafud,
         rawabitParties,
         nizamSalah,
@@ -325,13 +329,13 @@ class MaqamReport extends Response {
       });
       await newMaqamReport.save();
       return this.sendResponse(req, res, {
-        message: "Maqam Report Added",
+        message: 'Maqam Report Added',
         status: 201,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: "Internal Server Error",
+        message: 'Internal Server Error',
         status: 500,
       });
     }
@@ -341,52 +345,52 @@ class MaqamReport extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: "Access Denied",
+          message: 'Access Denied',
           status: 401,
         });
       }
-      const decoded = decode(token.split(" ")[1]);
+      const decoded = decode(token.split(' ')[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      if (user?.nazim !== "province") {
+      if (user?.nazim !== 'province') {
         reports = await MaqamReportModel.find({
           maqamAreaId: accessList,
         }).populate([
-          { path: "userId", select: ["_id", "email", "name", "age"] },
-          { path: "maqamAreaId", populate: { path: "province" } },
-          { path: "maqamTanzeemId" },
-          { path: "wiId" },
-          { path: "maqamActivityId" },
-          { path: "mentionedActivityId" },
-          { path: "otherActivityId" },
-          { path: "tdId" },
-          { path: "maqamDivisionLibId" },
-          { path: "paighamDigestId" },
-          { path: "rsdId" },
+          { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
+          { path: 'maqamAreaId', populate: { path: 'province' } },
+          { path: 'maqamTanzeemId' },
+          { path: 'wiId' },
+          { path: 'maqamActivityId' },
+          { path: 'mentionedActivityId' },
+          { path: 'otherActivityId' },
+          { path: 'tdId' },
+          { path: 'maqamDivisionLibId' },
+          { path: 'paighamDigestId' },
+          { path: 'rsdId' },
         ]);
       } else {
         reports = await MaqamReportModel.find().populate([
-          { path: "userId", select: ["_id", "email", "name", "age"] },
-          { path: "maqamAreaId", populate: { path: "province" } },
-          { path: "maqamTanzeemId" },
-          { path: "wiId" },
-          { path: "maqamActivityId" },
-          { path: "mentionedActivityId" },
-          { path: "otherActivityId" },
-          { path: "tdId" },
-          { path: "maqamDivisionLibId" },
-          { path: "paighamDigestId" },
-          { path: "rsdId" },
+          { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
+          { path: 'maqamAreaId', populate: { path: 'province' } },
+          { path: 'maqamTanzeemId' },
+          { path: 'wiId' },
+          { path: 'maqamActivityId' },
+          { path: 'mentionedActivityId' },
+          { path: 'otherActivityId' },
+          { path: 'tdId' },
+          { path: 'maqamDivisionLibId' },
+          { path: 'paighamDigestId' },
+          { path: 'rsdId' },
         ]);
       }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: "Internal Server Error",
+        message: 'Internal Server Error',
         status: 500,
       });
     }
@@ -396,49 +400,49 @@ class MaqamReport extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: "Access Denied",
+          message: 'Access Denied',
           status: 401,
         });
       }
       const _id = req.params.id;
       if (!_id) {
         return this.sendResponse(req, res, {
-          message: "Id is required",
+          message: 'Id is required',
           status: 404,
         });
       }
-      const decoded = decode(token.split(" ")[1]);
+      const decoded = decode(token.split(' ')[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       const { maqamAreaId } = await MaqamReportModel.findOne({ _id }).select(
-        "maqamAreaId"
+        'maqamAreaId'
       );
       if (!accessList.includes(maqamAreaId.toString())) {
         return this.sendResponse(req, res, {
-          message: "Access Denied",
+          message: 'Access Denied',
           status: 401,
         });
       }
       const reports = await MaqamReportModel.findOne({ _id }).populate([
-        { path: "userId", select: ["_id", "email", "name", "age"] },
-        { path: "maqamAreaId", populate: { path: "province" } },
-        { path: "maqamTanzeemId" },
-        { path: "wiId" },
-        { path: "maqamActivityId" },
-        { path: "mentionedActivityId" },
-        { path: "otherActivityId" },
-        { path: "tdId" },
-        { path: "maqamDivisionLibId" },
-        { path: "paighamDigestId" },
-        { path: "rsdId" },
+        { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
+        { path: 'maqamAreaId', populate: { path: 'province' } },
+        { path: 'maqamTanzeemId' },
+        { path: 'wiId' },
+        { path: 'maqamActivityId' },
+        { path: 'mentionedActivityId' },
+        { path: 'otherActivityId' },
+        { path: 'tdId' },
+        { path: 'maqamDivisionLibId' },
+        { path: 'paighamDigestId' },
+        { path: 'rsdId' },
       ]);
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: "Internal Server Error",
+        message: 'Internal Server Error',
         status: 500,
       });
     }
@@ -450,35 +454,36 @@ class MaqamReport extends Response {
       const _id = req.params.id;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: "Access Denied",
+          message: 'Access Denied',
           status: 401,
         });
       }
       if (!_id) {
         return this.sendResponse(req, res, {
-          message: "Id is required",
+          message: 'Id is required',
           status: 404,
         });
       }
-      const decoded = decode(token.split(" ")[1]);
+      const decoded = decode(token.split(' ')[1]);
       const userId = decoded?.id;
       const dataToUpdate = req.body;
+      console.log(dataToUpdate)
       if (!isDataComplete(dataToUpdate)) {
         return this.sendResponse(req, res, {
-          message: "All fields are required",
+          message: 'All fields are required',
           status: 400,
         });
       }
       const isExist = await MaqamReportModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
-          message: "Report not found",
+          message: 'Report not found',
           status: 404,
         });
       }
       if (isExist?.userId.toString() !== userId) {
         return this.sendResponse(req, res, {
-          message: "Access Denied",
+          message: 'Access Denied',
           status: 401,
         });
       }
@@ -489,117 +494,117 @@ class MaqamReport extends Response {
       const daysDifference = Math.floor(difference / millisecondsPerDay);
       if (daysDifference >= 5) {
         return this.sendResponse(req, res, {
-          message: "Cannot update after 5 days",
+          message: 'Cannot update after 5 days',
           status: 400,
         });
       }
 
       // Update referenced models
       const refsToUpdate = [
-        "maqamTanzeemId",
-        "wiId",
-        "maqamActivityId",
-        "mentionedActivityId",
-        "otherActivityId",
-        "tdId",
-        "maqamDivisionLibId",
-        "paighamDigestId",
-        "rsdId",
+        'maqamTanzeemId',
+        'wiId',
+        'maqamActivityId',
+        'mentionedActivityId',
+        'otherActivityId',
+        'tdId',
+        'maqamDivisionLibId',
+        'paighamDigestId',
+        'rsdId',
       ];
 
       const obj = {
         maqamTanzeemId: [
-          "rehaishHalqay",
-          "taleemHalqay",
-          "totalHalqay",
-          "subRehaishHalqay",
-          "subTaleemHalqay",
-          "subTotalHalqay",
-          "busmSchoolUnits",
-          "busmRehaishUnits",
-          "busmTotalUnits",
+          'rehaishHalqay',
+          'taleemHalqay',
+          'totalHalqay',
+          'subRehaishHalqay',
+          'subTaleemHalqay',
+          'subTotalHalqay',
+          'busmSchoolUnits',
+          'busmRehaishUnits',
+          'busmTotalUnits',
         ],
         wiId: [
-          "arkan",
-          "umeedWaran",
-          "rafaqa",
-          "karkunan",
-          "shaheen",
-          "members",
+          'arkan',
+          'umeedWaran',
+          'rafaqa',
+          'karkunan',
+          'shaheen',
+          'members',
         ],
         maqamActivityId: [
-          "ijtArkan",
-          "studyCircle",
-          "ijtNazmeen",
-          "ijtUmeedwaran",
-          "sadurMeeting",
+          'ijtArkan',
+          'studyCircle',
+          'ijtNazmeen',
+          'ijtUmeedwaran',
+          'sadurMeeting',
         ],
         mentionedActivityId: [
-          "ijtRafaqa",
-          "studyCircle",
-          "ijtKarkunan",
-          "darseQuran",
-          "shaheenMeeting",
-          "paighamEvent",
+          'ijtRafaqa',
+          'studyCircle',
+          'ijtKarkunan',
+          'darseQuran',
+          'shaheenMeeting',
+          'paighamEvent',
         ],
         maqamDivisionLibId: [
-          "totalLibraries",
-          "totalBooks",
-          "totalIncrease",
-          "totalDecrease",
-          "totalBookRent",
+          'totalLibraries',
+          'totalBooks',
+          'totalIncrease',
+          'totalDecrease',
+          'totalBookRent',
         ],
-        paighamDigestId: ["totalReceived", "totalSold"],
-        rsdId: ["umeedwaranFilled", "rafaqaFilled"],
+        paighamDigestId: ['totalReceived', 'totalSold'],
+        rsdId: ['umeedwaranFilled', 'rafaqaFilled'],
         tdId: [
-          "registered",
-          "commonLiteratureDistribution",
-          "commonStudentMeetings",
-          "literatureDistribution",
-          "meetings",
-          "current",
-          "rawabitDecided",
+          'registered',
+          'commonLiteratureDistribution',
+          'commonStudentMeetings',
+          'literatureDistribution',
+          'meetings',
+          'current',
+          'rawabitDecided',
         ],
         otherActivityId: [
-          "anyOther",
-          "shabBedari",
-          "nizamSalah",
-          "hadithCircle",
-          "rawabitParties",
-          "dawatiWafud",
+          'anyOther',
+          'shabBedari',
+          'nizamSalah',
+          'hadithCircle',
+          'rawabitParties',
+          'dawatiWafud',
         ],
       };
 
       const returnData = (arr, key) => {
         const rs = {};
         arr.forEach((element) => {
-          if (element === "registered") {
-            if (key === "tdId") {
-              rs[element] = dataToUpdate["registeredTosee"] ? true : false;
+          if (element === 'registered') {
+            if (key === 'tdId') {
+              rs[element] = dataToUpdate['registeredTosee'] ? true : false;
             }
-            if (key === "wiId") {
-              rs[element] = dataToUpdate["registeredWorker"] ? true : false;
+            if (key === 'wiId') {
+              rs[element] = dataToUpdate['registeredWorker'] ? true : false;
             }
           } else if (
-            element === "umeedWaran" ||
-            element === "rafaqa" ||
-            element === "karkunan" ||
-            element === "shaheen" ||
-            element === "members" ||
-            element === "ijtArkan" ||
-            element === "studyCircle" ||
-            element === "ijtNazmeen" ||
-            element === "sadurMeeting" ||
-            element === "ijtUmeedWaran" ||
-            element === "ijtRafaqa" ||
-            element === "ijtKarkunan" ||
-            element === "darseQuran" ||
-            element === "shaheenMeeting" ||
-            element === "paighamEvent"
+            element === 'umeedWaran' ||
+            element === 'rafaqa' ||
+            element === 'karkunan' ||
+            element === 'shaheen' ||
+            element === 'members' ||
+            element === 'ijtArkan' ||
+            element === 'studyCircle' ||
+            element === 'ijtNazmeen' ||
+            element === 'sadurMeeting' ||
+            element === 'ijtUmeedWaran' ||
+            element === 'ijtRafaqa' ||
+            element === 'ijtKarkunan' ||
+            element === 'darseQuran' ||
+            element === 'shaheenMeeting' ||
+            element === 'paighamEvent'
           ) {
             if (
               dataToUpdate[element] &&
-              dataToUpdate[element].hasOwnProperty("registered")
+              dataToUpdate[element].hasOwnProperty('registered')
             ) {
               rs[element] = { ...dataToUpdate[element], registered: true };
             } else {
@@ -614,29 +619,28 @@ class MaqamReport extends Response {
       };
       const returnModel = (i) => {
         switch (i) {
-          case "maqamTanzeemId":
+          case 'maqamTanzeemId':
             return MaqamTanzeemModel;
-          case "wiId":
+          case 'wiId':
             return WorkerInfoModel;
-          case "maqamActivityId":
+          case 'maqamActivityId':
             return MaqamActivitiesModel;
-          case "mentionedActivityId":
+          case 'mentionedActivityId':
             return MentionedActivitiesModel;
-          case "maqamDivisionLibId":
+          case 'maqamDivisionLibId':
             return MaqamDivisionLibraryModel;
-          case "paighamDigestId":
+          case 'paighamDigestId':
             return PaighamDigestModel;
-          case "rsdId":
+          case 'rsdId':
             return RozShabBedariModel;
-          case "tdId":
+          case 'tdId':
             return ToseeDawatModel;
-          case "otherActivityId":
+          case 'otherActivityId':
             return OtherActivitiesModel;
           default:
             return null;
         }
       };
-
       for (let i = 0; i < refsToUpdate.length; i++) {
         await returnModel(refsToUpdate[i]).updateOne(
           { _id: isExist?.[refsToUpdate[i]] },
@@ -652,22 +656,22 @@ class MaqamReport extends Response {
 
       if (updatedMaqamReport?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
-          message: "Report updated successfully",
+          message: 'Report updated successfully',
         });
       }
       if (updated?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
-          message: "Report updated",
+          message: 'Report updated',
         });
       }
       return this.sendResponse(req, res, {
-        message: "Nothing to update",
+        message: 'Nothing to update',
         status: 500,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: "Internal Server Error",
+        message: 'Internal Server Error',
         status: 500,
       });
     }

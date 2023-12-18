@@ -648,12 +648,13 @@ class User extends Response {
       }
       const decoded = jwt.decode(token.split(' ')[1]);
       const userId = decoded?.id;
-      const { userAreaId: immediate_user_id } = await UserModel.findOne({
-        _id: userId,
-      });
+      const { userAreaId: immediate_user_id, userAreaType } =
+        await UserModel.findOne({
+          _id: userId,
+        });
       const allIds = await getRoleFlow(
         immediate_user_id.toString(),
-        'division'
+        userAreaType.toLowerCase()
       );
       const requestExist = await UserRequest.findOne({ _id });
       if (!requestExist) {
