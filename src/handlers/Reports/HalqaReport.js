@@ -105,7 +105,6 @@ class HalqaReport extends Response {
         umeedWaran,
         rafaqa,
         karkunan,
-        
         ijtRafaqa,
         ijtKarkunan,
         studyCircle,
@@ -429,6 +428,7 @@ class HalqaReport extends Response {
           "karkunan",
           "shaheen",
           "members",
+          "registered",
         ],
         halqaActivityId: [
           "ijtRafaqa",
@@ -470,12 +470,18 @@ class HalqaReport extends Response {
             if (key === "halqaLibId") {
               rs[element] = dataToUpdate["registeredLibrary"] ? true : false;
             }
-            if (element === "umeedWaran") {
-              rs[element].registered = dataToUpdate[element]?.registered ? true : false; // Fix the line here
-            } if (element === "rafaqa") {
-              rs[element].registered = dataToUpdate[element]?.registered ? true : false;
-            } if (element === "karkunan") {
-              rs[element].registered = dataToUpdate[element]?.registered ? true : false;
+          } else if (
+            element === "umeedWaran" ||
+            element === "rafaqa" ||
+            element === "karkunan"
+          ) {
+            if (
+              dataToUpdate[element] &&
+              dataToUpdate[element].hasOwnProperty("registered")
+            ) {
+              rs[element] = { ...dataToUpdate[element], registered: true };
+            } else {
+              rs[element] = { registered: false }; 
             }
           } else {
             rs[element] = dataToUpdate[element];
@@ -503,8 +509,11 @@ class HalqaReport extends Response {
             return null;
         }
       };
-
       for (let i = 0; i < refsToUpdate.length; i++) {
+        console.log(
+          returnData(obj[refsToUpdate[i]], refsToUpdate[i]),
+          "returnData(obj[refsToUpdate[i]], refsToUpdate[i])"
+        );
         await returnModel(refsToUpdate[i]).updateOne(
           { _id: isExist?.[refsToUpdate[i]] },
           { $set: returnData(obj[refsToUpdate[i]], refsToUpdate[i]) }
