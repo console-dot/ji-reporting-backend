@@ -31,6 +31,7 @@ const isDataComplete = ({
   rehaishHalqay,
   taleemHalqay,
   totalHalqay,
+  tarbiyatGaah,
   subRehaishHalqay,
   subTaleemHalqay,
   subTotalHalqay,
@@ -111,7 +112,8 @@ const isDataComplete = ({
     !totalReceived ||
     !totalSold ||
     !umeedwaranFilled ||
-    !rafaqaFilled
+    !rafaqaFilled ||
+    !tarbiyatGaah
   ) {
     return false;
   }
@@ -185,6 +187,7 @@ class DivisionReport extends Response {
         totalBookRent,
         totalReceived,
         totalSold,
+        tarbiyatGaah,
         umeedwaranFilled,
         rafaqaFilled,
       } = req.body;
@@ -232,7 +235,7 @@ class DivisionReport extends Response {
       ijtNazmeen.registered = ijtNazmeen?.registered ? true : false;
       ijtUmeedwaran.registered = ijtUmeedwaran?.registered ? true : false;
       sadurMeeting.registered = sadurMeeting?.registered ? true : false;
-      console.log(studyCircle,ijtNazmeen,ijtUmeedwaran,sadurMeeting)
+      console.log(studyCircle, ijtNazmeen, ijtUmeedwaran, sadurMeeting);
       const newDivisionActivity = new DivisionActivitiesModel({
         studyCircle,
         ijtNazmeen,
@@ -270,6 +273,7 @@ class DivisionReport extends Response {
         nizamSalah,
         shabBedari,
         anyOther,
+        tarbiyatGaah,
       });
       const newTd = new ToseeDawatModel({
         rawabitDecided,
@@ -571,6 +575,7 @@ class DivisionReport extends Response {
           "hadithCircle",
           "rawabitParties",
           "dawatiWafud",
+          "tarbiyatGaah",
         ],
       };
 

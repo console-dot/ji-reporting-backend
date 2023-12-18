@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const toseeDawatModel = mongoose.Schema({
   rawabitDecided: Number,
@@ -10,6 +10,6 @@ const toseeDawatModel = mongoose.Schema({
   commonLiteratureDistribution: Number,
 });
 
-const ToseeDawatModel = mongoose.model('ToseeDawat', toseeDawatModel);
+const ToseeDawatModel = mongoose.model("ToseeDawat", toseeDawatModel);
 
 module.exports = { ToseeDawatModel };

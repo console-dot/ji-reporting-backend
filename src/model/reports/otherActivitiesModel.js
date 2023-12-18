@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const otherActivitiesModel = mongoose.Schema({
   dawatiWafud: Number,
@@ -7,10 +7,11 @@ const otherActivitiesModel = mongoose.Schema({
   nizamSalah: Number,
   shabBedari: Number,
   anyOther: String,
+  tarbiyatGaah: Number,
 });
 
 const OtherActivitiesModel = mongoose.model(
-  'OtherActivities',
+  "OtherActivities",
   otherActivitiesModel
 );
 
