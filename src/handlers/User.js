@@ -5,7 +5,7 @@ const {
   HalqaModel,
   MaqamModel,
 } = require('../model');
-const { UserRequest } = require('../model/UserRequest');
+const { UserRequest } = require('../model/userRequest');
 const {
   MaqamReportModel,
   HalqaReportModel,
