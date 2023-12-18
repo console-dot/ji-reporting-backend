@@ -7,6 +7,8 @@ const otherActivitiesModel = mongoose.Schema({
   nizamSalah: Number,
   shabBedari: Number,
   anyOther: String,
+  tanzeemiRound: Number
+
 });
 
 const OtherActivitiesModel = mongoose.model(

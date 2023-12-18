@@ -13,7 +13,7 @@ const { PaighamDigestModel } = require('./paighamDigest');
 const { MaqamReportModel } = require('./maqam');
 const { DivisionActivitiesModel } = require('./divisionActivities');
 const { DivisionReportModel } = require('./division');
-
+const {ProvinceReportModel} = require('./province');
 module.exports = {
   HalqaActivityModel,
   HalqaLibraryModel,
@@ -30,4 +30,5 @@ module.exports = {
   MaqamReportModel,
   DivisionActivitiesModel,
   DivisionReportModel,
+  ProvinceReportModel
 };
