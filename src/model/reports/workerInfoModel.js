@@ -146,8 +146,7 @@ const workerInfoModel = mongoose.Schema({
       },
     },
     required: false,
-  },
-  registered: { type: Boolean, default: false },
+  }
 });
 
 const WorkerInfoModel = mongoose.model('WorkerInfo', workerInfoModel);

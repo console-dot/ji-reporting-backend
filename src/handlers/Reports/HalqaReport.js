@@ -41,7 +41,7 @@ const isDataComplete = ({
   bookRent,
   umeedwaranFilled,
   rafaqaFilled,
-  arkanFilled
+  arkanFilled,
 }) => {
   if (
     !month ||
@@ -105,7 +105,7 @@ class HalqaReport extends Response {
         umeedWaran,
         rafaqa,
         karkunan,
-        registeredWorker,
+        
         ijtRafaqa,
         ijtKarkunan,
         studyCircle,
@@ -130,7 +130,7 @@ class HalqaReport extends Response {
         registeredLibrary,
         umeedwaranFilled,
         rafaqaFilled,
-        arkanFilled
+        arkanFilled,
       } = req.body;
 
       if (
@@ -161,11 +161,9 @@ class HalqaReport extends Response {
         !decrease ||
         !bookRent ||
         !umeedwaranFilled ||
-        !rafaqaFilled  ||
+        !rafaqaFilled ||
         !arkanFilled
-      ) 
-      
-        {
+      ) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
           status: 400,
@@ -199,7 +197,6 @@ class HalqaReport extends Response {
         umeedWaran,
         rafaqa,
         karkunan,
-        registered:  false,
       });
       const newHalqaActivity = new HalqaActivityModel({
         ijtRafaqa,
@@ -234,7 +231,7 @@ class HalqaReport extends Response {
       const newRSD = new RozShabBedariModel({
         umeedwaranFilled,
         rafaqaFilled,
-        arkanFilled
+        arkanFilled,
       });
       const wi = await newWI.save();
       const halqaActivity = await newHalqaActivity.save();
@@ -432,7 +429,6 @@ class HalqaReport extends Response {
           "karkunan",
           "shaheen",
           "members",
-          "registered",
         ],
         halqaActivityId: [
           "ijtRafaqa",
@@ -441,7 +437,7 @@ class HalqaReport extends Response {
           "darseQuran",
         ],
         halqaLibId: ["books", "increase", "decrease", "bookRent", "registered"],
-        rsdId: ["umeedwaranFilled", "rafaqaFilled","arkanFilled"],
+        rsdId: ["umeedwaranFilled", "rafaqaFilled", "arkanFilled"],
         tdId: [
           "registered",
           "commonLiteratureDistribution",
@@ -473,6 +469,13 @@ class HalqaReport extends Response {
             }
             if (key === "halqaLibId") {
               rs[element] = dataToUpdate["registeredLibrary"] ? true : false;
+            }
+            if (element === "umeedWaran") {
+              rs[element].registered = dataToUpdate[element]?.registered ? true : false; // Fix the line here
+            } if (element === "rafaqa") {
+              rs[element].registered = dataToUpdate[element]?.registered ? true : false;
+            } if (element === "karkunan") {
+              rs[element].registered = dataToUpdate[element]?.registered ? true : false;
             }
           } else {
             rs[element] = dataToUpdate[element];
