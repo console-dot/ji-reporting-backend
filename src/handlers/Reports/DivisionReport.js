@@ -149,6 +149,7 @@ class DivisionReport extends Response {
         registeredWorker,
         studyCircle,
         ijtNazmeen,
+        tarbiyatGaah,
         ijtUmeedwaran,
         sadurMeeting,
         rehaishHalqay,
@@ -188,6 +189,7 @@ class DivisionReport extends Response {
         umeedwaranFilled,
         rafaqaFilled,
       } = req.body;
+      console.log(totalLibraries)
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
@@ -219,6 +221,7 @@ class DivisionReport extends Response {
       karkunan.registered = karkunan?.registered ? true : false;
       shaheen.registered = shaheen?.registered ? true : false;
       members.registered = members?.registered ? true : false;
+      
       const newWI = new WorkerInfoModel({
         arkan,
         umeedWaran,
@@ -232,7 +235,7 @@ class DivisionReport extends Response {
       ijtNazmeen.registered = ijtNazmeen?.registered ? true : false;
       ijtUmeedwaran.registered = ijtUmeedwaran?.registered ? true : false;
       sadurMeeting.registered = sadurMeeting?.registered ? true : false;
-      console.log(studyCircle,ijtNazmeen,ijtUmeedwaran,sadurMeeting)
+    
       const newDivisionActivity = new DivisionActivitiesModel({
         studyCircle,
         ijtNazmeen,
@@ -251,11 +254,12 @@ class DivisionReport extends Response {
         busmTotalUnits,
       });
       ijtRafaqa.registered = ijtRafaqa?.registered ? true : false;
-      studyCircle.registered = studyCircle?.registered ? true : false;
+      studyCircleMentioned.registered = studyCircleMentioned?.registered ? true : false;
       ijtKarkunan.registered = ijtKarkunan?.registered ? true : false;
       darseQuran.registered = darseQuran?.registered ? true : false;
       shaheenMeeting.registered = shaheenMeeting?.registered ? true : false;
       paighamEvent.registered = paighamEvent?.registered ? true : false;
+     
       const newMentionedActivity = new MentionedActivitiesModel({
         ijtRafaqa,
         studyCircle: studyCircleMentioned,
@@ -270,13 +274,14 @@ class DivisionReport extends Response {
         nizamSalah,
         shabBedari,
         anyOther,
+        tarbiyatGaah
       });
       const newTd = new ToseeDawatModel({
         rawabitDecided,
         current,
         meetings,
         literatureDistribution,
-        registered: registeredTosee,
+        registered: registeredTosee ? true:false,
         commonStudentMeetings,
         commonLiteratureDistribution,
       });

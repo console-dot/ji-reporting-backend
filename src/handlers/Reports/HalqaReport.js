@@ -132,7 +132,7 @@ class HalqaReport extends Response {
         rafaqaFilled,
         arkanFilled
       } = req.body;
-
+        
       if (
         !month ||
         !comments ||
@@ -383,6 +383,9 @@ class HalqaReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const dataToUpdate = req.body;
+      dataToUpdate.umeedWaran.registered = dataToUpdate.umeedWaran.registered ? true : false;
+      dataToUpdate.rafaqa.registered = dataToUpdate.rafaqa.registered ? true : false;
+      dataToUpdate.karkunan.registered = dataToUpdate.karkunan.registered ? true : false;
       if (!isDataComplete(dataToUpdate)) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
