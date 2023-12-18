@@ -4,7 +4,7 @@ const otherActivitiesModel = mongoose.Schema({
   dawatiWafud: Number,
   rawabitParties: Number,
   hadithCircle: Number,
-  nazimSalah: Number,
+  nizamSalah: Number,
   shabBedari: Number,
   anyOther: String,
 });

@@ -40,6 +40,10 @@ const workerInfoModel = mongoose.Schema({
         type: Number,
         required: true,
       },
+      registered: {
+        type: Boolean,
+        default: false,
+      },
     },
     required: false,
   },
@@ -60,6 +64,10 @@ const workerInfoModel = mongoose.Schema({
       annual: {
         type: Number,
         required: true,
+      },
+      registered: {
+        type: Boolean,
+        default: false,
       },
     },
     required: false,
@@ -82,6 +90,10 @@ const workerInfoModel = mongoose.Schema({
         type: Number,
         required: true,
       },
+      registered: {
+        type: Boolean,
+        default: false,
+      },
     },
     required: false,
   },
@@ -103,6 +115,10 @@ const workerInfoModel = mongoose.Schema({
         type: Number,
         required: true,
       },
+      registered: {
+        type: Boolean,
+        default: false,
+      },
     },
     required: false,
   },
@@ -123,6 +139,10 @@ const workerInfoModel = mongoose.Schema({
       annual: {
         type: Number,
         required: true,
+      },
+      registered: {
+        type: Boolean,
+        default: false,
       },
     },
     required: false,

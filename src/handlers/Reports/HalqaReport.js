@@ -26,7 +26,7 @@ const isDataComplete = ({
   dawatiWafud,
   rawabitParties,
   hadithCircle,
-  nazimSalah,
+  nizamSalah,
   shabBedari,
   anyOther,
   rawabitDecided,
@@ -41,6 +41,7 @@ const isDataComplete = ({
   bookRent,
   umeedwaranFilled,
   rafaqaFilled,
+  arkanFilled
 }) => {
   if (
     !month ||
@@ -56,7 +57,7 @@ const isDataComplete = ({
     !dawatiWafud ||
     !rawabitParties ||
     !hadithCircle ||
-    !nazimSalah ||
+    !nizamSalah ||
     !shabBedari ||
     !anyOther ||
     !rawabitDecided ||
@@ -70,7 +71,8 @@ const isDataComplete = ({
     !decrease ||
     !bookRent ||
     !umeedwaranFilled ||
-    !rafaqaFilled
+    !rafaqaFilled ||
+    !arkanFilled
   ) {
     return false;
   }
@@ -111,7 +113,7 @@ class HalqaReport extends Response {
         dawatiWafud,
         rawabitParties,
         hadithCircle,
-        nazimSalah,
+        nizamSalah,
         shabBedari,
         anyOther,
         rawabitDecided,
@@ -128,6 +130,7 @@ class HalqaReport extends Response {
         registeredLibrary,
         umeedwaranFilled,
         rafaqaFilled,
+        arkanFilled
       } = req.body;
 
       if (
@@ -144,7 +147,7 @@ class HalqaReport extends Response {
         !dawatiWafud ||
         !rawabitParties ||
         !hadithCircle ||
-        !nazimSalah ||
+        !nizamSalah ||
         !shabBedari ||
         !anyOther ||
         !rawabitDecided ||
@@ -158,8 +161,11 @@ class HalqaReport extends Response {
         !decrease ||
         !bookRent ||
         !umeedwaranFilled ||
-        !rafaqaFilled
-      ) {
+        !rafaqaFilled  ||
+        !arkanFilled
+      ) 
+      
+        {
         return this.sendResponse(req, res, {
           message: "All fields are required",
           status: 400,
@@ -185,12 +191,15 @@ class HalqaReport extends Response {
           status: 400,
         });
       }
+      umeedWaran.registered = umeedWaran?.registered ? true : false;
+      rafaqa.registered = rafaqa?.registered ? true : false;
+      karkunan.registered = karkunan?.registered ? true : false;
       const newWI = new WorkerInfoModel({
         arkan,
         umeedWaran,
         rafaqa,
         karkunan,
-        registered: registeredWorker ? true : false,
+        registered:  false,
       });
       const newHalqaActivity = new HalqaActivityModel({
         ijtRafaqa,
@@ -202,7 +211,7 @@ class HalqaReport extends Response {
         dawatiWafud,
         rawabitParties,
         hadithCircle,
-        nazimSalah,
+        nizamSalah,
         shabBedari,
         anyOther,
       });
@@ -225,6 +234,7 @@ class HalqaReport extends Response {
       const newRSD = new RozShabBedariModel({
         umeedwaranFilled,
         rafaqaFilled,
+        arkanFilled
       });
       const wi = await newWI.save();
       const halqaActivity = await newHalqaActivity.save();
@@ -431,7 +441,7 @@ class HalqaReport extends Response {
           "darseQuran",
         ],
         halqaLibId: ["books", "increase", "decrease", "bookRent", "registered"],
-        rsdId: ["umeedwaranFilled", "rafaqaFilled"],
+        rsdId: ["umeedwaranFilled", "rafaqaFilled","arkanFilled"],
         tdId: [
           "registered",
           "commonLiteratureDistribution",
@@ -444,7 +454,7 @@ class HalqaReport extends Response {
         otherActivityId: [
           "anyOther",
           "shabBedari",
-          "nazimSalah",
+          "nizamSalah",
           "hadithCircle",
           "rawabitParties",
           "dawatiWafud",
