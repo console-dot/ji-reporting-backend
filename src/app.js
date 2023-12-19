@@ -8,6 +8,8 @@ const db = require('./db');
 const { router } = require('./routes');
 const PORT = process.env.PORT || 5000;
 
+console.log(process.env);
+
 const app = express();
 // Middlewares
 app.use(express.json());
