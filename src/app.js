@@ -15,6 +15,9 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Routes
+app.use('/', (req, res) => {
+  return res.send('Hello JIR')
+})
 app.use('/api/v1', router);
 
 // Listener
