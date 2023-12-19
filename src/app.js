@@ -15,13 +15,10 @@ app.use(cors());
 app.use(express.static(path.join(__dirname, '../public')));
 
 // Routes
-app.use('/', (req, res) => {
-  return res.send('Hello JIR')
-})
 app.use('/api/v1', router);
 
 // Listener
-if (process.env.NODE_ENV === 'local') {
+// if (process.env.NODE_ENV === 'local') {
   app.listen(PORT, () => {
     console.log('\x1b[33m%s\x1b[0m', '[!] Connection to database...');
     // Database connection error
@@ -34,6 +31,6 @@ if (process.env.NODE_ENV === 'local') {
       console.log('\x1b[32m', `[+] Server Started: http://localhost:${PORT}`);
     });
   });
-}
+// }
 
 module.exports = { app };
