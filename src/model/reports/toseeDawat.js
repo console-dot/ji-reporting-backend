@@ -5,7 +5,7 @@ const toseeDawatModel = mongoose.Schema({
   current: Number,
   meetings: Number,
   literatureDistribution: Number,
-  
+  registered: { type: Boolean, default: false },
   commonStudentMeetings: Number,
   commonLiteratureDistribution: Number,
 });

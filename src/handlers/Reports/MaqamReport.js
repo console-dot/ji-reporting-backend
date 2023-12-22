@@ -191,6 +191,7 @@ class MaqamReport extends Response {
         totalSold,
         umeedwaranFilled,
         rafaqaFilled,
+        arkanFilled,
         tarbiyatGaah
       } = req.body;
       if (!isDataComplete(req.body)) {
@@ -302,6 +303,7 @@ class MaqamReport extends Response {
       const newRsd = new RozShabBedariModel({
         umeedwaranFilled,
         rafaqaFilled,
+        arkanFilled,
       });
       const wi = await newWI.save();
       const maqamActivity = await newMaqamActivity.save();
@@ -355,7 +357,7 @@ class MaqamReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      if (user?.nazim !== 'province') {
+      // if (user?.nazim !== 'province') {
         reports = await MaqamReportModel.find({
           maqamAreaId: accessList,
         }).populate([
@@ -371,21 +373,21 @@ class MaqamReport extends Response {
           { path: 'paighamDigestId' },
           { path: 'rsdId' },
         ]);
-      } else {
-        reports = await MaqamReportModel.find().populate([
-          { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
-          { path: 'maqamAreaId', populate: { path: 'province' } },
-          { path: 'maqamTanzeemId' },
-          { path: 'wiId' },
-          { path: 'maqamActivityId' },
-          { path: 'mentionedActivityId' },
-          { path: 'otherActivityId' },
-          { path: 'tdId' },
-          { path: 'maqamDivisionLibId' },
-          { path: 'paighamDigestId' },
-          { path: 'rsdId' },
-        ]);
-      }
+      // } else {
+      //   reports = await MaqamReportModel.find().populate([
+      //     { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
+      //     { path: 'maqamAreaId', populate: { path: 'province' } },
+      //     { path: 'maqamTanzeemId' },
+      //     { path: 'wiId' },
+      //     { path: 'maqamActivityId' },
+      //     { path: 'mentionedActivityId' },
+      //     { path: 'otherActivityId' },
+      //     { path: 'tdId' },
+      //     { path: 'maqamDivisionLibId' },
+      //     { path: 'paighamDigestId' },
+      //     { path: 'rsdId' },
+      //   ]);
+      // }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
@@ -467,7 +469,6 @@ class MaqamReport extends Response {
       const decoded = decode(token.split(' ')[1]);
       const userId = decoded?.id;
       const dataToUpdate = req.body;
-      console.log(dataToUpdate)
       if (!isDataComplete(dataToUpdate)) {
         return this.sendResponse(req, res, {
           message: 'All fields are required',
@@ -608,7 +609,7 @@ class MaqamReport extends Response {
             ) {
               rs[element] = { ...dataToUpdate[element], registered: true };
             } else {
-              rs[element] = { registered: false };
+              rs[element] = { ...dataToUpdate[element], registered: false };
             }
           } else {
             rs[element] = dataToUpdate[element];

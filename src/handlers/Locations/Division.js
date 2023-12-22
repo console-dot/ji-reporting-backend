@@ -148,7 +148,6 @@ class Division extends Response {
           $set: { disabled },
         }
       );
-      console.log(updatedLocation);
       if (updatedLocation?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
           message: "Division Updated",

@@ -372,7 +372,7 @@ class ProvinceReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      if (user?.nazim !== 'province') {
+      // if (user?.nazim !== 'province') {
         reports = await ProvinceReportModel.find({
           provinceareaId: accessList,
         }).populate([
@@ -388,21 +388,21 @@ class ProvinceReport extends Response {
           { path: 'paighamDigestId' },
           { path: 'rsdId' },
         ]);
-      } else {
-        reports = await ProvinceReportModel.find().populate([
-          { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
-          { path: 'provinceAreaId' },
-          { path: 'provinceTanzeemId' },
-          { path: 'wiId' },
-          { path: 'provinceActivityId' },
-          { path: 'mentionedActivityId' },
-          { path: 'otherActivityId' },
-          { path: 'tdId' },
-          { path: 'provinceDivisionLibId' },
-          { path: 'paighamDigestId' },
-          { path: 'rsdId' },
-        ]);
-      }
+      // } else {
+      //   reports = await ProvinceReportModel.find().populate([
+      //     { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
+      //     { path: 'provinceAreaId' },
+      //     { path: 'provinceTanzeemId' },
+      //     { path: 'wiId' },
+      //     { path: 'provinceActivityId' },
+      //     { path: 'mentionedActivityId' },
+      //     { path: 'otherActivityId' },
+      //     { path: 'tdId' },
+      //     { path: 'provinceDivisionLibId' },
+      //     { path: 'paighamDigestId' },
+      //     { path: 'rsdId' },
+      //   ]);
+      // }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);

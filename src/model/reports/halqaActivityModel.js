@@ -19,6 +19,10 @@ const halqaActivityModel = mongoose.Schema({
         type: String,
         required: true,
       },
+      registered: {
+        type: Boolean,
+        default: false,
+      },
     },
     required: false,
   },

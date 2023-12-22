@@ -86,9 +86,16 @@ const getRoleFlow = async (id, key) => {
         getRoleFlow(item?._id, 'division')
       );
       const provinceResults = await Promise.all(provincePromises);
+      const maqamList = await MaqamModel.find({ province: id });
+      const provincePromisesm = maqamList.map((item) =>
+        getRoleFlow(item?._id, 'maqam')
+      );
+      const provinceResultsm = await Promise.all(provincePromisesm);
       return [
         ...provinceResults.flat(),
         ...divisionList.map((item) => item?._id),
+        ...provinceResultsm.flat(),
+        ...maqamList.map((item) => item?._id),
         id,
       ];
 
