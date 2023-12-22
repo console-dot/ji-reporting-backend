@@ -234,7 +234,6 @@ class DivisionReport extends Response {
       ijtNazmeen.registered = ijtNazmeen?.registered ? true : false;
       ijtUmeedwaran.registered = ijtUmeedwaran?.registered ? true : false;
       sadurMeeting.registered = sadurMeeting?.registered ? true : false;
-      console.log(studyCircle, ijtNazmeen, ijtUmeedwaran, sadurMeeting);
       const newDivisionActivity = new DivisionActivitiesModel({
         studyCircle,
         ijtNazmeen,

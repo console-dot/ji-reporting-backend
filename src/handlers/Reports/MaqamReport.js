@@ -469,7 +469,6 @@ class MaqamReport extends Response {
       const decoded = decode(token.split(' ')[1]);
       const userId = decoded?.id;
       const dataToUpdate = req.body;
-      console.log(dataToUpdate)
       if (!isDataComplete(dataToUpdate)) {
         return this.sendResponse(req, res, {
           message: 'All fields are required',
