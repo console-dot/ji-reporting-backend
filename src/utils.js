@@ -141,14 +141,20 @@ const getParentId = async (_id) => {
     return null;
   }
   const { userAreaId, userAreaType } = userExist;
-  const { _id: parentAreaId } = (await getModal(userAreaType))
-    ? getModal(userAreaType)?.findOne({
-        _id: userAreaId,
-      })
-    : { _id: null };
+  const modal = getModal(userAreaType);
+  let parentAreaId;
+  if (modal) {
+    const { _id } = await modal?.findOne({
+      _id: userAreaId,
+    });
+    parentAreaId = _id;
+  } else {
+    return null;
+  }
   if (!parentAreaId) return null;
   const { _id: parentId } = await UserModel.findOne({
     userAreaId: parentAreaId,
+    isDeleted: false,
   });
   return parentId;
 };

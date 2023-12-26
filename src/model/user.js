@@ -4,8 +4,6 @@ const users = mongoose.Schema(
   {
     email: {
       type: String,
-      required: true,
-      unique: true,
     },
     password: {
       type: String,
@@ -30,9 +28,7 @@ const users = mongoose.Schema(
     },
     userAreaId: {
       type: mongoose.Types.ObjectId,
-      required: true,
       refPath: 'userAreaType',
-      unique: true,
     },
     userAreaType: {
       type: String,
