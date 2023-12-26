@@ -99,12 +99,18 @@ class User extends Response {
           status: 400,
         });
       }
-      const userAreaIdExist = await UserModel.findOne({ userAreaId });
-      if (userAreaIdExist) {
-        return this.sendResponse(req, res, {
-          message: 'Area already occupied',
-          status: 400,
-        });
+      const userAreaIdExist = await UserModel.find({ userAreaId }).populate(
+        'userRequestId'
+      );
+      if (userAreaIdExist.length > 0) {
+        const valid = userAreaIdExist.filter(
+          (i) => i?.userRequestId?.status === 'accepted'
+        );
+        if (valid && valid?.length > 0)
+          return this.sendResponse(req, res, {
+            message: 'Area already occupied',
+            status: 400,
+          });
       }
       const role = await RoleModel.findOne({ title: nazim });
       const immediate_user_id = await getImmediateUser(
@@ -299,13 +305,6 @@ class User extends Response {
           status: 404,
         });
       }
-      const parentId = await getParentId(userId.toString());
-      if (parentId?.toString() !== userId.toString()) {
-        return this.sendResponse(req, res, {
-          message: 'Third-party deletion not allowed',
-          status: 401,
-        });
-      }
       if (userExist?.isDeleted) {
         return this.sendResponse(req, res, {
           message: 'User already deleted',
@@ -314,7 +313,7 @@ class User extends Response {
       }
       const update = await UserModel.updateOne(
         { _id },
-        { $set: { isDeleted: true } }
+        { $set: { isDeleted: true, userAreaId: null, email: null } }
       );
       if (update?.modifiedCount > 0) {
         return this.sendResponse(req, res, { message: 'User deleted' });
@@ -686,7 +685,29 @@ class User extends Response {
   };
   getAllNazim = async (req, res) => {
     try {
-      const data = await UserModel.find({ isDeleted: false }, 'email name age userRequestId').populate("userRequestId");
+      const token = req.headers.authorization;
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: 'Access Denied',
+          status: 401,
+        });
+      }
+      const decoded = jwt.decode(token.split(' ')[1]);
+      const userId = decoded?.id;
+      const { userAreaId: immediate_user_id, userAreaType: key } =
+        await UserModel.findOne({
+          _id: userId,
+        });
+      const validIds = (await getRoleFlow(immediate_user_id, key)).map((i) =>
+        i?.toString()
+      );
+      const data = await UserModel.find(
+        { userAreaId: validIds },
+        'email name age userRequestId userAreaId isDeleted userAreaType'
+      ).populate([
+        'userRequestId',
+        { path: 'userAreaId', refPath: 'userAreaType' },
+      ]);
       this.sendResponse(req, res, {
         data: data.filter((i) => i?.userRequestId?.status === 'accepted'),
         status: 200,
