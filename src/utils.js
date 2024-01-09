@@ -6,26 +6,32 @@ const {
   HalqaModel,
   UserModel,
   ProvinceModel,
-} = require('./model');
+} = require("./model");
 
 const getImmediateUser = async (userAreaId, userAreaType) => {
   let req = undefined;
   switch (userAreaType) {
-    case 'Province':
+    case "Province":
       return null;
-    case 'Maqam':
+    case "Maqam":
       req = await MaqamModel.findOne({ _id: userAreaId });
       return req?.province;
-    case 'Division':
+    case "Division":
       req = await DivisionModel.findOne({ _id: userAreaId });
       return req?.province;
-    case 'District':
+    case "District":
       req = await DistrictModel.findOne({ _id: userAreaId });
       return req?.division;
-    case 'Tehsil':
+    case "Tehsil":
       req = await TehsilModel.findOne({ _id: userAreaId });
       return req?.district;
-    case 'Halqa':
+    case "Halqa":
+      req = await HalqaModel.findOne({ _id: userAreaId });
+      return req?.parentId;
+    case "Umeedwaar":
+      req = await HalqaModel.findOne({ _id: userAreaId });
+      return req?.parentId;
+    case "Rukan":
       req = await HalqaModel.findOne({ _id: userAreaId });
       return req?.parentId;
     default:
@@ -35,12 +41,12 @@ const getImmediateUser = async (userAreaId, userAreaType) => {
 
 const getPopulateMethod = (type) => {
   switch (type) {
-    case 'Maqam':
-      return { path: 'province' };
-    case 'Tehsil':
+    case "Maqam":
+      return { path: "province" };
+    case "Tehsil":
       return {
-        path: 'district',
-        populate: { path: 'division', populate: { path: 'province' } },
+        path: "district",
+        populate: { path: "division", populate: { path: "province" } },
       };
     default:
       return null;
@@ -54,24 +60,24 @@ const getRoleFlow = async (id, key) => {
   };
 
   switch (key.toLowerCase()) {
-    case 'halqa':
+    case "halqa":
       return [id];
 
-    case 'tehsil':
-    case 'maqam':
+    case "tehsil":
+    case "maqam":
       const halqaList = await getHalqaList(id);
       return [...halqaList, id];
 
-    case 'district':
+    case "district":
       const tehsilList = await TehsilModel.find({ district: id });
       const halqaPromises = tehsilList.map((item) => getHalqaList(item?._id));
       const halqaLists = await Promise.all(halqaPromises);
       return [...tehsilList.map((item) => item?._id), ...halqaLists.flat(), id];
 
-    case 'division':
+    case "division":
       const districtList = await DistrictModel.find({ division: id });
       const divisionPromises = districtList.map((item) =>
-        getRoleFlow(item?._id, 'district')
+        getRoleFlow(item?._id, "district")
       );
       const divisionResults = await Promise.all(divisionPromises);
       return [
@@ -80,15 +86,15 @@ const getRoleFlow = async (id, key) => {
         id,
       ];
 
-    case 'province':
+    case "province":
       const divisionList = await DivisionModel.find({ province: id });
       const provincePromises = divisionList.map((item) =>
-        getRoleFlow(item?._id, 'division')
+        getRoleFlow(item?._id, "division")
       );
       const provinceResults = await Promise.all(provincePromises);
       const maqamList = await MaqamModel.find({ province: id });
       const provincePromisesm = maqamList.map((item) =>
-        getRoleFlow(item?._id, 'maqam')
+        getRoleFlow(item?._id, "maqam")
       );
       const provinceResultsm = await Promise.all(provincePromisesm);
       return [
@@ -105,34 +111,34 @@ const getRoleFlow = async (id, key) => {
 };
 
 const months = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const getParentId = async (_id) => {
   const getModal = (userAreaType) => {
     switch (userAreaType) {
-      case 'Province':
+      case "Province":
         return null;
-      case 'Division':
+      case "Division":
         return ProvinceModel;
-      case 'District':
+      case "District":
         return DivisionModel;
-      case 'Tehsil':
+      case "Tehsil":
         return DistrictModel;
-      case 'Halqa':
+      case "Halqa":
         return TehsilModel;
-      case 'Maqam':
+      case "Maqam":
         return ProvinceModel;
     }
   };

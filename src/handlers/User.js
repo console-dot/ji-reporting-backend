@@ -4,18 +4,18 @@ const {
   ResetPasswordModel,
   HalqaModel,
   MaqamModel,
-} = require('../model');
-const { UserRequest } = require('../model/userRequest');
+} = require("../model");
+const { UserRequest } = require("../model/userRequest");
 const {
   MaqamReportModel,
   HalqaReportModel,
   DivisionReportModel,
-} = require('../model/reports');
-const { getImmediateUser, getParentId, getRoleFlow } = require('../utils');
-const Mailer = require('./Mailer');
-const Response = require('./Response');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
+} = require("../model/reports");
+const { getImmediateUser, getParentId, getRoleFlow } = require("../utils");
+const Mailer = require("./Mailer");
+const Response = require("./Response");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 class User extends Response {
   signup = async (req, res) => {
@@ -29,65 +29,136 @@ class User extends Response {
         nazim,
         userAreaId,
         userAreaType,
+        fatherName,
+        dob,
+        address,
+        qualification,
+        subject,
+        semester,
+        institution,
+        joiningDate,
+        phoneNumber,
+        whatsAppNumber,
+        nazimType,
       } = req.body;
-
+      console.log(userAreaType, nazimType);
       if (!userAreaId || !userAreaType) {
         return this.sendResponse(req, res, {
-          message: 'Location is requied!',
+          message: "Location is requied!",
           status: 400,
         });
       }
       if (!email) {
         return this.sendResponse(req, res, {
-          message: 'Email is requied!',
+          message: "Email is requied!",
           status: 400,
         });
       }
       if (!password1) {
         return this.sendResponse(req, res, {
-          message: 'Password is requied!',
+          message: "Password is requied!",
           status: 400,
         });
       }
       if (!password2) {
         return this.sendResponse(req, res, {
-          message: 'Confirm Password is requied!',
+          message: "Confirm Password is requied!",
           status: 400,
         });
       }
       if (!name) {
         return this.sendResponse(req, res, {
-          message: 'Name is requied!',
+          message: "Name is requied!",
           status: 400,
         });
       }
       if (!age) {
         return this.sendResponse(req, res, {
-          message: 'Age is requied!',
+          message: "Age is requied!",
           status: 400,
         });
       }
       if (!nazim) {
         return this.sendResponse(req, res, {
-          message: 'Nazim type is requied!',
+          message: "Nazim type is requied!",
           status: 400,
         });
       }
-      if (nazim === 'province' || userAreaType === 'Province') {
+      if (nazim === "province" || userAreaType === "Province") {
         return this.sendResponse(req, res, {
-          message: 'Province signup not allowed',
+          message: "Province signup not allowed",
           status: 400,
         });
       }
       if (password1 !== password2) {
         return this.sendResponse(req, res, {
-          message: 'Both passwords should match!',
+          message: "Both passwords should match!",
+          status: 400,
+        });
+      }
+      if (!fatherName) {
+        return this.sendResponse(req, res, {
+          message: "Father Name is requied!",
+          status: 400,
+        });
+      }
+      if (!dob) {
+        return this.sendResponse(req, res, {
+          message: "Date of Birth is requied!",
+          status: 400,
+        });
+      }
+      if (!address) {
+        return this.sendResponse(req, res, {
+          message: "Address is requied!",
+          status: 400,
+        });
+      }
+      if (!qualification) {
+        return this.sendResponse(req, res, {
+          message: "QFualification is requied!",
+          status: 400,
+        });
+      }
+      if (!subject) {
+        return this.sendResponse(req, res, {
+          message: "Subject is requied!",
+          status: 400,
+        });
+      }
+      if (!semester) {
+        return this.sendResponse(req, res, {
+          message: "Semester/Year is requied!",
+          status: 400,
+        });
+      }
+      if (!institution) {
+        return this.sendResponse(req, res, {
+          message: "Institution is requied!",
+          status: 400,
+        });
+      }
+      if (!joiningDate) {
+        return this.sendResponse(req, res, {
+          message: "Joining Date is requied!",
+          status: 400,
+        });
+      }
+      if (!phoneNumber) {
+        return this.sendResponse(req, res, {
+          message: "PhoneNumber is requied!",
+          status: 400,
+        });
+      }
+      if (!nazimType) {
+        return this.sendResponse(req, res, {
+          message: "Nazim Type is requied!",
           status: 400,
         });
       }
       if (password1.length < 8) {
         return this.sendResponse(req, res, {
-          message: 'Password must be minimum 8 character long',
+          message: "Password must be minimum 8 character long",
           status: 400,
         });
       }
@@ -95,22 +166,28 @@ class User extends Response {
       const emailExist = await UserModel.findOne({ email });
       if (emailExist) {
         return this.sendResponse(req, res, {
-          message: 'Email already exist for another user',
+          message: "Email already exist for another user",
           status: 400,
         });
       }
-      const userAreaIdExist = await UserModel.find({ userAreaId }).populate(
-        'userRequestId'
-      );
-      if (userAreaIdExist.length > 0) {
-        const valid = userAreaIdExist.filter(
-          (i) => i?.userRequestId?.status === 'accepted'
+      if (
+        nazimType !== "rukan" &&
+        nazimType !== "nazim" &&
+        nazim !== "umeedwar"
+      ) {
+        const userAreaIdExist = await UserModel.find({ userAreaId }).populate(
+          "userRequestId"
         );
-        if (valid && valid?.length > 0)
-          return this.sendResponse(req, res, {
-            message: 'Area already occupied',
-            status: 400,
-          });
+        if (userAreaIdExist.length > 0) {
+          const valid = userAreaIdExist.filter(
+            (i) => i?.userRequestId?.status === "accepted"
+          );
+          if (valid && valid?.length > 0)
+            return this.sendResponse(req, res, {
+              message: "Area already occupied",
+              status: 400,
+            });
+        }
       }
       const role = await RoleModel.findOne({ title: nazim });
       const immediate_user_id = await getImmediateUser(
@@ -131,22 +208,33 @@ class User extends Response {
         userAreaId,
         userAreaType,
         userRequestId: UserRequestReq?.id,
+        fatherName,
+        dob,
+        address,
+        qualification,
+        subject,
+        semester,
+        institution,
+        joiningDate,
+        phoneNumber,
+        whatsAppNumber,
+        nazimType,
       });
       const newUserReq = await newUser.save();
       if (!newUserReq?._id) {
         return this.sendResponse(req, res, {
-          message: 'Failed to create new user',
+          message: "Failed to create new user",
           status: 400,
         });
       }
       return this.sendResponse(req, res, {
-        message: 'User request sent for approval',
+        message: "User request sent for approval",
         status: 201,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -156,7 +244,7 @@ class User extends Response {
       const { email } = req.body;
       if (!email) {
         return this.sendResponse(req, res, {
-          message: 'Email is required',
+          message: "Email is required",
           status: 400,
         });
       }
@@ -186,7 +274,7 @@ class User extends Response {
                         <p>Hello,</p>
                         <p>You have requested to reset your password. To complete the password reset process, please click the following link:</p>
                         <p><a href="${
-                          process.env.BASE_URL || 'http://localhost:3000'
+                          process.env.BASE_URL || "http://localhost:3000"
                         }/reset-password?key=${key}" style="background-color: #0078d4; color: #fff; padding: 10px 20px; text-decoration: none;">Reset Password</a></p>
                         <p>If you did not request a password reset, you can ignore this email.</p>
                         <p>Thank you,</p>
@@ -204,7 +292,7 @@ class User extends Response {
         mailer.sendMail(
           process.env.MAIL_EMAIL,
           email,
-          'Reset password link',
+          "Reset password link",
           html
         );
         const newKey = new ResetPasswordModel({ email, key });
@@ -212,12 +300,12 @@ class User extends Response {
       }
       return this.sendResponse(req, res, {
         message:
-          'Reset link will be sent to your email address if found in our records',
+          "Reset link will be sent to your email address if found in our records",
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -227,19 +315,19 @@ class User extends Response {
       const { key, password1, password2 } = req.body;
       if (!key) {
         return this.sendResponse(req, res, {
-          message: 'Key is required',
+          message: "Key is required",
           status: 400,
         });
       }
       if (!password1) {
         return this.sendResponse(req, res, {
-          message: 'Password is required',
+          message: "Password is required",
           status: 400,
         });
       }
       if (password1 !== password2) {
         return this.sendResponse(req, res, {
-          message: 'Both passwords should match',
+          message: "Both passwords should match",
           status: 400,
         });
       }
@@ -251,7 +339,7 @@ class User extends Response {
         });
         if (!keyExist) {
           return this.sendResponse(req, res, {
-            message: 'Invalid key',
+            message: "Invalid key",
             status: 400,
           });
         }
@@ -262,20 +350,20 @@ class User extends Response {
           { $set: { password } }
         );
         return this.sendResponse(req, res, {
-          message: 'Password Updated',
+          message: "Password Updated",
           data: { email: decoded?.email },
           status: 200,
         });
       } catch (err) {
         return this.sendResponse(req, res, {
-          message: err?.message ? 'Link Expired' : err?.message.toUpperCase(),
+          message: err?.message ? "Link Expired" : err?.message.toUpperCase(),
           status: 400,
         });
       }
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -286,28 +374,28 @@ class User extends Response {
       const _id = req.params.id;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
       if (!_id) {
         return this.sendResponse(req, res, {
-          message: 'ID is required',
+          message: "ID is required",
           status: 404,
         });
       }
-      const decoded = jwt.decode(token.split(' ')[1]);
+      const decoded = jwt.decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const userExist = await UserModel.findOne({ _id });
       if (!userExist) {
         return this.sendResponse(req, res, {
-          message: 'User not found',
+          message: "User not found",
           status: 404,
         });
       }
       if (userExist?.isDeleted) {
         return this.sendResponse(req, res, {
-          message: 'User already deleted',
+          message: "User already deleted",
           status: 400,
         });
       }
@@ -316,13 +404,13 @@ class User extends Response {
         { $set: { isDeleted: true, userAreaId: null, email: null } }
       );
       if (update?.modifiedCount > 0) {
-        return this.sendResponse(req, res, { message: 'User deleted' });
+        return this.sendResponse(req, res, { message: "User deleted" });
       }
-      return this.sendResponse(req, res, { message: 'Nothing to delete' });
+      return this.sendResponse(req, res, { message: "Nothing to delete" });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -332,22 +420,22 @@ class User extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
-      const decoded = jwt.decode(token.split(' ')[1]);
+      const decoded = jwt.decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const _id = userId;
       if (!_id) {
         return this.sendResponse(req, res, {
-          message: 'ID is required',
+          message: "ID is required",
           status: 404,
         });
       }
       if (userId.toString() !== _id.toString()) {
         return this.sendResponse(req, res, {
-          message: 'Third-party update not allowed',
+          message: "Third-party update not allowed",
           status: 404,
         });
       }
@@ -355,32 +443,32 @@ class User extends Response {
       const userExist = await UserModel.findOne({ _id });
       if (!userExist) {
         return this.sendResponse(req, res, {
-          message: 'User not found!',
+          message: "User not found!",
           status: 404,
         });
       }
       if (!name) {
         return this.sendResponse(req, res, {
-          message: 'Name is required',
+          message: "Name is required",
           status: 400,
         });
       }
       if (!age) {
         return this.sendResponse(req, res, {
-          message: 'Age is required',
+          message: "Age is required",
           status: 400,
         });
       }
       if (!email) {
         return this.sendResponse(req, res, {
-          message: 'Email is required',
+          message: "Email is required",
           status: 400,
         });
       }
       const emailExist = await UserModel.findOne({ email, _id: { $ne: _id } });
       if (emailExist) {
         return this.sendResponse(req, res, {
-          message: 'User already exist with same email',
+          message: "User already exist with same email",
           status: 400,
         });
       }
@@ -389,16 +477,16 @@ class User extends Response {
         { $set: { name, email, age } }
       );
       if (updated?.modifiedCount > 0) {
-        return this.sendResponse(req, res, { message: 'User updated.' });
+        return this.sendResponse(req, res, { message: "User updated." });
       }
       return this.sendResponse(req, res, {
-        message: 'Nothing to update!',
+        message: "Nothing to update!",
         status: 400,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -408,49 +496,49 @@ class User extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
-      const decoded = jwt.decode(token.split(' ')[1]);
+      const decoded = jwt.decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const _id = userId;
       if (!_id) {
         return this.sendResponse(req, res, {
-          message: 'User ID is required',
+          message: "User ID is required",
           status: 400,
         });
       }
       const { password0, password1, password2 } = req.body;
       if (!password0) {
         return this.sendResponse(req, res, {
-          message: 'Current Password is required',
+          message: "Current Password is required",
           status: 400,
         });
       }
       if (!password1) {
         return this.sendResponse(req, res, {
-          message: 'New Password is required',
+          message: "New Password is required",
           status: 400,
         });
       }
       if (password1 !== password2) {
         return this.sendResponse(req, res, {
-          message: 'Both passwords should match',
+          message: "Both passwords should match",
           status: 400,
         });
       }
       const userExist = await UserModel.findOne({ _id });
       if (!userExist) {
         return this.sendResponse(req, res, {
-          message: 'User not found!',
+          message: "User not found!",
           status: 404,
         });
       }
       const isValid = await bcrypt.compare(password0, userExist?.password);
       if (!isValid) {
         return this.sendResponse(req, res, {
-          message: 'Current password is not correct.',
+          message: "Current password is not correct.",
           status: 405,
         });
       }
@@ -461,17 +549,17 @@ class User extends Response {
       );
       if (updated?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
-          message: 'Password updated',
+          message: "Password updated",
         });
       }
       return this.sendResponse(req, res, {
-        message: 'Password same as previous',
+        message: "Password same as previous",
         status: 400,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -481,48 +569,48 @@ class User extends Response {
       const { email, password } = req.body;
       if (!email) {
         return this.sendResponse(req, res, {
-          message: 'Email is required!',
+          message: "Email is required!",
           status: 400,
         });
       }
       if (!password) {
         return this.sendResponse(req, res, {
-          message: 'Password is required!',
+          message: "Password is required!",
           status: 400,
         });
       }
       const userExist = await UserModel.findOne({ email });
       if (!userExist) {
         return this.sendResponse(req, res, {
-          message: 'Invalid username/password',
+          message: "Invalid username/password",
           status: 400,
         });
       }
       const isValid = await bcrypt.compare(password, userExist?.password);
       if (!isValid) {
         return this.sendResponse(req, res, {
-          message: 'Invalid username/password',
+          message: "Invalid username/password",
           status: 400,
         });
       }
       if (userExist?.isDeleted) {
         return this.sendResponse(req, res, {
-          message: 'User was deleted.',
+          message: "User was deleted.",
           status: 400,
         });
       }
       const userRequest = await UserRequest.findOne({
         _id: userExist?.userRequestId,
       });
-      if (userRequest?.status === 'pending') {
+      if (userRequest?.status === "pending") {
         return this.sendResponse(req, res, {
-          message: 'Account not verified yet.',
+          message: "Account not verified yet.",
           status: 400,
         });
       }
-      if (userRequest?.status === 'rejected') {
+      if (userRequest?.status === "rejected") {
         return this.sendResponse(req, res, {
-          message: 'Account request declined.',
+          message: "Account request declined.",
           status: 400,
         });
       }
@@ -530,7 +618,7 @@ class User extends Response {
         { email, id: userExist?._id },
         process.env.JWT_SECRET,
         {
-          expiresIn: '1h',
+          expiresIn: "1h",
         }
       );
       return this.sendResponse(req, res, {
@@ -539,7 +627,7 @@ class User extends Response {
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -549,11 +637,11 @@ class User extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
-      const decoded = jwt.decode(token.split(' ')[1]);
+      const decoded = jwt.decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const { userAreaId: immediate_user_id, userAreaType: key } =
         await UserModel.findOne({
@@ -564,13 +652,13 @@ class User extends Response {
       );
       const allRequests = await UserRequest.find({
         immediate_user_id: allIds,
-        status: 'pending',
+        status: "pending",
       });
       const request_ids = allRequests.map((i) => i?._id.toString());
       const users = await UserModel.find(
         { userRequestId: request_ids },
-        'name email userAreaId userAreaType'
-      ).populate([{ path: 'userAreaId', refPath: 'userAreaType' }]);
+        "name email userAreaId userAreaType"
+      ).populate([{ path: "userAreaId", refPath: "userAreaType" }]);
       return this.sendResponse(req, res, {
         data: users.map((item, index) => ({
           ...item?._doc,
@@ -580,44 +668,44 @@ class User extends Response {
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
   };
   me = async (req, res) => {
     try {
-      const temp = await getRoleFlow('655e9924ef962e2d062ad0f8', 'division');
+      const temp = await getRoleFlow("655e9924ef962e2d062ad0f8", "division");
       const temp2 = temp.map((i) => i.toString());
       const ha = await HalqaModel.find({ _id: temp2 });
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Authorization token required',
+          message: "Authorization token required",
           status: 401,
         });
       }
-      const t = token.split(' ')[1];
+      const t = token.split(" ")[1];
       const decoded = jwt.decode(t);
       if (decoded) {
         const { id } = decoded;
         const user = await UserModel.findOne(
           { _id: id },
-          'email name age _id userAreaId'
-        ).populate({ path: 'userAreaId', refPath: 'userAreaType' });
+          "email name age _id userAreaId"
+        ).populate({ path: "userAreaId", refPath: "userAreaType" });
         return this.sendResponse(req, res, {
           data: user,
           status: 200,
         });
       }
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     } catch {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -629,23 +717,23 @@ class User extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
       if (!_id) {
         return this.sendResponse(req, res, {
-          message: 'ID is required',
+          message: "ID is required",
           status: 400,
         });
       }
       if (!status) {
         return this.sendResponse(req, res, {
-          message: 'Status is required',
+          message: "Status is required",
           status: 400,
         });
       }
-      const decoded = jwt.decode(token.split(' ')[1]);
+      const decoded = jwt.decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const { userAreaId: immediate_user_id, userAreaType } =
         await UserModel.findOne({
@@ -658,7 +746,7 @@ class User extends Response {
       const requestExist = await UserRequest.findOne({ _id });
       if (!requestExist) {
         return this.sendResponse(req, res, {
-          message: 'Request not found!',
+          message: "Request not found!",
           status: 404,
         });
       }
@@ -668,17 +756,17 @@ class User extends Response {
       );
       if (update?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
-          message: 'Status Updated',
+          message: "Status Updated",
         });
       }
       return this.sendResponse(req, res, {
-        message: 'Nothing to update!',
+        message: "Nothing to update!",
         status: 400,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -688,11 +776,11 @@ class User extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
-      const decoded = jwt.decode(token.split(' ')[1]);
+      const decoded = jwt.decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const { userAreaId: immediate_user_id, userAreaType: key } =
         await UserModel.findOne({
@@ -703,19 +791,19 @@ class User extends Response {
       );
       const data = await UserModel.find(
         { userAreaId: validIds },
-        'email name age userRequestId userAreaId isDeleted userAreaType'
+        "email name age userRequestId userAreaId isDeleted userAreaType"
       ).populate([
-        'userRequestId',
-        { path: 'userAreaId', refPath: 'userAreaType' },
+        "userRequestId",
+        { path: "userAreaId", refPath: "userAreaType" },
       ]);
       this.sendResponse(req, res, {
-        data: data.filter((i) => i?.userRequestId?.status === 'accepted'),
+        data: data.filter((i) => i?.userRequestId?.status === "accepted"),
         status: 200,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -728,14 +816,14 @@ class User extends Response {
       const { type } = req.query;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
       const _id = req.params.id;
       if (!_id) {
         return this.sendResponse(req, res, {
-          message: 'Invalid Token',
+          message: "Invalid Token",
           status: 400,
         });
       }
@@ -746,7 +834,7 @@ class User extends Response {
       const data = await models[type].findOne({ _id });
       if (!data) {
         return this.sendResponse(req, res, {
-          message: 'No report found!',
+          message: "No report found!",
           status: 404,
         });
       }
@@ -756,7 +844,7 @@ class User extends Response {
       let totalUsers = [];
       let filled = [];
       switch (type) {
-        case 'maqam':
+        case "maqam":
           halqas = (await HalqaModel.find({ parentId: areaId })).map((i) =>
             i?._id?.toString()
           );
@@ -773,11 +861,11 @@ class User extends Response {
           ).map((i) => i?.userId?.toString());
           break;
 
-        case 'division':
-          const temp = await HalqaModel.find({ parentType: 'Tehsil' }).populate(
+        case "division":
+          const temp = await HalqaModel.find({ parentType: "Tehsil" }).populate(
             {
-              path: 'parentId',
-              populate: { path: 'district', populate: { path: 'division' } },
+              path: "parentId",
+              populate: { path: "district", populate: { path: "division" } },
             }
           );
           halqas = temp
@@ -797,7 +885,7 @@ class User extends Response {
           break;
         default:
           return this.sendResponse(req, res, {
-            message: 'Invalid area type',
+            message: "Invalid area type",
             status: 400,
           });
       }
@@ -813,7 +901,76 @@ class User extends Response {
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
+        status: 500,
+      });
+    }
+  };
+  userSearchFilter = async (req, res) => {
+    try {
+      const token = req.headers.authorization;
+      const {
+        name,
+        nazim,
+        userAreaId,
+        userAreaType,
+        dob,
+        address,
+        qualification,
+        subject,
+        semester,
+        institution,
+        joiningDate,
+        nazimType,
+      } = req.params;
+
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
+
+      const _id = req.params.id;
+      if (!_id) {
+        return this.sendResponse(req, res, {
+          message: "Invalid Token",
+          status: 400,
+        });
+      }
+
+      // Construct the query based on the available parameters
+      const query = {
+        name,
+        age,
+        nazim,
+        userAreaId,
+        userAreaType,
+        fatherName,
+        dob,
+        address,
+        qualification,
+        subject,
+        semester,
+        institution,
+        joiningDate,
+        nazimType,
+      };
+
+      // Perform the search using the constructed query
+      const searchResult = await UserModel.find(query);
+      console.log('none');
+      // Send the search result as a response
+      return this.sendResponse(req, res, {
+        message: "User search successful",
+        status: 200,
+        data: searchResult,
+      });
+    } catch (error) {
+      // Handle errors
+      console.error(error);
+      return this.sendResponse(req, res, {
+        message: "Internal Server Error",
         status: 500,
       });
     }
