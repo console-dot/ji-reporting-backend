@@ -16,5 +16,5 @@ router.put('/change-password', handler.updatePassword);
 router.get('/user-requests', handler.getAllRequests);
 router.patch('/user-requests/:id', handler.updateRequest);
 router.get('/un-filled/:id', handler.getUnfilledUsers);
-
+router.get("/filter", handler.userSearchFilter);
 module.exports = router;
