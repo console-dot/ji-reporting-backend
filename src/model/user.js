@@ -41,8 +41,6 @@ const users = mongoose.Schema(
         "Maqam",
         "Province",
         "Tehsil",
-        "rukan",
-        "umeedwaar",
       ],
     },
     userRequestId: {

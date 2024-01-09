@@ -908,7 +908,6 @@ class User extends Response {
   };
   userSearchFilter = async (req, res) => {
     try {
-      const token = req.headers.authorization;
       const {
         name,
         nazim,
@@ -922,44 +921,37 @@ class User extends Response {
         institution,
         joiningDate,
         nazimType,
-      } = req.params;
+      } = req.query;
 
-      if (!token) {
-        return this.sendResponse(req, res, {
-          message: "Access Denied",
-          status: 401,
-        });
+      // Construct the query
+      const query = {};
+
+      // Add parameters to the query if they are provided
+      if (name) query.name = { $regex: new RegExp(name, "i") };
+      if (nazim) query.nazim = { $regex: new RegExp(nazim, "i") };
+      if (userAreaId) query.userAreaId = userAreaId;
+      if (userAreaType)
+        query.userAreaType = { $regex: new RegExp(userAreaType, "i") };
+      if (dob) query.dob = dob;
+      if (address) query.address = { $regex: new RegExp(address, "i") };
+      if (qualification)
+        query.qualification = { $regex: new RegExp(qualification, "i") };
+      if (subject) query.subject = { $regex: new RegExp(subject, "i") };
+      if (semester) query.semester = { $regex: new RegExp(semester, "i") };
+      if (institution)
+        query.institution = { $regex: new RegExp(institution, "i") };
+      if (joiningDate) {
+        const joiningYear = new Date(joiningDate).getFullYear();
+        query.joiningDate = {
+          $gte: new Date(`${joiningYear}-01-01`),
+          $lt: new Date(`${joiningYear + 1}-01-01`),
+        };
       }
-
-      const _id = req.params.id;
-      if (!_id) {
-        return this.sendResponse(req, res, {
-          message: "Invalid Token",
-          status: 400,
-        });
-      }
-
-      // Construct the query based on the available parameters
-      const query = {
-        name,
-        age,
-        nazim,
-        userAreaId,
-        userAreaType,
-        fatherName,
-        dob,
-        address,
-        qualification,
-        subject,
-        semester,
-        institution,
-        joiningDate,
-        nazimType,
-      };
+      if (nazimType) query.nazimType = { $regex: new RegExp(nazimType, "i") };
 
       // Perform the search using the constructed query
-      const searchResult = await UserModel.find(query);
-      console.log('none');
+
+      const searchResult = await UserModel.find(query).populate("userAreaId");
       // Send the search result as a response
       return this.sendResponse(req, res, {
         message: "User search successful",

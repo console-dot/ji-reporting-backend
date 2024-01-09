@@ -28,12 +28,6 @@ const getImmediateUser = async (userAreaId, userAreaType) => {
     case "Halqa":
       req = await HalqaModel.findOne({ _id: userAreaId });
       return req?.parentId;
-    case "Umeedwaar":
-      req = await HalqaModel.findOne({ _id: userAreaId });
-      return req?.parentId;
-    case "Rukan":
-      req = await HalqaModel.findOne({ _id: userAreaId });
-      return req?.parentId;
     default:
       return null;
   }
