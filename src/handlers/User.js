@@ -29,8 +29,19 @@ class User extends Response {
         nazim,
         userAreaId,
         userAreaType,
+        fatherName,
+        dob,
+        address,
+        qualification,
+        subject,
+        semester,
+        institution,
+        joiningDate,
+        phoneNumber,
+        whatsAppNumber,
+        nazimType,
       } = req.body;
-
+      console.log(userAreaType, nazimType);
       if (!userAreaId || !userAreaType) {
         return this.sendResponse(req, res, {
           message: "Location is requied!",
@@ -85,6 +96,66 @@ class User extends Response {
           status: 400,
         });
       }
+      if (!fatherName) {
+        return this.sendResponse(req, res, {
+          message: "Father Name is requied!",
+          status: 400,
+        });
+      }
+      if (!dob) {
+        return this.sendResponse(req, res, {
+          message: "Date of Birth is requied!",
+          status: 400,
+        });
+      }
+      if (!address) {
+        return this.sendResponse(req, res, {
+          message: "Address is requied!",
+          status: 400,
+        });
+      }
+      if (!qualification) {
+        return this.sendResponse(req, res, {
+          message: "QFualification is requied!",
+          status: 400,
+        });
+      }
+      if (!subject) {
+        return this.sendResponse(req, res, {
+          message: "Subject is requied!",
+          status: 400,
+        });
+      }
+      if (!semester) {
+        return this.sendResponse(req, res, {
+          message: "Semester/Year is requied!",
+          status: 400,
+        });
+      }
+      if (!institution) {
+        return this.sendResponse(req, res, {
+          message: "Institution is requied!",
+          status: 400,
+        });
+      }
+      if (!joiningDate) {
+        return this.sendResponse(req, res, {
+          message: "Joining Date is requied!",
+          status: 400,
+        });
+      }
+      if (!phoneNumber) {
+        return this.sendResponse(req, res, {
+          message: "PhoneNumber is requied!",
+          status: 400,
+        });
+      }
+      if (!nazimType) {
+        return this.sendResponse(req, res, {
+          message: "Nazim Type is requied!",
+          status: 400,
+        });
+      }
       if (password1.length < 8) {
         return this.sendResponse(req, res, {
           message: "Password must be minimum 8 character long",
@@ -99,19 +170,26 @@ class User extends Response {
           status: 400,
         });
       }
-      const userAreaIdExist = await UserModel.find({ userAreaId }).populate(
-        "userRequestId"
-      );
-      if (userAreaIdExist.length > 0) {
-        const valid = userAreaIdExist.filter(
-          (i) => i?.userRequestId?.status === "accepted"
-        );
-        if (valid && valid?.length > 0)
-          return this.sendResponse(req, res, {
-            message: "Area already occupied",
-            status: 400,
-          });
-      }
+      // console.log(nazimType);
+      // if (
+      //   nazimType !== "rukan" &&
+      //   nazimType !== "nazim" &&
+      //   nazim !== "umeedwar"
+      // ) {
+      //   const userAreaIdExist = await UserModel.find({ userAreaId }).populate(
+      //     "userRequestId"
+      //   );
+      //   if (userAreaIdExist.length > 0) {
+      //     const valid = userAreaIdExist.filter(
+      //       (i) => i?.userRequestId?.status === "accepted"
+      //     );
+      //     if (valid && valid?.length > 0)
+      //       return this.sendResponse(req, res, {
+      //         message: "Area already occupied",
+      //         status: 400,
+      //       });
+      //   }
+      // }
       const role = await RoleModel.findOne({ title: nazim });
       const immediate_user_id = await getImmediateUser(
         userAreaId,
@@ -131,6 +209,17 @@ class User extends Response {
         userAreaId,
         userAreaType,
         userRequestId: UserRequestReq?.id,
+        fatherName,
+        dob,
+        address,
+        qualification,
+        subject,
+        semester,
+        institution,
+        joiningDate,
+        phoneNumber,
+        whatsAppNumber,
+        nazimType,
       });
       const newUserReq = await newUser.save();
       if (!newUserReq?._id) {
@@ -820,7 +909,6 @@ class User extends Response {
   };
   userSearchFilter = async (req, res) => {
     try {
-      const token = req.headers.authorization;
       const {
         name,
         nazim,
@@ -834,27 +922,34 @@ class User extends Response {
         institution,
         joiningDate,
         nazimType,
-      } = req.params;
-      // Construct the query based on the available parameters
-      const query = {
-        name,
-        nazim,
-        userAreaId,
-        userAreaType,
-        dob,
-        address,
-        qualification,
-        subject,
-        semester,
-        institution,
-        joiningDate,
-        nazimType,
-      };
+      } = req.query;
 
-      // Perform the search using the constructed query
-      const searchResult = await UserModel.find(query);
-      console.log("none");
-      // Send the search result as a response
+      // Construct the query
+      const query = {};
+
+      // Add parameters to the query if they are provided
+      if (name) query.name = { $regex: new RegExp(name, "i") };
+      if (nazim) query.nazim = { $regex: new RegExp(nazim, "i") };
+      if (userAreaId) query.userAreaId = userAreaId;
+      if (userAreaType)
+        query.userAreaType = { $regex: new RegExp(userAreaType, "i") };
+      if (dob) query.dob = dob;
+      if (address) query.address = { $regex: new RegExp(address, "i") };
+      if (qualification)
+        query.qualification = { $regex: new RegExp(qualification, "i") };
+      if (subject) query.subject = { $regex: new RegExp(subject, "i") };
+      if (semester) query.semester = { $regex: new RegExp(semester, "i") };
+      if (institution)
+        query.institution = { $regex: new RegExp(institution, "i") };
+      if (joiningDate) {
+        const joiningYear = new Date(joiningDate).getFullYear();
+        query.joiningDate = {
+          $gte: new Date(`${joiningYear}-01-01`),
+          $lt: new Date(`${joiningYear + 1}-01-01`),
+        };
+      }
+      if (nazimType) query.nazimType = { $regex: new RegExp(nazimType, "i") };
+      const searchResult = await UserModel.find(query).populate("userAreaId");
       return this.sendResponse(req, res, {
         message: "User search successful",
         status: 200,
