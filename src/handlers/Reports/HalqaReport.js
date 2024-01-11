@@ -282,18 +282,18 @@ class HalqaReport extends Response {
       // if (user?.nazim !== "province") {
       reports = await HalqaReportModel.find({
         halqaAreaId: accessList,
-      }).populate([
-        { path: "userId", select: ["_id", "email", "name", "age"] },
-        { path: "wiId" },
-        { path: "halqaActivityId" },
-        { path: "otherActivityId" },
-        { path: "tdId" },
-        { path: "halqaLibId" },
-        { path: "rsdId" },
-        { path: "halqaAreaId" },
-        { path: "userId" },
-        { path: "halqaAreaId" },
-      ]);
+      })
+        .populate([
+          { path: "userId", select: ["_id", "email", "name", "age"] },
+          { path: "wiId" },
+          { path: "halqaActivityId" },
+          { path: "otherActivityId" },
+          { path: "tdId" },
+          { path: "halqaLibId" },
+          { path: "rsdId" },
+          { path: "halqaAreaId" },
+        ])
+        .sort({ createdAt: -1 });
       // } else {
       //   reports = await HalqaReportModel.find().populate([
       //     { path: "userId", select: ["_id", "email", "name", "age"] },

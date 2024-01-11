@@ -360,19 +360,21 @@ class MaqamReport extends Response {
       // if (user?.nazim !== 'province') {
       reports = await MaqamReportModel.find({
         maqamAreaId: accessList,
-      }).populate([
-        { path: "userId", select: ["_id", "email", "name", "age"] },
-        { path: "maqamAreaId", populate: { path: "province" } },
-        { path: "maqamTanzeemId" },
-        { path: "wiId" },
-        { path: "maqamActivityId" },
-        { path: "mentionedActivityId" },
-        { path: "otherActivityId" },
-        { path: "tdId" },
-        { path: "maqamDivisionLibId" },
-        { path: "paighamDigestId" },
-        { path: "rsdId" },
-      ]);
+      })
+        .populate([
+          { path: "userId", select: ["_id", "email", "name", "age"] },
+          { path: "maqamAreaId", populate: { path: "province" } },
+          { path: "maqamTanzeemId" },
+          { path: "wiId" },
+          { path: "maqamActivityId" },
+          { path: "mentionedActivityId" },
+          { path: "otherActivityId" },
+          { path: "tdId" },
+          { path: "maqamDivisionLibId" },
+          { path: "paighamDigestId" },
+          { path: "rsdId" },
+        ])
+        .sort({ createdAt: -1 });
       // } else {
       //   reports = await MaqamReportModel.find().populate([
       //     { path: 'userId', select: ['_id', 'email', 'name', 'age'] },

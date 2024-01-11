@@ -34,14 +34,7 @@ const users = mongoose.Schema(
     userAreaType: {
       type: String,
       required: true,
-      enum: [
-        "District",
-        "Division",
-        "Halqa",
-        "Maqam",
-        "Province",
-        "Tehsil",
-      ],
+      enum: ["District", "Division", "Halqa", "Maqam", "Province", "Tehsil"],
     },
     userRequestId: {
       type: mongoose.Types.ObjectId,
@@ -108,7 +101,7 @@ const users = mongoose.Schema(
     },
     nazimType: {
       type: String,
-      enum: ["nazim", "umeedwar", "rukan"],
+      enum: ["nazim", "umeedwar", "rukan", "umeedwaar-nazim", "rukan-nazim"],
     },
   },
   { timestamps: true } // For created_at and updated_at

@@ -375,19 +375,21 @@ class ProvinceReport extends Response {
       // if (user?.nazim !== 'province') {
       reports = await ProvinceReportModel.find({
         provinceareaId: accessList,
-      }).populate([
-        { path: "userId", select: ["_id", "email", "name", "age"] },
-        { path: "provinceAreaId" },
-        { path: "provinceTanzeemId" },
-        { path: "wiId" },
-        { path: "provinceActivityId" },
-        { path: "mentionedActivityId" },
-        { path: "otherActivityId" },
-        { path: "tdId" },
-        { path: "provinceDivisionLibId" },
-        { path: "paighamDigestId" },
-        { path: "rsdId" },
-      ]);
+      })
+        .populate([
+          { path: "userId", select: ["_id", "email", "name", "age"] },
+          { path: "provinceAreaId" },
+          { path: "provinceTanzeemId" },
+          { path: "wiId" },
+          { path: "provinceActivityId" },
+          { path: "mentionedActivityId" },
+          { path: "otherActivityId" },
+          { path: "tdId" },
+          { path: "provinceDivisionLibId" },
+          { path: "paighamDigestId" },
+          { path: "rsdId" },
+        ])
+        .sort({ createdAt: -1 });
       // } else {
       //   reports = await ProvinceReportModel.find().populate([
       //     { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
