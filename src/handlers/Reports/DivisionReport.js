@@ -1,4 +1,4 @@
-const { decode } = require('jsonwebtoken');
+const { decode } = require("jsonwebtoken");
 const {
   WorkerInfoModel,
   DivisionReportModel,
@@ -657,6 +657,12 @@ class DivisionReport extends Response {
         });
       }
       const decoded = decode(token.split(" ")[1]);
+      if (!decoded) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
@@ -671,31 +677,36 @@ class DivisionReport extends Response {
       }
       const startDate = new Date(desiredYear, desiredMonth - 1, 1);
       const endDate = new Date(desiredYear, desiredMonth, 0);
-      const reports = await DivisionReportModel.find({
+      const divisionReports = await DivisionReportModel.find({
         month: {
           $gte: startDate,
           $lte: endDate,
         },
         divisionAreaId: accessList,
-      }).populate("User");
-      const totalDivisions = await DivisionModel.find({
-        _id: accessList,
+      }).populate("divisionAreaId userId");
+      const allDivisions = await DivisionModel.find({ _id: accessList });
+      const divisionReportsAreaIds = divisionReports.map((i) =>
+        i?.divisionAreaId?._id?.toString()
+      );
+      const allDivisionsAreaIds = allDivisions.map((i) => i?._id?.toString());
+      const unfilledArr = [];
+      allDivisionsAreaIds.forEach((i, index) => {
+        if (!divisionReportsAreaIds.includes(i)) {
+          unfilledArr.push(i);
+        }
       });
-      let unfilled = [];
-      totalDivisions.forEach((divi) => {
-        reports.forEach((repo) => {
-          if (repo.divisionAreaId.toString() !== divi._id.toString()) {
-            unfilled.push(divi);
-          }
-        });
-      });
-      console.log(unfilled);
+      const unfilled = await DivisionModel.find({ _id: unfilledArr });
       return this.sendResponse(req, res, {
         message: "Reports data fetched successfully",
         status: 200,
-        data: { unfilled: unfilled, totalDivisions: totalDivisions },
+        data: {
+          unfilled: unfilled,
+          totaldivision: allDivisionsAreaIds?.length,
+          allDivisions: allDivisions,
+        },
       });
     } catch (error) {
+      console.log(error);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
         status: 500,

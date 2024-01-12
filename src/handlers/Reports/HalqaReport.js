@@ -10,7 +10,7 @@ const {
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
-const { UserModel } = require("../../model");
+const { UserModel, HalqaModel } = require("../../model");
 
 const isDataComplete = ({
   month,
@@ -552,6 +552,12 @@ class HalqaReport extends Response {
         });
       }
       const decoded = decode(token.split(" ")[1]);
+      if (!decoded) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
@@ -566,31 +572,36 @@ class HalqaReport extends Response {
       }
       const startDate = new Date(desiredYear, desiredMonth - 1, 1);
       const endDate = new Date(desiredYear, desiredMonth, 0);
-      const reports = await HalqaReportModel.find({
+      const halqaReports = await HalqaReportModel.find({
         month: {
           $gte: startDate,
           $lte: endDate,
         },
         halqaAreaId: accessList,
+      }).populate("halqaAreaId userId");
+      const allHalqas = await HalqaModel.find({ _id: accessList });
+      const halqaReportsAreaIds = halqaReports.map((i) =>
+        i?.halqaAreaId?._id?.toString()
+      );
+      const allHalqasAreaIds = allHalqas.map((i) => i?._id?.toString());
+      const unfilledArr = [];
+      allHalqasAreaIds.forEach((i, index) => {
+        if (!halqaReportsAreaIds.includes(i)) {
+          unfilledArr.push(i);
+        }
       });
-      const totalHalqas = await DivisionModel.find({
-        _id: accessList,
-      });
-      let unfilled = [];
-      totalHalqas.forEach((divi) => {
-        reports.forEach((repo) => {
-          if (repo.halqaAreaId.toString() !== divi._id.toString()) {
-            unfilled.push(divi);
-          }
-        });
-      });
-
+      const unfilled = await HalqaModel.find({ _id: unfilledArr });
       return this.sendResponse(req, res, {
         message: "Reports data fetched successfully",
         status: 200,
-        data: { unfilled: unfilled, totalHalqas: totalHalqas },
+        data: {
+          unfilled: unfilled,
+          totalhalqa: allHalqasAreaIds?.length,
+          allHalqas: allHalqas,
+        },
       });
     } catch (error) {
+      console.log(error);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
         status: 500,
