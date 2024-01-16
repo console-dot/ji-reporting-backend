@@ -170,25 +170,26 @@ class User extends Response {
           status: 400,
         });
       }
-      if (
-        nazimType !== "rukan" &&
-        nazimType !== "nazim" &&
-        nazim !== "umeedwar"
-      ) {
-        const userAreaIdExist = await UserModel.find({ userAreaId }).populate(
-          "userRequestId"
-        );
-        if (userAreaIdExist.length > 0) {
-          const valid = userAreaIdExist.filter(
-            (i) => i?.userRequestId?.status === "accepted"
-          );
-          if (valid && valid?.length > 0)
-            return this.sendResponse(req, res, {
-              message: "Area already occupied",
-              status: 400,
-            });
-        }
-      }
+      // console.log(nazimType);
+      // if (
+      //   nazimType !== "rukan" &&
+      //   nazimType !== "nazim" &&
+      //   nazim !== "umeedwar"
+      // ) {
+      //   const userAreaIdExist = await UserModel.find({ userAreaId }).populate(
+      //     "userRequestId"
+      //   );
+      //   if (userAreaIdExist.length > 0) {
+      //     const valid = userAreaIdExist.filter(
+      //       (i) => i?.userRequestId?.status === "accepted"
+      //     );
+      //     if (valid && valid?.length > 0)
+      //       return this.sendResponse(req, res, {
+      //         message: "Area already occupied",
+      //         status: 400,
+      //       });
+      //   }
+      // }
       const role = await RoleModel.findOne({ title: nazim });
       const immediate_user_id = await getImmediateUser(
         userAreaId,
@@ -948,11 +949,7 @@ class User extends Response {
         };
       }
       if (nazimType) query.nazimType = { $regex: new RegExp(nazimType, "i") };
-
-      // Perform the search using the constructed query
-
       const searchResult = await UserModel.find(query).populate("userAreaId");
-      // Send the search result as a response
       return this.sendResponse(req, res, {
         message: "User search successful",
         status: 200,
