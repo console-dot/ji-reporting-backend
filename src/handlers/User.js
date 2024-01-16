@@ -16,6 +16,7 @@ const Mailer = require("./Mailer");
 const Response = require("./Response");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { mongoose } = require("mongoose");
 
 class User extends Response {
   signup = async (req, res) => {
@@ -41,7 +42,6 @@ class User extends Response {
         whatsAppNumber,
         nazimType,
       } = req.body;
-      console.log(userAreaType, nazimType);
       if (!userAreaId || !userAreaType) {
         return this.sendResponse(req, res, {
           message: "Location is requied!",
@@ -170,25 +170,7 @@ class User extends Response {
           status: 400,
         });
       }
-      if (
-        nazimType !== "rukan" &&
-        nazimType !== "nazim" &&
-        nazim !== "umeedwar"
-      ) {
-        const userAreaIdExist = await UserModel.find({ userAreaId }).populate(
-          "userRequestId"
-        );
-        if (userAreaIdExist.length > 0) {
-          const valid = userAreaIdExist.filter(
-            (i) => i?.userRequestId?.status === "accepted"
-          );
-          if (valid && valid?.length > 0)
-            return this.sendResponse(req, res, {
-              message: "Area already occupied",
-              status: 400,
-            });
-        }
-      }
+
       const role = await RoleModel.findOne({ title: nazim });
       const immediate_user_id = await getImmediateUser(
         userAreaId,
@@ -196,6 +178,7 @@ class User extends Response {
       );
       const newUserRequest = new UserRequest({
         immediate_user_id,
+        nazimType,
       });
       const UserRequestReq = await newUserRequest.save();
       const newUser = new UserModel({
@@ -439,7 +422,21 @@ class User extends Response {
           status: 404,
         });
       }
-      const { name, email, age } = req.body;
+      const {
+        name,
+        email,
+        age,
+        fatherName,
+        dob,
+        address,
+        qualification,
+        subject,
+        semester,
+        institution,
+        joiningDate,
+        phoneNumber,
+        whatsAppNumber,
+      } = req.body;
       const userExist = await UserModel.findOne({ _id });
       if (!userExist) {
         return this.sendResponse(req, res, {
@@ -474,7 +471,23 @@ class User extends Response {
       }
       const updated = await UserModel.updateOne(
         { _id },
-        { $set: { name, email, age } }
+        {
+          $set: {
+            name,
+            email,
+            age,
+            fatherName,
+            dob,
+            address,
+            qualification,
+            subject,
+            semester,
+            institution,
+            joiningDate,
+            phoneNumber,
+            whatsAppNumber,
+          },
+        }
       );
       if (updated?.modifiedCount > 0) {
         return this.sendResponse(req, res, { message: "User updated." });
@@ -657,7 +670,7 @@ class User extends Response {
       const request_ids = allRequests.map((i) => i?._id.toString());
       const users = await UserModel.find(
         { userRequestId: request_ids },
-        "name email userAreaId userAreaType"
+        "name email userAreaId userAreaType nazimType"
       ).populate([{ path: "userAreaId", refPath: "userAreaType" }]);
       return this.sendResponse(req, res, {
         data: users.map((item, index) => ({
@@ -691,8 +704,9 @@ class User extends Response {
         const { id } = decoded;
         const user = await UserModel.findOne(
           { _id: id },
-          "email name age _id userAreaId"
+          "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob"
         ).populate({ path: "userAreaId", refPath: "userAreaType" });
+        console.log(user);
         return this.sendResponse(req, res, {
           data: user,
           status: 200,
@@ -791,12 +805,12 @@ class User extends Response {
       );
       const data = await UserModel.find(
         { userAreaId: validIds },
-        "email name age userRequestId userAreaId isDeleted userAreaType"
+        "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob"
       ).populate([
         "userRequestId",
         { path: "userAreaId", refPath: "userAreaType" },
       ]);
-      this.sendResponse(req, res, {
+      return this.sendResponse(req, res, {
         data: data.filter((i) => i?.userRequestId?.status === "accepted"),
         status: 200,
       });
@@ -923,6 +937,24 @@ class User extends Response {
         nazimType,
       } = req.query;
 
+      const token = req.headers.authorization;
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
+      const decoded = jwt.decode(token.split(" ")[1]);
+      if (!decoded) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
+      const userId = decoded?.id;
+      const user = await UserModel.findOne({ _id: userId });
+      const { userAreaId: id, nazim: key } = user;
+      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       // Construct the query
       const query = {};
 
@@ -936,7 +968,10 @@ class User extends Response {
       if (address) query.address = { $regex: new RegExp(address, "i") };
       if (qualification)
         query.qualification = { $regex: new RegExp(qualification, "i") };
-      if (subject) query.subject = { $regex: new RegExp(subject, "i") };
+      if (subject) {
+        var ObjectId = require("mongoose").Types.ObjectId;
+        query.subject = new ObjectId(subject);
+      }
       if (semester) query.semester = { $regex: new RegExp(semester, "i") };
       if (institution)
         query.institution = { $regex: new RegExp(institution, "i") };
@@ -951,7 +986,10 @@ class User extends Response {
 
       // Perform the search using the constructed query
 
-      const searchResult = await UserModel.find(query).populate("userAreaId");
+      const searchResult = await UserModel.find({
+        ...query,
+        userAreaId: accessList,
+      }).populate("userAreaId");
       // Send the search result as a response
       return this.sendResponse(req, res, {
         message: "User search successful",

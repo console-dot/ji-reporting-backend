@@ -1,16 +1,16 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const userRequest = mongoose.Schema(
   {
     status: {
       type: String,
-      enum: ['pending', 'accepted', 'rejected'],
-      default: 'pending',
+      enum: ["pending", "accepted", "rejected"],
+      default: "pending",
     },
     immediate_user_id: {
       type: mongoose.Types.ObjectId,
       required: false,
-      ref: 'User',
+      ref: "User",
     },
   },
   {
@@ -18,7 +18,7 @@ const userRequest = mongoose.Schema(
   }
 );
 
-const UserRequest = mongoose.model('UserRequest', userRequest);
+const UserRequest = mongoose.model("UserRequest", userRequest);
 
 module.exports = {
   UserRequest,

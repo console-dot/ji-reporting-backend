@@ -579,7 +579,9 @@ class HalqaReport extends Response {
         },
         halqaAreaId: accessList,
       }).populate("halqaAreaId userId");
-      const allHalqas = await HalqaModel.find({ _id: accessList });
+      const allHalqas = await HalqaModel.find({ _id: accessList }).populate(
+        "parentId"
+      );
       const halqaReportsAreaIds = halqaReports.map((i) =>
         i?.halqaAreaId?._id?.toString()
       );
@@ -590,7 +592,9 @@ class HalqaReport extends Response {
           unfilledArr.push(i);
         }
       });
-      const unfilled = await HalqaModel.find({ _id: unfilledArr });
+      const unfilled = await HalqaModel.find({ _id: unfilledArr }).populate(
+        "parentId"
+      );
       return this.sendResponse(req, res, {
         message: "Reports data fetched successfully",
         status: 200,
