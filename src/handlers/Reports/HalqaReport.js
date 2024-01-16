@@ -1,4 +1,4 @@
-const { decode } = require('jsonwebtoken');
+const { decode } = require("jsonwebtoken");
 const {
   WorkerInfoModel,
   HalqaActivityModel,
@@ -7,10 +7,10 @@ const {
   HalqaLibraryModel,
   RozShabBedariModel,
   HalqaReportModel,
-} = require('../../model/reports');
-const { months, getRoleFlow } = require('../../utils');
-const Response = require('../Response');
-const { UserModel } = require('../../model');
+} = require("../../model/reports");
+const { months, getRoleFlow } = require("../../utils");
+const Response = require("../Response");
+const { UserModel } = require("../../model");
 
 const isDataComplete = ({
   month,
@@ -85,16 +85,16 @@ class HalqaReport extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
-      const decoded = decode(token.split(' ')[1]);
+      const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      if (user?.nazim !== 'halqa') {
+      if (user?.nazim !== "halqa") {
         return this.sendResponse(req, res, {
-          message: 'Access denied',
+          message: "Access denied",
           status: 401,
         });
       }
@@ -164,7 +164,7 @@ class HalqaReport extends Response {
         !arkanFilled
       ) {
         return this.sendResponse(req, res, {
-          message: 'All fields are required',
+          message: "All fields are required",
           status: 400,
         });
       }
@@ -253,13 +253,13 @@ class HalqaReport extends Response {
       });
       await newHalqaReport.save();
       return this.sendResponse(req, res, {
-        message: 'Halqa Report Added',
+        message: "Halqa Report Added",
         status: 201,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -269,11 +269,11 @@ class HalqaReport extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
-      const decoded = decode(token.split(' ')[1]);
+      const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
@@ -282,16 +282,18 @@ class HalqaReport extends Response {
       // if (user?.nazim !== "province") {
       reports = await HalqaReportModel.find({
         halqaAreaId: accessList,
-      }).populate([
-        { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
-        { path: 'wiId' },
-        { path: 'halqaActivityId' },
-        { path: 'otherActivityId' },
-        { path: 'tdId' },
-        { path: 'halqaLibId' },
-        { path: 'rsdId' },
-        { path: 'halqaAreaId' },
-      ]);
+      })
+        .populate([
+          { path: "userId", select: ["_id", "email", "name", "age"] },
+          { path: "wiId" },
+          { path: "halqaActivityId" },
+          { path: "otherActivityId" },
+          { path: "tdId" },
+          { path: "halqaLibId" },
+          { path: "rsdId" },
+          { path: "halqaAreaId" },
+        ])
+        .sort({ createdAt: -1 });
       // } else {
       //   reports = await HalqaReportModel.find().populate([
       //     { path: "userId", select: ["_id", "email", "name", "age"] },
@@ -308,7 +310,7 @@ class HalqaReport extends Response {
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -318,45 +320,45 @@ class HalqaReport extends Response {
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
       const _id = req.params.id;
       if (!_id) {
         return this.sendResponse(req, res, {
-          message: 'Id is required',
+          message: "Id is required",
           status: 404,
         });
       }
-      const decoded = decode(token.split(' ')[1]);
+      const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      const hr = await HalqaReportModel.findOne({ _id }).select('halqaAreaId');
-      const halqaAreaId = hr?.halqaAreaId || '';
+      const hr = await HalqaReportModel.findOne({ _id }).select("halqaAreaId");
+      const halqaAreaId = hr?.halqaAreaId || "";
       if (!accessList.includes(halqaAreaId.toString())) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
       const reports = await HalqaReportModel.findOne({ _id }).populate([
-        { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
-        { path: 'wiId' },
-        { path: 'halqaActivityId' },
-        { path: 'otherActivityId' },
-        { path: 'tdId' },
-        { path: 'halqaLibId' },
-        { path: 'rsdId' },
-        { path: 'halqaAreaId' },
+        { path: "userId", select: ["_id", "email", "name", "age"] },
+        { path: "wiId" },
+        { path: "halqaActivityId" },
+        { path: "otherActivityId" },
+        { path: "tdId" },
+        { path: "halqaLibId" },
+        { path: "rsdId" },
+        { path: "halqaAreaId" },
       ]);
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -367,35 +369,35 @@ class HalqaReport extends Response {
       const _id = req.params.id;
       if (!token) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
       if (!_id) {
         return this.sendResponse(req, res, {
-          message: 'Id is required',
+          message: "Id is required",
           status: 404,
         });
       }
-      const decoded = decode(token.split(' ')[1]);
+      const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const dataToUpdate = req.body;
       if (!isDataComplete(dataToUpdate)) {
         return this.sendResponse(req, res, {
-          message: 'All fields are required',
+          message: "All fields are required",
           status: 400,
         });
       }
       const isExist = await HalqaReportModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
-          message: 'Report not found',
+          message: "Report not found",
           status: 404,
         });
       }
       if (isExist?.userId.toString() !== userId) {
         return this.sendResponse(req, res, {
-          message: 'Access Denied',
+          message: "Access Denied",
           status: 401,
         });
       }
@@ -406,79 +408,79 @@ class HalqaReport extends Response {
       const daysDifference = Math.floor(difference / millisecondsPerDay);
       if (daysDifference >= 5) {
         return this.sendResponse(req, res, {
-          message: 'Cannot update after 5 days',
+          message: "Cannot update after 5 days",
           status: 400,
         });
       }
 
       // Update referenced models
       const refsToUpdate = [
-        'wiId',
-        'halqaActivityId',
-        'halqaLibId',
-        'rsdId',
-        'tdId',
-        'otherActivityId',
+        "wiId",
+        "halqaActivityId",
+        "halqaLibId",
+        "rsdId",
+        "tdId",
+        "otherActivityId",
       ];
 
       const obj = {
         wiId: [
-          'arkan',
-          'umeedWaran',
-          'rafaqa',
-          'karkunan',
-          'shaheen',
-          'members',
-          'registered',
+          "arkan",
+          "umeedWaran",
+          "rafaqa",
+          "karkunan",
+          "shaheen",
+          "members",
+          "registered",
         ],
         halqaActivityId: [
-          'ijtRafaqa',
-          'ijtKarkunan',
-          'studyCircle',
-          'darseQuran',
+          "ijtRafaqa",
+          "ijtKarkunan",
+          "studyCircle",
+          "darseQuran",
         ],
-        halqaLibId: ['books', 'increase', 'decrease', 'bookRent', 'registered'],
-        rsdId: ['umeedwaranFilled', 'rafaqaFilled', 'arkanFilled'],
+        halqaLibId: ["books", "increase", "decrease", "bookRent", "registered"],
+        rsdId: ["umeedwaranFilled", "rafaqaFilled", "arkanFilled"],
         tdId: [
-          'registered',
-          'commonLiteratureDistribution',
-          'commonStudentMeetings',
-          'literatureDistribution',
-          'meetings',
-          'current',
-          'rawabitDecided',
+          "registered",
+          "commonLiteratureDistribution",
+          "commonStudentMeetings",
+          "literatureDistribution",
+          "meetings",
+          "current",
+          "rawabitDecided",
         ],
         otherActivityId: [
-          'anyOther',
-          'shabBedari',
-          'nizamSalah',
-          'hadithCircle',
-          'rawabitParties',
-          'dawatiWafud',
+          "anyOther",
+          "shabBedari",
+          "nizamSalah",
+          "hadithCircle",
+          "rawabitParties",
+          "dawatiWafud",
         ],
       };
 
       const returnData = (arr, key) => {
         const rs = {};
         arr.forEach((element) => {
-          if (element === 'registered') {
-            if (key === 'tdId') {
-              rs[element] = dataToUpdate['registeredTosee'] ? true : false;
+          if (element === "registered") {
+            if (key === "tdId") {
+              rs[element] = dataToUpdate["registeredTosee"] ? true : false;
             }
-            if (key === 'wiId') {
-              rs[element] = dataToUpdate['registeredWorker'] ? true : false;
+            if (key === "wiId") {
+              rs[element] = dataToUpdate["registeredWorker"] ? true : false;
             }
-            if (key === 'halqaLibId') {
-              rs[element] = dataToUpdate['registeredLibrary'] ? true : false;
+            if (key === "halqaLibId") {
+              rs[element] = dataToUpdate["registeredLibrary"] ? true : false;
             }
           } else if (
-            element === 'umeedWaran' ||
-            element === 'rafaqa' ||
-            element === 'karkunan'
+            element === "umeedWaran" ||
+            element === "rafaqa" ||
+            element === "karkunan"
           ) {
             if (
               dataToUpdate[element] &&
-              dataToUpdate[element].hasOwnProperty('registered')
+              dataToUpdate[element].hasOwnProperty("registered")
             ) {
               rs[element] = { ...dataToUpdate[element], registered: true };
             } else {
@@ -494,17 +496,17 @@ class HalqaReport extends Response {
 
       const returnModel = (i) => {
         switch (i) {
-          case 'wiId':
+          case "wiId":
             return WorkerInfoModel;
-          case 'halqaActivityId':
+          case "halqaActivityId":
             return HalqaActivityModel;
-          case 'halqaLibId':
+          case "halqaLibId":
             return HalqaLibraryModel;
-          case 'rsdId':
+          case "rsdId":
             return RozShabBedariModel;
-          case 'tdId':
+          case "tdId":
             return ToseeDawatModel;
-          case 'otherActivityId':
+          case "otherActivityId":
             return OtherActivitiesModel;
           default:
             return null;
@@ -524,17 +526,17 @@ class HalqaReport extends Response {
       );
       if (updatedHalqaReport?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
-          message: 'Report updated',
+          message: "Report updated",
         });
       }
       return this.sendResponse(req, res, {
-        message: 'Nothing to update',
+        message: "Nothing to update",
         status: 500,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
