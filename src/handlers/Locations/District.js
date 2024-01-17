@@ -154,7 +154,6 @@ class District extends Response {
           $set: { disabled },
         }
       );
-      console.log(updatedLocation);
       if (updatedLocation?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
           message: "District Updated",

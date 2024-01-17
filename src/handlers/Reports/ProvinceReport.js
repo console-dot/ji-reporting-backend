@@ -10,10 +10,19 @@ const {
   MaqamDivisionLibraryModel,
   PaighamDigestModel,
   RozShabBedariModel,
+  HalqaReportModel,
+  MaqamReportModel,
+  DivisionReportModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
-const { UserModel, ProvinceModel } = require("../../model");
+const {
+  UserModel,
+  ProvinceModel,
+  HalqaModel,
+  MaqamModel,
+  DivisionModel,
+} = require("../../model");
 
 const isDataComplete = ({
   arkanFilled,
@@ -695,6 +704,73 @@ class ProvinceReport extends Response {
       });
     } catch (err) {
       console.log(err);
+      return this.sendResponse(req, res, {
+        message: "Internal Server Error",
+        status: 500,
+      });
+    }
+  };
+  filledUnfilled = async (req, res) => {
+    try {
+      const { queryDate } = req.query;
+      const token = req.headers.authorization;
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
+      const decoded = decode(token.split(" ")[1]);
+      if (!decoded) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
+      const userId = decoded?.id;
+      const user = await UserModel.findOne({ _id: userId });
+      const { userAreaId: id, nazim: key } = user;
+      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      const today = Date.now();
+      let desiredYear = new Date(today).getFullYear();
+      let desiredMonth = new Date(today).getMonth() + 1;
+      if (queryDate) {
+        const convert = new Date(queryDate);
+        desiredYear = new Date(convert).getFullYear();
+        desiredMonth = new Date(convert).getMonth() + 1;
+      }
+      const startDate = new Date(desiredYear, desiredMonth - 1, 1);
+      const endDate = new Date(desiredYear, desiredMonth, 0);
+      const provinceReports = await ProvinceReportModel.find({
+        month: {
+          $gte: startDate,
+          $lte: endDate,
+        },
+        provinceAreaId: accessList,
+      }).populate("provinceAreaId userId");
+      const allProvinces = await ProvinceModel.find({ _id: accessList });
+      const provinceReportsAreaIds = provinceReports.map((i) =>
+        i?.provinceAreaId?._id?.toString()
+      );
+      const allProvincesAreaIds = allProvinces.map((i) => i?._id?.toString());
+      const unfilledArr = [];
+      allProvincesAreaIds.forEach((i, index) => {
+        if (!provinceReportsAreaIds.includes(i)) {
+          unfilledArr.push(i);
+        }
+      });
+      const unfilled = await ProvinceModel.find({ _id: unfilledArr });
+      return this.sendResponse(req, res, {
+        message: "Reports data fetched successfully",
+        status: 200,
+        data: {
+          unfilled: unfilled,
+          totalprovince: allProvincesAreaIds?.length,
+          allProvince: allProvinces,
+        },
+      });
+    } catch (error) {
+      console.log(error);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
         status: 500,

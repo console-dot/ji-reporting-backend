@@ -10,10 +10,11 @@ const {
   MaqamDivisionLibraryModel,
   PaighamDigestModel,
   RozShabBedariModel,
+  MaqamReportModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
-const { UserModel } = require("../../model");
+const { UserModel, DivisionModel } = require("../../model");
 
 const isDataComplete = ({
   month,
@@ -639,6 +640,73 @@ class DivisionReport extends Response {
       });
     } catch (err) {
       console.error(err);
+      return this.sendResponse(req, res, {
+        message: "Internal Server Error",
+        status: 500,
+      });
+    }
+  };
+  filledUnfilled = async (req, res) => {
+    try {
+      const { queryDate } = req.query;
+      const token = req.headers.authorization;
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
+      const decoded = decode(token.split(" ")[1]);
+      if (!decoded) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
+      const userId = decoded?.id;
+      const user = await UserModel.findOne({ _id: userId });
+      const { userAreaId: id, nazim: key } = user;
+      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      const today = Date.now();
+      let desiredYear = new Date(today).getFullYear();
+      let desiredMonth = new Date(today).getMonth() + 1;
+      if (queryDate) {
+        const convert = new Date(queryDate);
+        desiredYear = new Date(convert).getFullYear();
+        desiredMonth = new Date(convert).getMonth() + 1;
+      }
+      const startDate = new Date(desiredYear, desiredMonth - 1, 1);
+      const endDate = new Date(desiredYear, desiredMonth, 0);
+      const divisionReports = await DivisionReportModel.find({
+        month: {
+          $gte: startDate,
+          $lte: endDate,
+        },
+        divisionAreaId: accessList,
+      }).populate("divisionAreaId userId");
+      const allDivisions = await DivisionModel.find({ _id: accessList });
+      const divisionReportsAreaIds = divisionReports.map((i) =>
+        i?.divisionAreaId?._id?.toString()
+      );
+      const allDivisionsAreaIds = allDivisions.map((i) => i?._id?.toString());
+      const unfilledArr = [];
+      allDivisionsAreaIds.forEach((i, index) => {
+        if (!divisionReportsAreaIds.includes(i)) {
+          unfilledArr.push(i);
+        }
+      });
+      const unfilled = await DivisionModel.find({ _id: unfilledArr });
+      return this.sendResponse(req, res, {
+        message: "Reports data fetched successfully",
+        status: 200,
+        data: {
+          unfilled: unfilled,
+          totaldivision: allDivisionsAreaIds?.length,
+          allDivisions: allDivisions,
+        },
+      });
+    } catch (error) {
+      console.log(error);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
         status: 500,

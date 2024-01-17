@@ -10,7 +10,7 @@ const {
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
-const { UserModel } = require("../../model");
+const { UserModel, HalqaModel } = require("../../model");
 
 const isDataComplete = ({
   month,
@@ -291,7 +291,12 @@ class HalqaReport extends Response {
           { path: "tdId" },
           { path: "halqaLibId" },
           { path: "rsdId" },
-          { path: "halqaAreaId" },
+          {
+            path: "halqaAreaId",
+            populate: {
+              path: "parentId",
+            },
+          },
         ])
         .sort({ createdAt: -1 });
       // } else {
@@ -535,6 +540,77 @@ class HalqaReport extends Response {
       });
     } catch (err) {
       console.log(err);
+      return this.sendResponse(req, res, {
+        message: "Internal Server Error",
+        status: 500,
+      });
+    }
+  };
+  filledUnfilled = async (req, res) => {
+    try {
+      const { queryDate } = req.query;
+      const token = req.headers.authorization;
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
+      const decoded = decode(token.split(" ")[1]);
+      if (!decoded) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
+      const userId = decoded?.id;
+      const user = await UserModel.findOne({ _id: userId });
+      const { userAreaId: id, nazim: key } = user;
+      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      const today = Date.now();
+      let desiredYear = new Date(today).getFullYear();
+      let desiredMonth = new Date(today).getMonth() + 1;
+      if (queryDate) {
+        const convert = new Date(queryDate);
+        desiredYear = new Date(convert).getFullYear();
+        desiredMonth = new Date(convert).getMonth() + 1;
+      }
+      const startDate = new Date(desiredYear, desiredMonth - 1, 1);
+      const endDate = new Date(desiredYear, desiredMonth, 0);
+      const halqaReports = await HalqaReportModel.find({
+        month: {
+          $gte: startDate,
+          $lte: endDate,
+        },
+        halqaAreaId: accessList,
+      }).populate("halqaAreaId userId");
+      const allHalqas = await HalqaModel.find({ _id: accessList }).populate(
+        "parentId"
+      );
+      const halqaReportsAreaIds = halqaReports.map((i) =>
+        i?.halqaAreaId?._id?.toString()
+      );
+      const allHalqasAreaIds = allHalqas.map((i) => i?._id?.toString());
+      const unfilledArr = [];
+      allHalqasAreaIds.forEach((i, index) => {
+        if (!halqaReportsAreaIds.includes(i)) {
+          unfilledArr.push(i);
+        }
+      });
+      const unfilled = await HalqaModel.find({ _id: unfilledArr }).populate(
+        "parentId"
+      );
+      return this.sendResponse(req, res, {
+        message: "Reports data fetched successfully",
+        status: 200,
+        data: {
+          unfilled: unfilled,
+          totalhalqa: allHalqasAreaIds?.length,
+          allHalqas: allHalqas,
+        },
+      });
+    } catch (error) {
+      console.log(error);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
         status: 500,

@@ -233,7 +233,6 @@ class Compare extends Response {
       tanzeem: "maqamTanzeemId",
     };
     const db_data = {};
-    console.log(areaId)
     switch (duration_type) {
       case "year":
         for (let i = 0; i < duration.length; i++) {

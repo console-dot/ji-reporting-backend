@@ -13,7 +13,7 @@ const {
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
-const { UserModel } = require("../../model");
+const { UserModel, MaqamModel } = require("../../model");
 
 const isDataComplete = ({
   month,
@@ -673,6 +673,73 @@ class MaqamReport extends Response {
       });
     } catch (err) {
       console.log(err);
+      return this.sendResponse(req, res, {
+        message: "Internal Server Error",
+        status: 500,
+      });
+    }
+  };
+  filledUnfilled = async (req, res) => {
+    try {
+      const { queryDate } = req.query;
+      const token = req.headers.authorization;
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
+      const decoded = decode(token.split(" ")[1]);
+      if (!decoded) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
+      const userId = decoded?.id;
+      const user = await UserModel.findOne({ _id: userId });
+      const { userAreaId: id, nazim: key } = user;
+      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      const today = Date.now();
+      let desiredYear = new Date(today).getFullYear();
+      let desiredMonth = new Date(today).getMonth() + 1;
+      if (queryDate) {
+        const convert = new Date(queryDate);
+        desiredYear = new Date(convert).getFullYear();
+        desiredMonth = new Date(convert).getMonth() + 1;
+      }
+      const startDate = new Date(desiredYear, desiredMonth - 1, 1);
+      const endDate = new Date(desiredYear, desiredMonth, 0);
+      const maqamReports = await MaqamReportModel.find({
+        month: {
+          $gte: startDate,
+          $lte: endDate,
+        },
+        maqamAreaId: accessList,
+      }).populate("maqamAreaId userId");
+      const allMaqams = await MaqamModel.find({ _id: accessList });
+      const maqamReportsAreaIds = maqamReports.map((i) =>
+        i?.maqamAreaId?._id?.toString()
+      );
+      const allMaqamsAreaIds = allMaqams.map((i) => i?._id?.toString());
+      const unfilledArr = [];
+      allMaqamsAreaIds.forEach((i, index) => {
+        if (!maqamReportsAreaIds.includes(i)) {
+          unfilledArr.push(i);
+        }
+      });
+      const unfilled = await MaqamModel.find({ _id: unfilledArr });
+      return this.sendResponse(req, res, {
+        message: "Reports data fetched successfully",
+        status: 200,
+        data: {
+          unfilled: unfilled,
+          totalmaqam: allMaqamsAreaIds?.length,
+          allMaqams:allMaqams
+        },
+      });
+    } catch (error) {
+      console.log(error);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
         status: 500,

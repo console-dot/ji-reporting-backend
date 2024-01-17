@@ -9,6 +9,7 @@ const { MaqamModel } = require("./maqam");
 const { ResetPasswordModel } = require("./resetPassword");
 const HalqaReports = require("./reports");
 const { NotificationsModal } = require("./notifications");
+const { SubjectModal } = require("./subjects");
 
 module.exports = {
   RoleModel,
@@ -22,4 +23,5 @@ module.exports = {
   ResetPasswordModel,
   HalqaReports,
   NotificationsModal,
+  SubjectModal,
 };
