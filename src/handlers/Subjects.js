@@ -136,46 +136,5 @@ class Subject extends Response {
       });
     }
   };
-  // deleteSubjects = async (req, res) => {
-  //   try {
-  //     const { subId } = req.body;
-  //     if (!newTitle || typeof newTitle !== "string") {
-  //       return this.sendResponse(req, res, {
-  //         message: "Title is required!",
-  //         status: 400,
-  //       });
-  //     }
-  //     const sanitizedTitle = newTitle.trim().toLowerCase().split(" ").join("_");
-  //     const subExist = await SubjectModal.find({ _id: subId });
-  //     if (!subExist) {
-  //       return this.sendResponse(req, res, {
-  //         message: "Subject not found with this id",
-  //         status: 404,
-  //       });
-  //     }
-
-  //     const update = await SubjectModal.updateOne({
-  //       _id: subId,
-  //       title: sanitizedTitle,
-  //     });
-  //     if (update.modifiedCount > 0) {
-  //       return this.sendResponse(req, res, {
-  //         message: "Subject is updated",
-  //         status: 200,
-  //       });
-  //     }
-
-  //     return this.sendResponse(req, res, {
-  //       message: "Internal server error",
-  //       status: 500,
-  //     });
-  //   } catch (error) {
-  //     console.log(error);
-  //     return this.sendResponse(req, res, {
-  //       message: "INTERNAL SERVER ERROR",
-  //       status: 500,
-  //     });
-  //   }
-  // };
 }
 module.exports = Subject;
