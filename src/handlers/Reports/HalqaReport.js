@@ -291,7 +291,12 @@ class HalqaReport extends Response {
           { path: "tdId" },
           { path: "halqaLibId" },
           { path: "rsdId" },
-          { path: "halqaAreaId" },
+          {
+            path: "halqaAreaId",
+            populate: {
+              path: "parentId",
+            },
+          },
         ])
         .sort({ createdAt: -1 });
       // } else {

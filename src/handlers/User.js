@@ -706,7 +706,6 @@ class User extends Response {
           { _id: id },
           "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob"
         ).populate({ path: "userAreaId", refPath: "userAreaType" });
-        console.log(user);
         return this.sendResponse(req, res, {
           data: user,
           status: 200,
