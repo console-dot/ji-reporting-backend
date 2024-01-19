@@ -477,7 +477,6 @@ class DivisionReport extends Response {
       }
 
       const isExist = await DivisionReportModel.findOne({ _id });
-
       if (!isExist) {
         return this.sendResponse(req, res, {
           message: "Report not found",
