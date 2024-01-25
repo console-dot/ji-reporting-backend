@@ -504,6 +504,73 @@ class User extends Response {
       });
     }
   };
+  updateStatus = async (req, res) => {
+    try {
+      const { userAreaId, nazimType, nazim, userId } = req?.body;
+      const token = req?.headers.authorization;
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
+      const decoded = jwt.decode(token?.split(" ")[1]);
+      const superId = decoded?.id;
+      const _id = superId;
+      if (!_id) {
+        return this.sendResponse(req, res, {
+          message: "ID is required",
+          status: 404,
+        });
+      }
+      if (superId.toString() !== _id.toString()) {
+        return this.sendResponse(req, res, {
+          message: "Third-party update not allowed",
+          status: 404,
+        });
+      }
+      const userExist = await UserModel?.findOne({ _id });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "Super User not found!",
+          status: 404,
+        });
+      }
+      const isUser = await UserModel.findOne({ _id: userId });
+      if (!isUser) {
+        return this.sendResponse(req, res, {
+          message: "User not found to update",
+          status: 404,
+        });
+      }
+      const isUpdated = await UserModel.updateOne(
+        { _id: userId },
+        {
+          $set: {
+            userAreaType: nazim,
+            nazim: nazim.toLowerCase(),
+            userAreaId,
+            joiningDate: Date.now(),
+            nazimType,
+          },
+        }
+      );
+      if (isUpdated?.modifiedCount > 0) {
+        return this.sendResponse(req, res, { message: "User updated." });
+      }
+
+      return this.sendResponse(req, res, {
+        message: "Nothing to update!",
+        status: 400,
+      });
+    } catch (error) {
+      console.log(error);
+      return this.sendResponse(req, res, {
+        message: "Internal Server Error",
+        status: 500,
+      });
+    }
+  };
   updatePassword = async (req, res) => {
     try {
       const token = req.headers.authorization;

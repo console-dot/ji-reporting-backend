@@ -12,11 +12,11 @@ router.post("/forget-password", handler.forgetPassword);
 router.post("/reset-password", handler.resetPassword);
 router.delete("/:id", handler.delete);
 router.put("/", handler.update);
+router.put("/update-status", handler.updateStatus);
 router.put("/change-password", handler.updatePassword);
 router.get("/user-requests", handler.getAllRequests);
 router.patch("/user-requests/:id", handler.updateRequest);
 router.get("/un-filled/:id", handler.getUnfilledUsers);
 router.get("/filter", handler.userSearchFilter);
-
 
 module.exports = router;
