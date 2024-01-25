@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const maqamReportModel = mongoose.Schema(
   {
@@ -13,62 +13,62 @@ const maqamReportModel = mongoose.Schema(
     userId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'User',
+      ref: "User",
     },
     maqamAreaId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'Maqam',
+      ref: "Maqam",
     },
     maqamTanzeemId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'MaqamTanzeem',
+      ref: "MaqamTanzeem",
     },
     wiId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'WorkerInfo',
+      ref: "WorkerInfo",
     },
     maqamActivityId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'MaqamActivities',
+      ref: "MaqamActivities",
     },
     mentionedActivityId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'MentionedActivities',
+      ref: "MentionedActivities",
     },
     otherActivityId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'OtherActivities',
+      ref: "OtherActivities",
     },
     tdId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'ToseeDawat',
+      ref: "ToseeDawat",
     },
     maqamDivisionLibId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'MaqamDivisionLibrary',
+      ref: "MaqamDivisionLibrary",
     },
     paighamDigestId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'PaighamDigest',
+      ref: "PaighamDigest",
     },
     rsdId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'RozShabBedari',
+      ref: "RozShabBedari",
     },
   },
   { timestamps: true }
 );
 
-const MaqamReportModel = mongoose.model('MaqamReport', maqamReportModel);
+const MaqamReportModel = mongoose.model("MaqamReport", maqamReportModel);
 
 module.exports = { MaqamReportModel };
