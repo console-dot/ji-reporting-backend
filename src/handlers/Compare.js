@@ -37,6 +37,8 @@ class Compare extends Response {
       "other-activity": "otherActivityId",
       library: "halqaLibId",
       "ifradi-kuwat": "wiId",
+      "paigham-digest": "paighamDigestId",
+      "roz-shab-bedari": "rsdId",
     };
     const db_data = {};
     switch (duration_type) {
@@ -231,6 +233,9 @@ class Compare extends Response {
       library: "maqamDivisionLibId",
       "ifradi-kuwat": "wiId",
       tanzeem: "maqamTanzeemId",
+      "mentioned-activities": "mentionedActivityId",
+      "paigham-digest": "paighamDigestId",
+      "roz-shab-bedari": "rsdId",
     };
     const db_data = {};
     switch (duration_type) {
@@ -454,6 +459,9 @@ class Compare extends Response {
       library: "maqamDivisionLibId",
       "ifradi-kuwat": "wiId",
       tanzeem: "maqamTanzeemId",
+      "mentioned-activities": "mentionedActivityId",
+      "paigham-digest": "paighamDigestId",
+      "roz-shab-bedari": "rsdId",
     };
     const db_data = {};
     switch (duration_type) {
@@ -680,6 +688,9 @@ class Compare extends Response {
         "library",
         "ifradi-kuwat",
         "tanzeem",
+        "mentioned-activities",
+        "paigham-digest",
+        "roz-shab-bedari",
       ];
 
       const valid_duration_type = ["month", "year"];
@@ -688,9 +699,9 @@ class Compare extends Response {
         datasets: [
           {
             label: `${duration_type}ly progress`,
-            data: [0, 50, 120, 100, 200, 300],
-            backgroundColor: "rgba(255, 0, 55, 0.5)",
-            borderColor: "rgba(255, 99, 132, 1)",
+            data: [],
+            backgroundColor: "",
+            borderColor: "",
             borderWidth: 1,
           },
         ],

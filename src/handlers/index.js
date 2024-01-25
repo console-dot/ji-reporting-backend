@@ -5,6 +5,12 @@ const Report = require("./Reports");
 const Compare = require("./Compare");
 const Notifcations = require("./Notifications");
 const Subjects = require("./Subjects");
+const {
+  HalqaCompare,
+  MaqamCompare,
+  DivisionCompare,
+  ProvinceCompare,
+} = require("./Comparison");
 
 module.exports = {
   Locations,
@@ -14,4 +20,8 @@ module.exports = {
   Compare,
   Notifcations,
   Subjects,
+  HalqaCompare,
+  MaqamCompare,
+  DivisionCompare,
+  ProvinceCompare,
 };

@@ -16,13 +16,7 @@ const {
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
-const {
-  UserModel,
-  ProvinceModel,
-  HalqaModel,
-  MaqamModel,
-  DivisionModel,
-} = require("../../model");
+const { UserModel, ProvinceModel } = require("../../model");
 
 const isDataComplete = ({
   arkanFilled,
@@ -383,7 +377,7 @@ class ProvinceReport extends Response {
       let reports;
       // if (user?.nazim !== 'province') {
       reports = await ProvinceReportModel.find({
-        provinceareaId: accessList,
+        provinceAreaId: accessList,
       })
         .populate([
           { path: "userId", select: ["_id", "email", "name", "age"] },
@@ -399,6 +393,7 @@ class ProvinceReport extends Response {
           { path: "rsdId" },
         ])
         .sort({ createdAt: -1 });
+
       // } else {
       //   reports = await ProvinceReportModel.find().populate([
       //     { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
