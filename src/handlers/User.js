@@ -16,7 +16,6 @@ const Mailer = require("./Mailer");
 const Response = require("./Response");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { mongoose } = require("mongoose");
 
 class User extends Response {
   signup = async (req, res) => {
@@ -771,7 +770,7 @@ class User extends Response {
         const { id } = decoded;
         const user = await UserModel.findOne(
           { _id: id },
-          "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob"
+          "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType"
         ).populate({ path: "userAreaId", refPath: "userAreaType" });
         return this.sendResponse(req, res, {
           data: user,
