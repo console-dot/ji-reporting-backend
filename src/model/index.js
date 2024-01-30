@@ -10,6 +10,11 @@ const { ResetPasswordModel } = require("./resetPassword");
 const HalqaReports = require("./reports");
 const { NotificationsModal } = require("./notifications");
 const { SubjectModal } = require("./subjects");
+const { UmeedwarModel } = require("./umeedwarKhaka");
+const { ItaatNazmModel } = require("./itaatNazm");
+const { PrayersModel } = require("./prayers");
+const { StudiesModel } = require("./studies");
+const { ToseeDawaModel } = require("./toseeDawa");
 
 module.exports = {
   RoleModel,
@@ -24,4 +29,9 @@ module.exports = {
   HalqaReports,
   NotificationsModal,
   SubjectModal,
+  UmeedwarModel,
+  PrayersModel,
+  ItaatNazmModel,
+  StudiesModel,
+  ToseeDawaModel
 };
