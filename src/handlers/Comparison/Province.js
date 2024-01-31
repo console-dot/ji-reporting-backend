@@ -98,10 +98,7 @@ class ProvinceCompare extends Response {
             report[report?.length - 1].provinceTanzeemId._doc
           );
           keys.forEach((doc) => {
-            if (
-              report[report?.length - 1].provinceTanzeemId._doc[doc] &&
-              report[report?.length - 1].provinceTanzeemId._doc[doc]._doc
-            ) {
+            if (report[report?.length - 1].provinceTanzeemId._doc[doc]) {
               sample.data.push(
                 parseInt(
                   report[report?.length - 1].provinceTanzeemId._doc[doc]._doc
@@ -401,15 +398,7 @@ class ProvinceCompare extends Response {
               sample.data.push(
                 parseInt(
                   reports[reports.length - 1]._doc.mentionedActivityId._doc[doc]
-                    .decided
-                ),
-                parseInt(
-                  reports[reports.length - 1]._doc.mentionedActivityId._doc[doc]
                     .done
-                ),
-                parseInt(
-                  reports[reports.length - 1]._doc.mentionedActivityId._doc[doc]
-                    .averageAttendance
                 )
               );
               if (!labels.includes(doc.toLowerCase())) {

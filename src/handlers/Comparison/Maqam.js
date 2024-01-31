@@ -26,7 +26,7 @@ const response = {
   },
   status: 200,
 };
-class MaqamCompare extends Response{
+class MaqamCompare extends Response {
   getRandomRGB = () => {
     const r = Math.floor(Math.random() * 256); // Random red value between 0 and 255
     const g = Math.floor(Math.random() * 256); // Random green value between 0 and 255
@@ -98,10 +98,7 @@ class MaqamCompare extends Response{
             report[report?.length - 1].maqamTanzeemId._doc
           );
           keys.forEach((doc) => {
-            if (
-              report[report?.length - 1].maqamTanzeemId._doc[doc] &&
-              report[report?.length - 1].maqamTanzeemId._doc[doc]._doc
-            ) {
+            if (report[report?.length - 1].maqamTanzeemId._doc[doc]) {
               sample.data.push(
                 parseInt(
                   report[report?.length - 1].maqamTanzeemId._doc[doc]._doc.start
@@ -196,10 +193,7 @@ class MaqamCompare extends Response{
         if (report?.length > 0) {
           const keys = Object.keys(report[report?.length - 1].wiId._doc);
           keys.forEach((doc) => {
-            if (
-              report[report?.length - 1].wiId._doc[doc] &&
-              report[report?.length - 1].wiId._doc[doc]._doc
-            ) {
+            if (report[report?.length - 1].wiId._doc[doc]) {
               sample.data.push(
                 parseInt(report[report?.length - 1].wiId._doc[doc]._doc.start) +
                   parseInt(
@@ -292,10 +286,7 @@ class MaqamCompare extends Response{
             reports[reports?.length - 1]._doc.maqamActivityId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
           keys.forEach((doc) => {
-            if (
-              reports[reports?.length - 1]._doc?.maqamActivityId._doc &&
-              reports[reports?.length - 1]._doc?.maqamActivityId._doc[doc]
-            ) {
+            if (reports[reports?.length - 1]._doc?.maqamActivityId._doc) {
               sample.data.push(
                 parseInt(
                   reports[reports?.length - 1]._doc.maqamActivityId._doc[doc]
@@ -393,25 +384,12 @@ class MaqamCompare extends Response{
             reports[reports?.length - 1]._doc.mentionedActivityId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
           keys.forEach((doc) => {
-            if (
-              reports[reports?.length - 1]._doc?.mentionedActivityId._doc &&
-              reports[reports?.length - 1]._doc?.mentionedActivityId._doc[doc]
-            ) {
+            if (reports[reports?.length - 1]._doc?.mentionedActivityId._doc) {
               sample.data.push(
                 parseInt(
                   reports[reports?.length - 1]._doc.mentionedActivityId._doc[
                     doc
-                  ].decided
-                ),
-                parseInt(
-                  reports[reports?.length - 1]._doc.mentionedActivityId._doc[
-                    doc
                   ].done
-                ),
-                parseInt(
-                  reports[reports?.length - 1]._doc.mentionedActivityId._doc[
-                    doc
-                  ].averageAttendance
                 )
               );
               if (!labels.includes(doc.toLowerCase())) {
@@ -498,10 +476,7 @@ class MaqamCompare extends Response{
             reports[reports?.length - 1]._doc.otherActivityId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
           keys.forEach((doc) => {
-            if (
-              reports[reports?.length - 1]._doc?.otherActivityId._doc &&
-              reports[reports?.length - 1]._doc?.otherActivityId._doc[doc]
-            ) {
+            if (reports[reports?.length - 1]._doc?.otherActivityId._doc) {
               sample.data.push(
                 parseInt(
                   reports[reports?.length - 1]._doc?.otherActivityId._doc[doc]
@@ -777,10 +752,7 @@ class MaqamCompare extends Response{
             reports[reports?.length - 1]._doc.paighamDigestId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
           keys.forEach((doc) => {
-            if (
-              reports[reports?.length - 1]._doc?.paighamDigestId._doc &&
-              reports[reports?.length - 1]._doc?.paighamDigestId._doc[doc]
-            ) {
+            if (reports[reports?.length - 1]._doc?.paighamDigestId._doc) {
               sample.data.push(
                 parseInt(
                   reports[reports?.length - 1]._doc?.paighamDigestId._doc[
