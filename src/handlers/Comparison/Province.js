@@ -93,10 +93,11 @@ class ProvinceCompare extends Response {
           },
           "provinceTanzeemId"
         ).populate("provinceTanzeemId");
+
         if (report?.length > 0) {
           const keys = Object.keys(
             report[report?.length - 1].provinceTanzeemId._doc
-          );
+          ).filter((key) => key !== "_id" && key !== "__v");
           keys.forEach((doc) => {
             if (report[report?.length - 1].provinceTanzeemId._doc[doc]) {
               sample.data.push(
@@ -192,7 +193,9 @@ class ProvinceCompare extends Response {
           "wiId"
         ).populate("wiId");
         if (report?.length > 0) {
-          const keys = Object.keys(report[report?.length - 1].wiId._doc);
+          const keys = Object.keys(report[report?.length - 1].wiId._doc).filter(
+            (key) => key !== "_id" && key !== "__v"
+          );
           keys.forEach((doc) => {
             if (
               report[report?.length - 1].wiId._doc[doc] &&
@@ -327,7 +330,7 @@ class ProvinceCompare extends Response {
       });
     }
   };
-  createMentionedActivitesReport = async (req, res) => {
+  createProvinceMentionedActivitesReport = async (req, res) => {
     try {
       const token = req?.headers?.authorization;
       const { dates, areaId, duration_type } = req?.body;
@@ -890,7 +893,7 @@ class ProvinceCompare extends Response {
         this.createActivitiesReport(req, res);
         break;
       case "mentionedActivities":
-        this.createMentionedActivitesReport(req, res);
+        this.createProvinceMentionedActivitesReport(req, res);
         break;
       case "otherActivity":
         this.createOtherActivityReport(req, res);

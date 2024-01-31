@@ -98,9 +98,7 @@ class HalqaCompare extends Response {
             (key) => key !== "_id" && key !== "__v"
           );
           keys.forEach((doc) => {
-            if (
-              report[report.length - 1].wiId._doc[doc] 
-            ) {
+            if (report[report.length - 1].wiId._doc[doc]) {
               sample.data.push(
                 parseInt(report[report.length - 1].wiId._doc[doc]._doc.start) +
                   parseInt(
@@ -194,12 +192,7 @@ class HalqaCompare extends Response {
           ).filter((key) => key !== "_id" && key !== "__v");
 
           keys.forEach((doc) => {
-            if (
-              reports[reports?.length - 1]._doc?.halqaActivityId._doc[doc] 
-            ) {
-              console.log(
-                reports[reports?.length - 1]._doc?.halqaActivityId._doc[doc]
-              );
+            if (reports[reports?.length - 1]._doc?.halqaActivityId._doc[doc]) {
               sample.data.push(
                 parseInt(
                   reports[reports?.length - 1]._doc.halqaActivityId._doc[doc]
@@ -382,9 +375,7 @@ class HalqaCompare extends Response {
             reports[reports?.length - 1]._doc.tdId._doc
           ).filter((key) => key !== "_id" && key !== "__v");
           keys.forEach((doc) => {
-            if (
-              reports[reports?.length - 1]._doc?.tdId._doc 
-            ) {
+            if (reports[reports?.length - 1]._doc?.tdId._doc) {
               sample.data.push(
                 parseInt(reports[reports?.length - 1]._doc?.tdId._doc[doc])
               );
@@ -472,9 +463,7 @@ class HalqaCompare extends Response {
             reports[reports?.length - 1]._doc.halqaLibId._doc
           ).filter((key) => key !== "_id" && key !== "__v");
           keys.forEach((doc) => {
-            if (
-              reports[reports?.length - 1]._doc?.halqaLibId._doc 
-            ) {
+            if (reports[reports?.length - 1]._doc?.halqaLibId._doc) {
               sample.data.push(
                 parseInt(
                   reports[reports?.length - 1]._doc?.halqaLibId._doc[doc]
