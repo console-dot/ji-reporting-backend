@@ -96,12 +96,9 @@ class DivisionCompare extends Response {
         if (report?.length > 0) {
           const keys = Object.keys(
             report[report?.length - 1].maqamTanzeemId._doc
-          );
+          ).filter((key) => key !== "_id" && key !== "__v");
           keys.forEach((doc) => {
-            if (
-              report[report?.length - 1].maqamTanzeemId._doc[doc] &&
-              report[report?.length - 1].maqamTanzeemId._doc[doc]._doc
-            ) {
+            if (report[report?.length - 1].maqamTanzeemId._doc[doc]) {
               sample.data.push(
                 parseInt(
                   report[report?.length - 1].maqamTanzeemId._doc[doc]._doc.start
@@ -194,12 +191,11 @@ class DivisionCompare extends Response {
           "wiId"
         ).populate("wiId");
         if (report?.length > 0) {
-          const keys = Object.keys(report[report?.length - 1].wiId._doc);
+          const keys = Object.keys(report[report?.length - 1].wiId._doc).filter(
+            (key) => key !== "_id" && key !== "__v"
+          );
           keys.forEach((doc) => {
-            if (
-              report[report?.length - 1].wiId._doc[doc] &&
-              report[report?.length - 1].wiId._doc[doc]._doc
-            ) {
+            if (report[report?.length - 1].wiId._doc[doc]) {
               sample.data.push(
                 parseInt(report[report?.length - 1].wiId._doc[doc]._doc.start) +
                   parseInt(
@@ -292,10 +288,7 @@ class DivisionCompare extends Response {
             reports[reports.length - 1]._doc.divisionActivityId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
           keys.forEach((doc) => {
-            if (
-              reports[reports.length - 1]._doc?.divisionActivityId._doc &&
-              reports[reports.length - 1]._doc?.divisionActivityId._doc[doc]
-            ) {
+            if (reports[reports.length - 1]._doc?.divisionActivityId._doc) {
               sample.data.push(
                 parseInt(
                   reports[reports.length - 1]._doc.divisionActivityId._doc[doc]
@@ -393,22 +386,11 @@ class DivisionCompare extends Response {
             reports[reports.length - 1]._doc.mentionedActivityId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
           keys.forEach((doc) => {
-            if (
-              reports[reports.length - 1]._doc?.mentionedActivityId._doc &&
-              reports[reports.length - 1]._doc?.mentionedActivityId._doc[doc]
-            ) {
+            if (reports[reports.length - 1]._doc?.mentionedActivityId._doc) {
               sample.data.push(
                 parseInt(
                   reports[reports.length - 1]._doc.mentionedActivityId._doc[doc]
-                    .decided
-                ),
-                parseInt(
-                  reports[reports.length - 1]._doc.mentionedActivityId._doc[doc]
                     .done
-                ),
-                parseInt(
-                  reports[reports.length - 1]._doc.mentionedActivityId._doc[doc]
-                    .averageAttendance
                 )
               );
               if (!labels.includes(doc.toLowerCase())) {
@@ -495,10 +477,7 @@ class DivisionCompare extends Response {
             reports[reports.length - 1]._doc.otherActivityId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
           keys.forEach((doc) => {
-            if (
-              reports[reports.length - 1]._doc?.otherActivityId._doc &&
-              reports[reports.length - 1]._doc?.otherActivityId._doc[doc]
-            ) {
+            if (reports[reports.length - 1]._doc?.otherActivityId._doc) {
               sample.data.push(
                 parseInt(
                   reports[reports.length - 1]._doc?.otherActivityId._doc[doc]
@@ -584,6 +563,12 @@ class DivisionCompare extends Response {
         ).populate("tdId");
 
         if (reports?.length > 0) {
+          if (reports[0]?.tdId === null) {
+            return this.sendResponse(req, res, {
+              message: "Selected property contains no values",
+              status: 400,
+            });
+          }
           const keys = Object.keys(
             reports[reports.length - 1]._doc.tdId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
@@ -769,10 +754,7 @@ class DivisionCompare extends Response {
             reports[reports.length - 1]._doc.paighamDigestId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
           keys.forEach((doc) => {
-            if (
-              reports[reports.length - 1]._doc?.paighamDigestId._doc &&
-              reports[reports.length - 1]._doc?.paighamDigestId._doc[doc]
-            ) {
+            if (reports[reports.length - 1]._doc?.paighamDigestId._doc) {
               sample.data.push(
                 parseInt(
                   reports[reports.length - 1]._doc?.paighamDigestId._doc[doc]
