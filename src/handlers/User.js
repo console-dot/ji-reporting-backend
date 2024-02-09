@@ -1007,20 +1007,6 @@ class User extends Response {
         joiningDate,
         nazimType,
       } = req.query;
-      console.log(
-        name,
-        nazim,
-        userAreaId,
-        userAreaType,
-        dob,
-        address,
-        qualification,
-        subject,
-        semester,
-        institution,
-        joiningDate,
-        nazimType
-      );
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {

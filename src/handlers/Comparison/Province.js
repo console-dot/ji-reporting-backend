@@ -198,8 +198,7 @@ class ProvinceCompare extends Response {
           );
           keys.forEach((doc) => {
             if (
-              report[report?.length - 1].wiId._doc[doc] &&
-              report[report?.length - 1].wiId._doc[doc]._doc
+              report[report?.length - 1].wiId._doc[doc]
             ) {
               sample.data.push(
                 parseInt(report[report?.length - 1].wiId._doc[doc]._doc.start) +
@@ -294,8 +293,7 @@ class ProvinceCompare extends Response {
           ).filter((i) => i !== "_id" && i !== "__v");
           keys.forEach((doc) => {
             if (
-              reports[reports.length - 1]._doc?.provinceActivityId._doc &&
-              reports[reports.length - 1]._doc?.provinceActivityId._doc[doc]
+              reports[reports.length - 1]._doc?.provinceActivityId._doc 
             ) {
               sample.data.push(
                 parseInt(
@@ -395,8 +393,7 @@ class ProvinceCompare extends Response {
           ).filter((i) => i !== "_id" && i !== "__v");
           keys.forEach((doc) => {
             if (
-              reports[reports.length - 1]._doc?.mentionedActivityId._doc &&
-              reports[reports.length - 1]._doc?.mentionedActivityId._doc[doc]
+              reports[reports.length - 1]._doc?.mentionedActivityId._doc
             ) {
               sample.data.push(
                 parseInt(
@@ -489,8 +486,7 @@ class ProvinceCompare extends Response {
           ).filter((i) => i !== "_id" && i !== "__v");
           keys.forEach((doc) => {
             if (
-              reports[reports.length - 1]._doc?.otherActivityId._doc &&
-              reports[reports.length - 1]._doc?.otherActivityId._doc[doc]
+              reports[reports.length - 1]._doc?.otherActivityId._doc 
             ) {
               sample.data.push(
                 parseInt(
@@ -765,8 +761,7 @@ class ProvinceCompare extends Response {
           ).filter((i) => i !== "_id" && i !== "__v");
           keys.forEach((doc) => {
             if (
-              reports[reports.length - 1]._doc?.paighamDigestId._doc &&
-              reports[reports.length - 1]._doc?.paighamDigestId._doc[doc]
+              reports[reports.length - 1]._doc?.paighamDigestId._doc
             ) {
               sample.data.push(
                 parseInt(

@@ -562,34 +562,31 @@ class MaqamCompare extends Response {
           },
           "tdId"
         ).populate("tdId");
-
-        if (reports?.length > 0) {
-          const keys = Object.keys(
-            reports[reports.length - 1]._doc.tdId._doc
-          ).filter((i) => i !== "_id" && i !== "__v");
-          keys.forEach((doc) => {
-            if (
-              reports[reports.length - 1]._doc?.tdId._doc &&
-              reports[reports.length - 1]._doc?.tdId._doc[doc] !== false
-            ) {
-              sample.data.push(
-                parseInt(reports[reports.length - 1]._doc?.tdId._doc[doc])
-              );
-              if (!labels.includes(doc.toLowerCase())) {
-                labels.push(doc.toLowerCase());
+        reports?.map((obj) => {
+          if (!obj?.tdId) {
+            return null
+          }
+          if (reports?.length > 0) {
+            const keys = Object.keys(
+              reports[reports.length - 1]._doc.tdId._doc
+            ).filter((i) => i !== "_id" && i !== "__v");
+            keys.forEach((doc) => {
+              if (reports[reports.length - 1]._doc?.tdId._doc) {
+                sample.data.push(
+                  parseInt(reports[reports.length - 1]._doc?.tdId._doc[doc])
+                );
+                if (!labels.includes(doc.toLowerCase())) {
+                  labels.push(doc.toLowerCase());
+                }
               }
-            }
-          });
-        }
-        return this.sendResponse(req, res, {
-          message: "Selected property contains no values",
-          status: 400,
+            });
+          }
+          datasets.push(sample);
+          response.data.labels = labels;
+          response.data.datasets = datasets;
+          res.status(200).json(response);
         });
       }
-      datasets.push(sample);
-      response.data.labels = labels;
-      response.data.datasets = datasets;
-      res.status(200).json(response);
     } catch (error) {
       console.log(error);
       return this.sendResponse(req, res, {
