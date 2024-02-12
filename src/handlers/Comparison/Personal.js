@@ -36,7 +36,7 @@ class PersonalCompare extends Response {
   createPrayerReport = async (req, res) => {
     try {
       const token = req?.headers?.authorization;
-      const { dates, duration_type } = req?.body;
+      const { dates, duration_type, areaId } = req?.body;
       if (dates.length < 2) {
         return this.sendResponse(req, res, {
           message: "Atleast 2 dates required",
@@ -88,7 +88,7 @@ class PersonalCompare extends Response {
               $gt: sod,
               $lte: eod,
             },
-            userId: _id,
+            userId: areaId,
           },
           "prayersId"
         ).populate("prayersId");
@@ -196,7 +196,7 @@ class PersonalCompare extends Response {
               $gt: sod,
               $lte: eod,
             },
-            userId: _id,
+            userId: areaId,
           },
           "studiesId"
         ).populate("studiesId");
@@ -284,7 +284,7 @@ class PersonalCompare extends Response {
   toseeDawaReport = async (req, res) => {
     try {
       const token = req?.headers?.authorization;
-      const { dates, duration_type } = req?.body;
+      const { dates, duration_type, areaId } = req?.body;
       if (dates.length < 2) {
         return this.sendResponse(req, res, {
           message: "Atleast 2 dates required",
@@ -336,7 +336,7 @@ class PersonalCompare extends Response {
               $gt: sod,
               $lte: eod,
             },
-            userId: _id,
+            userId: areaId,
           },
           "toseeDawaId"
         ).populate("toseeDawaId");
