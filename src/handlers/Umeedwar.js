@@ -32,7 +32,6 @@ class Umeedwar extends Response {
       const {
         month,
         comments,
-        JamiatRelation,
         aanat,
         ahdeesBook,
         ahdeesTotalDays,
@@ -51,8 +50,6 @@ class Umeedwar extends Response {
         institutionAttendance,
         litratureBook,
         litratureTotalDays,
-        name,
-        organizationRelation,
         otherPrayersInfradi,
         otherPrayersOnTime,
         otherPrayersQaza,
@@ -88,7 +85,6 @@ class Umeedwar extends Response {
       if (
         !month ||
         !comments ||
-        !JamiatRelation ||
         !aanat ||
         !ahdeesBook ||
         !ahdeesTotalDays ||
@@ -107,8 +103,6 @@ class Umeedwar extends Response {
         !institutionAttendance ||
         !litratureBook ||
         !litratureTotalDays ||
-        !name ||
-        !organizationRelation ||
         !otherPrayersInfradi ||
         !otherPrayersOnTime ||
         !otherPrayersQaza ||
@@ -248,15 +242,13 @@ class Umeedwar extends Response {
         month,
         userId,
         disturbingRoutine,
-        organizationRelation,
-        JamiatRelation,
+
         studiesId: studyId?._id,
         toseeDawaId: toseeId?._id,
         itaatNazmId: itatId?._id,
         prayersId: prayerId?._id,
         areaId: user?.userAreaId,
-        areaRef: organizationRelation,
-        name,
+        areaRef: user.userAreaType,
       });
       await newKhaka.save();
       return this.sendResponse(req, res, {
@@ -301,6 +293,12 @@ class Umeedwar extends Response {
         },
         {
           path: "itaatNazmId",
+        },
+        {
+          path: "userId",
+        },
+        {
+          path: "areaId",
         },
       ]);
       return this.sendResponse(req, res, {
@@ -348,6 +346,12 @@ class Umeedwar extends Response {
         {
           path: "itaatNazmId",
         },
+        {
+          path: "userId",
+        },
+        {
+          path: "areaId",
+        },
       ]);
       return this.sendResponse(req, res, {
         message: "Personal report  fetched!",
@@ -367,7 +371,6 @@ class Umeedwar extends Response {
       const {
         month,
         comments,
-        JamiatRelation,
         aanat,
         ahdeesBook,
         ahdeesTotalDays,
@@ -386,8 +389,6 @@ class Umeedwar extends Response {
         institutionAttendance,
         litratureBook,
         litratureTotalDays,
-        name,
-        organizationRelation,
         otherPrayersInfradi,
         otherPrayersOnTime,
         otherPrayersQaza,
@@ -551,10 +552,7 @@ class Umeedwar extends Response {
           $set: {
             month,
             comments,
-            JamiatRelation,
-            organizationRelation,
             disturbingRoutine,
-            name,
           },
         }
       );

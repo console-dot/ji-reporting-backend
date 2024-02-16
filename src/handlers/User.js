@@ -876,7 +876,7 @@ class User extends Response {
       );
       const data = await UserModel.find(
         { userAreaId: validIds },
-        "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob"
+        "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType"
       ).populate([
         "userRequestId",
         { path: "userAreaId", refPath: "userAreaType" },

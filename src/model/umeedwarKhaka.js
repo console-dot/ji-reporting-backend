@@ -2,10 +2,6 @@ const mongoose = require("mongoose");
 
 const umeedwarKhaka = mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-    },
     comments: {
       type: String,
       required: false,
@@ -32,11 +28,6 @@ const umeedwarKhaka = mongoose.Schema(
       type: String,
       required: true,
     },
-    organizationRelation: {
-      type: String,
-      required: true,
-    },
-    JamiatRelation: { type: String, required: true },
     prayersId: {
       type: mongoose.Types.ObjectId,
       required: true,
