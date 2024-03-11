@@ -9,7 +9,7 @@ router.get("/nazim", handler.getAllNazim);
 router.post("/signup", handler.signup);
 router.post("/login", handler.login);
 router.post("/forget-password", handler.forgetPassword);
-router.post("/reset-password", handler.resetPassword);
+router.post("/reset", handler.resetPassword);
 router.delete("/:id", handler.delete);
 router.put("/", handler.update);
 router.put("/update-status", handler.updateStatus);
