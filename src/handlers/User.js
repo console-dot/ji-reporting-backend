@@ -257,7 +257,7 @@ class User extends Response {
                         <p>You have requested to reset your password. To complete the password reset process, please click the following link:</p>
                         <p><a href="${
                           process.env.BASE_URL || "http://localhost:3000"
-                        }/reset-password?key=${key}" style="background-color: #0078d4; color: #fff; padding: 10px 20px; text-decoration: none;">Reset Password</a></p>
+                        }/reset?key=${key}" style="background-color: #0078d4; color: #fff; padding: 10px 20px; text-decoration: none;">Reset Password</a></p>
                         <p>If you did not request a password reset, you can ignore this email.</p>
                         <p>Thank you,</p>
                         <p>JIR - ConsoleDot</p>

@@ -6,7 +6,7 @@ const {
   UmeedwarModel,
 } = require("../model");
 const { PrayersModel } = require("../model/prayers");
-const { months } = require("../utils");
+const { months, getRoleFlow } = require("../utils");
 const Response = require("./Response");
 const { decode } = require("jsonwebtoken");
 
@@ -275,32 +275,36 @@ class Umeedwar extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
+      const { userAreaId: id, nazim: key } = user;
+      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       if (!user) {
         return this.sendResponse(req, res, {
           message: "User does not exist!",
           status: 404,
         });
       }
-      const reports = await UmeedwarModel.find({ userId }).populate([
-        {
-          path: "prayersId",
-        },
-        {
-          path: "studiesId",
-        },
-        {
-          path: "toseeDawaId",
-        },
-        {
-          path: "itaatNazmId",
-        },
-        {
-          path: "userId",
-        },
-        {
-          path: "areaId",
-        },
-      ]);
+      const reports = await UmeedwarModel.find({ areaId: accessList })
+        .populate([
+          {
+            path: "prayersId",
+          },
+          {
+            path: "studiesId",
+          },
+          {
+            path: "toseeDawaId",
+          },
+          {
+            path: "itaatNazmId",
+          },
+          {
+            path: "userId",
+          },
+          {
+            path: "areaId",
+          },
+        ])
+        .sort({ createdAt: -1 });
       return this.sendResponse(req, res, {
         message: "Personal reports are fetched!",
         status: 200,
