@@ -367,7 +367,6 @@ class User extends Response {
         });
       }
       const decoded = jwt.decode(token.split(" ")[1]);
-      const userId = decoded?.id;
       const userExist = await UserModel.findOne({ _id });
       if (!userExist) {
         return this.sendResponse(req, res, {
@@ -383,7 +382,7 @@ class User extends Response {
       }
       const update = await UserModel.updateOne(
         { _id },
-        { $set: { isDeleted: true, userAreaId: null, email: null } }
+        { $set: { isDeleted: true } }
       );
       if (update?.modifiedCount > 0) {
         return this.sendResponse(req, res, { message: "User deleted" });
@@ -674,7 +673,7 @@ class User extends Response {
       }
       if (userExist?.isDeleted) {
         return this.sendResponse(req, res, {
-          message: "User was deleted.",
+          message: "Your access is revoked by the Admin.",
           status: 400,
         });
       }
@@ -876,7 +875,7 @@ class User extends Response {
       );
       const data = await UserModel.find(
         { userAreaId: validIds },
-        "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType"
+        "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType isDeleted"
       ).populate([
         "userRequestId",
         { path: "userAreaId", refPath: "userAreaType" },
