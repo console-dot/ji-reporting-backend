@@ -283,8 +283,8 @@ class Umeedwar extends Response {
           status: 404,
         });
       }
-      const reports = await UmeedwarModel.find({ areaId: accessList }).populate(
-        [
+      const reports = await UmeedwarModel.find({ areaId: accessList })
+        .populate([
           {
             path: "prayersId",
           },
@@ -303,8 +303,8 @@ class Umeedwar extends Response {
           {
             path: "areaId",
           },
-        ]
-      );
+        ])
+        .sort({ createdAt: -1 });
       return this.sendResponse(req, res, {
         message: "Personal reports are fetched!",
         status: 200,

@@ -112,13 +112,11 @@ const users = mongoose.Schema(
     nazimType: {
       //
       type: String,
-      enum: [
-        "nazim",
-        "umeedwar",
-        "rukan",
-        "umeedwaar-nazim",
-        "rukan-nazim",
-      ],
+      enum: ["nazim", "umeedwar", "rukan", "umeedwaar-nazim", "rukan-nazim"],
+    },
+    active: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true } // For created_at and updated_at
