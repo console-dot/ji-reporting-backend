@@ -6,7 +6,7 @@ const {
   UmeedwarModel,
 } = require("../model");
 const { PrayersModel } = require("../model/prayers");
-const { months } = require("../utils");
+const { months, getRoleFlow } = require("../utils");
 const Response = require("./Response");
 const { decode } = require("jsonwebtoken");
 
@@ -32,7 +32,6 @@ class Umeedwar extends Response {
       const {
         month,
         comments,
-        JamiatRelation,
         aanat,
         ahdeesBook,
         ahdeesTotalDays,
@@ -51,8 +50,6 @@ class Umeedwar extends Response {
         institutionAttendance,
         litratureBook,
         litratureTotalDays,
-        name,
-        organizationRelation,
         otherPrayersInfradi,
         otherPrayersOnTime,
         otherPrayersQaza,
@@ -88,7 +85,6 @@ class Umeedwar extends Response {
       if (
         !month ||
         !comments ||
-        !JamiatRelation ||
         !aanat ||
         !ahdeesBook ||
         !ahdeesTotalDays ||
@@ -107,8 +103,6 @@ class Umeedwar extends Response {
         !institutionAttendance ||
         !litratureBook ||
         !litratureTotalDays ||
-        !name ||
-        !organizationRelation ||
         !otherPrayersInfradi ||
         !otherPrayersOnTime ||
         !otherPrayersQaza ||
@@ -248,15 +242,13 @@ class Umeedwar extends Response {
         month,
         userId,
         disturbingRoutine,
-        organizationRelation,
-        JamiatRelation,
+
         studiesId: studyId?._id,
         toseeDawaId: toseeId?._id,
         itaatNazmId: itatId?._id,
         prayersId: prayerId?._id,
         areaId: user?.userAreaId,
-        areaRef: organizationRelation,
-        name,
+        areaRef: user.userAreaType,
       });
       await newKhaka.save();
       return this.sendResponse(req, res, {
@@ -283,26 +275,36 @@ class Umeedwar extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
+      const { userAreaId: id, nazim: key } = user;
+      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       if (!user) {
         return this.sendResponse(req, res, {
           message: "User does not exist!",
           status: 404,
         });
       }
-      const reports = await UmeedwarModel.find({ userId }).populate([
-        {
-          path: "prayersId",
-        },
-        {
-          path: "studiesId",
-        },
-        {
-          path: "toseeDawaId",
-        },
-        {
-          path: "itaatNazmId",
-        },
-      ]);
+      const reports = await UmeedwarModel.find({ areaId: accessList })
+        .populate([
+          {
+            path: "prayersId",
+          },
+          {
+            path: "studiesId",
+          },
+          {
+            path: "toseeDawaId",
+          },
+          {
+            path: "itaatNazmId",
+          },
+          {
+            path: "userId",
+          },
+          {
+            path: "areaId",
+          },
+        ])
+        .sort({ createdAt: -1 });
       return this.sendResponse(req, res, {
         message: "Personal reports are fetched!",
         status: 200,
@@ -348,6 +350,12 @@ class Umeedwar extends Response {
         {
           path: "itaatNazmId",
         },
+        {
+          path: "userId",
+        },
+        {
+          path: "areaId",
+        },
       ]);
       return this.sendResponse(req, res, {
         message: "Personal report  fetched!",
@@ -367,7 +375,6 @@ class Umeedwar extends Response {
       const {
         month,
         comments,
-        JamiatRelation,
         aanat,
         ahdeesBook,
         ahdeesTotalDays,
@@ -386,8 +393,6 @@ class Umeedwar extends Response {
         institutionAttendance,
         litratureBook,
         litratureTotalDays,
-        name,
-        organizationRelation,
         otherPrayersInfradi,
         otherPrayersOnTime,
         otherPrayersQaza,
@@ -551,10 +556,7 @@ class Umeedwar extends Response {
           $set: {
             month,
             comments,
-            JamiatRelation,
-            organizationRelation,
             disturbingRoutine,
-            name,
           },
         }
       );

@@ -570,20 +570,43 @@ class HalqaReport extends Response {
       const today = Date.now();
       let desiredYear = new Date(today).getFullYear();
       let desiredMonth = new Date(today).getMonth() + 1;
+      let startDate, endDate;
+
       if (queryDate) {
         const convert = new Date(queryDate);
-        desiredYear = new Date(convert).getFullYear();
-        desiredMonth = new Date(convert).getMonth() + 1;
+        desiredYear = convert.getFullYear();
+        desiredMonth = convert.getMonth();
+
+        // Set startDate to the 1st of the provided month
+        startDate = new Date(desiredYear, desiredMonth, 1);
+
+        // Set endDate to the last day of the provided month
+        endDate = new Date(desiredYear, desiredMonth + 1, 0);
+      } else {
+        const currentDate = new Date();
+        desiredYear = currentDate.getFullYear();
+        desiredMonth = currentDate.getMonth();
+
+        // Set startDate to the 1st of the previous month
+        startDate = new Date(desiredYear, desiredMonth - 1, 1);
+
+        // If the previous month is December, adjust the year
+        if (desiredMonth === 0) {
+          desiredYear -= 1;
+        }
+
+        // Set endDate to the 1st of the current month
+        endDate = new Date(desiredYear, desiredMonth, 1);
       }
-      const startDate = new Date(desiredYear, desiredMonth - 1, 1);
-      const endDate = new Date(desiredYear, desiredMonth, 0);
+
       const halqaReports = await HalqaReportModel.find({
         month: {
           $gte: startDate,
-          $lte: endDate,
+          $lt: endDate,
         },
         halqaAreaId: accessList,
       }).populate("halqaAreaId userId");
+
       const allHalqas = await HalqaModel.find({ _id: accessList }).populate(
         "parentId"
       );
