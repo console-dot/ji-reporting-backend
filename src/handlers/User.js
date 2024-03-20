@@ -396,6 +396,45 @@ class User extends Response {
       });
     }
   };
+  active = async (req, res) => {
+    try {
+      const token = req.headers.authorization;
+      const _id = req.params.id;
+      if (!_id) {
+        return this.sendResponse(req, res, {
+          message: "ID is required",
+          status: 404,
+        });
+      }
+      const userExist = await UserModel.findOne({ _id });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found",
+          status: 404,
+        });
+      }
+      if (!userExist?.isDeleted) {
+        return this.sendResponse(req, res, {
+          message: "User already active",
+          status: 200,
+        });
+      }
+      const update = await UserModel.updateOne(
+        { _id },
+        { $set: { isDeleted: false } }
+      );
+      if (update?.modifiedCount > 0) {
+        return this.sendResponse(req, res, { message: "User activated" });
+      }
+      return this.sendResponse(req, res, { message: "Nothing to update" });
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: "Internal Server Error",
+        status: 500,
+      });
+    }
+  };
   update = async (req, res) => {
     try {
       const token = req.headers.authorization;
