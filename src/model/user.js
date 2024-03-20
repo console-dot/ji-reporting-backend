@@ -23,18 +23,15 @@ const users = mongoose.Schema(
       ref: "Role",
     },
     nazim: {
-      //
       type: String, // Halqa/Maqam/Division/Province
       enum: ["halqa", "maqam", "division", "province"],
       required: true,
     },
     userAreaId: {
-      //
       type: mongoose.Types.ObjectId,
       refPath: "userAreaType",
     },
     userAreaType: {
-      //
       type: String,
       required: true,
       enum: ["District", "Division", "Halqa", "Maqam", "Province", "Tehsil"],
@@ -97,7 +94,6 @@ const users = mongoose.Schema(
       required: true,
     },
     joiningDate: {
-      //
       type: Date,
       required: true,
     },
@@ -109,14 +105,13 @@ const users = mongoose.Schema(
       type: String,
       required: false,
     },
-    nazimType: {
-      //
-      type: String,
-      enum: ["nazim", "umeedwar", "rukan", "umeedwaar-nazim", "rukan-nazim"],
-    },
     active: {
       type: Boolean,
-      default: false,
+      default: false, 
+    },
+    nazimType: {
+      type: String,
+      enum: ["nazim", "umeedwar", "rukan", "umeedwaar-nazim", "rukan-nazim"],
     },
   },
   { timestamps: true } // For created_at and updated_at
