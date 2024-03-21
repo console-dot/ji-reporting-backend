@@ -11,6 +11,7 @@ router.post("/login", handler.login);
 router.post("/forget-password", handler.forgetPassword);
 router.post("/reset", handler.resetPassword);
 router.delete("/:id", handler.delete);
+router.patch("/active/:id", handler.active);
 router.put("/", handler.update);
 router.put("/update-status", handler.updateStatus);
 router.put("/change-password", handler.updatePassword);
