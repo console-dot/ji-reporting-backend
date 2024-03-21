@@ -580,6 +580,7 @@ class User extends Response {
           status: 404,
         });
       }
+      const role = await RoleModel.findOne({ title: nazim.toLowerCase() });
       const isUpdated = await UserModel.updateOne(
         { _id: userId },
         {
@@ -589,6 +590,7 @@ class User extends Response {
             userAreaId,
             joiningDate: Date.now(),
             nazimType,
+            role: role ? [role?._id] : [],
           },
         }
       );
@@ -739,7 +741,13 @@ class User extends Response {
         }
       );
       return this.sendResponse(req, res, {
-        data: { token, email, id: userExist?._id, type: userExist?.nazim },
+        data: {
+          token,
+          email,
+          id: userExist?._id,
+          type: userExist?.nazim,
+          nazimType: userExist?.nazimType,
+        },
       });
     } catch (err) {
       console.log(err);
@@ -814,7 +822,7 @@ class User extends Response {
         const { id } = decoded;
         const user = await UserModel.findOne(
           { _id: id },
-          "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType"
+          "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType nazim"
         ).populate({ path: "userAreaId", refPath: "userAreaType" });
         return this.sendResponse(req, res, {
           data: user,

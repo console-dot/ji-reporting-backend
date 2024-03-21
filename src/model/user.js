@@ -94,8 +94,8 @@ const users = mongoose.Schema(
       required: true,
     },
     joiningDate: {
-      type: Date,
-      required: true,
+      title: { type: String },
+      date: { type: Date },
     },
     phoneNumber: {
       type: String,
@@ -107,7 +107,7 @@ const users = mongoose.Schema(
     },
     active: {
       type: Boolean,
-      default: false, 
+      default: false,
     },
     nazimType: {
       type: String,
