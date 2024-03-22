@@ -375,7 +375,6 @@ class ProvinceReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      // if (user?.nazim !== 'province') {
       reports = await ProvinceReportModel.find({
         provinceAreaId: accessList,
       })
