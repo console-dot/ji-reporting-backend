@@ -392,7 +392,6 @@ class ProvinceReport extends Response {
           { path: "rsdId" },
         ])
         .sort({ createdAt: -1 });
-
       // } else {
       //   reports = await ProvinceReportModel.find().populate([
       //     { path: 'userId', select: ['_id', 'email', 'name', 'age'] },

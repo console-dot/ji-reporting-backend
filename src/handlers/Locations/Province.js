@@ -1,5 +1,5 @@
-const { ProvinceModel } = require('../../model');
-const Response = require('../Response');
+const { ProvinceModel } = require("../../model");
+const Response = require("../Response");
 
 class Province extends Response {
   createOne = async (req, res) => {
@@ -7,27 +7,27 @@ class Province extends Response {
       const { name } = req.body;
       if (!name) {
         return this.sendResponse(req, res, {
-          message: 'Name is required!',
+          message: "Name is required!",
           status: 400,
         });
       }
       const isExist = await ProvinceModel.findOne({ name });
       if (isExist) {
         return this.sendResponse(req, res, {
-          message: 'Province already exist!',
+          message: "Province already exist!",
           status: 400,
         });
       }
       const newProvince = new ProvinceModel({ name });
       await newProvince.save();
       return this.sendResponse(req, res, {
-        message: 'Province created',
+        message: "Province created",
         status: 201,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -39,7 +39,7 @@ class Province extends Response {
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -50,7 +50,7 @@ class Province extends Response {
       const data = await ProvinceModel.findOne({ _id });
       if (!data) {
         return this.sendResponse(req, res, {
-          message: 'Not found!',
+          message: "Not found!",
           status: 404,
         });
       }
@@ -58,7 +58,7 @@ class Province extends Response {
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -70,7 +70,7 @@ class Province extends Response {
       const isExist = await ProvinceModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
-          message: 'Not found!',
+          message: "Not found!",
           status: 404,
         });
       }
@@ -80,18 +80,18 @@ class Province extends Response {
       );
       if (updatedData?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
-          message: 'Province updated',
+          message: "Province updated",
           status: 200,
         });
       }
       return this.sendResponse(req, res, {
-        message: 'Nothing to update',
+        message: "Nothing to update",
         status: 400,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -102,25 +102,25 @@ class Province extends Response {
       const isExist = await ProvinceModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
-          message: 'Not found!',
+          message: "Not found!",
           status: 404,
         });
       }
       const deleted = await ProvinceModel.deleteOne({ _id });
       if (deleted?.deletedCount > 0) {
         return this.sendResponse(req, res, {
-          message: 'Province deleted',
+          message: "Province deleted",
           status: 200,
         });
       }
       return this.sendResponse(req, res, {
-        message: 'Can not delete',
+        message: "Can not delete",
         status: 400,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }

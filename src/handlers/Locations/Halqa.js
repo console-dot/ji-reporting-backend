@@ -53,21 +53,26 @@ class Halqa extends Response {
   };
   getAll = async (req, res) => {
     try {
-      const options = {};
-      if (req.query.type) {
-        options.parentType = req.query.type;
+      const halqaData = await HalqaModel.find();
+
+      for (const halqa of halqaData) {
+        let populateOptions = {};
+        if (halqa.parentType === "Tehsil") {
+          populateOptions = {
+            path: "parentId",
+            populate: {
+              path: "district",
+              populate: { path: "division", populate: { path: "province" } }, // Populating division within district
+            },
+          };
+        } else if (halqa.parentType === "Maqam") {
+          populateOptions = {
+            path: "parentId",
+            populate: { path: "province" }, // Populating province within maqam
+          };
+        }
+        await halqa.populate(populateOptions);
       }
-      const halqaData = await HalqaModel.find(options).populate("parentId");
-      // Dynamically populate based on parentType
-      // for (const doc of halqaData) {
-      //   const method = getPopulateMethod(doc?.parentType);
-      //   if (method) {
-      //     await HalqaModel.populate(doc, {
-      //       path: "parentId",
-      //       populate: method,
-      //     });
-      //   }
-      // }
 
       return this.sendResponse(req, res, { data: halqaData, status: 200 });
     } catch (err) {
