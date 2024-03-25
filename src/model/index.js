@@ -15,6 +15,7 @@ const { ItaatNazmModel } = require("./itaatNazm");
 const { PrayersModel } = require("./prayers");
 const { StudiesModel } = require("./studies");
 const { ToseeDawaModel } = require("./toseeDawa");
+const { CountryModel } = require("./country");
 
 module.exports = {
   RoleModel,
@@ -33,5 +34,6 @@ module.exports = {
   PrayersModel,
   ItaatNazmModel,
   StudiesModel,
-  ToseeDawaModel
+  ToseeDawaModel,
+  CountryModel,
 };

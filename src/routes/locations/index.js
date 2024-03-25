@@ -6,12 +6,14 @@ const maqam = require("./maqam");
 const province = require("./province");
 const tehsil = require("./tehsil");
 const filterHalqas = require("./filterHalqa");
+const country = require("./country");
 
 router.use("/district", district);
 router.use("/division", division);
 router.use("/halqa", halqa);
 router.use("/maqam", maqam);
 router.use("/province", province);
+router.use("/country", country);
 router.use("/tehsil", tehsil);
 router.use("/filter", filterHalqas);
 module.exports = router;

@@ -179,6 +179,7 @@ class User extends Response {
         immediate_user_id,
         nazimType,
       });
+
       const UserRequestReq = await newUserRequest.save();
       const newUser = new UserModel({
         email,
@@ -396,45 +397,6 @@ class User extends Response {
       });
     }
   };
-  active = async (req, res) => {
-    try {
-      const token = req.headers.authorization;
-      const _id = req.params.id;
-      if (!_id) {
-        return this.sendResponse(req, res, {
-          message: "ID is required",
-          status: 404,
-        });
-      }
-      const userExist = await UserModel.findOne({ _id });
-      if (!userExist) {
-        return this.sendResponse(req, res, {
-          message: "User not found",
-          status: 404,
-        });
-      }
-      if (!userExist?.isDeleted) {
-        return this.sendResponse(req, res, {
-          message: "User already active",
-          status: 200,
-        });
-      }
-      const update = await UserModel.updateOne(
-        { _id },
-        { $set: { isDeleted: false } }
-      );
-      if (update?.modifiedCount > 0) {
-        return this.sendResponse(req, res, { message: "User activated" });
-      }
-      return this.sendResponse(req, res, { message: "Nothing to update" });
-    } catch (err) {
-      console.log(err);
-      return this.sendResponse(req, res, {
-        message: "Internal Server Error",
-        status: 500,
-      });
-    }
-  };
   update = async (req, res) => {
     try {
       const token = req.headers.authorization;
@@ -573,6 +535,22 @@ class User extends Response {
           status: 404,
         });
       }
+      if (
+        (nazimType === "nazim" ||
+          nazimType === "rukan-nazim" ||
+          nazimType === "umeedwaar-nazim") &&
+        (userExist?.nazimType === "nazim" ||
+          userExist?.nazimType === "rukan-nazim" ||
+          userExist?.nazimType === "umeedwaar-nazim")
+      ) {
+        const xUserExist = await UserModel?.findOne({ userAreaId });
+        if (xUserExist?.isDeleted == false) {
+          return this.sendResponse(req, res, {
+            message: `Another ${xUserExist?.nazimType} with ${xUserExist?.email} found for this area`,
+            status: 404,
+          });
+        }
+      }
       const isUser = await UserModel.findOne({ _id: userId });
       if (!isUser) {
         return this.sendResponse(req, res, {
@@ -591,6 +569,7 @@ class User extends Response {
             joiningDate: Date.now(),
             nazimType,
             role: role ? [role?._id] : [],
+            isDeleted: false,
           },
         }
       );
@@ -822,7 +801,7 @@ class User extends Response {
         const { id } = decoded;
         const user = await UserModel.findOne(
           { _id: id },
-          "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType nazim"
+          "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType nazim isDeleted"
         ).populate({ path: "userAreaId", refPath: "userAreaType" });
         return this.sendResponse(req, res, {
           data: user,
@@ -833,7 +812,7 @@ class User extends Response {
         message: "Internal Server Error",
         status: 500,
       });
-    } catch {
+    } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",

@@ -1,3 +1,4 @@
-const { isProvince } = require('./isProvince');
+const { isProvince } = require("./isProvince");
+const { isCountry } = require("./isCountry");
 
-module.exports = { isProvince };
+module.exports = { isProvince, isCountry };

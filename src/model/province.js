@@ -6,6 +6,15 @@ const province = mongoose.Schema({
     unique: true,
     required: true,
   },
+  country: {
+    type: mongoose.Types.ObjectId,
+    required: true,
+    ref: "Country",
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const ProvinceModel = mongoose.model('Province', province);
