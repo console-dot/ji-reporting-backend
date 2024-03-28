@@ -468,7 +468,6 @@ class DivisionReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const dataToUpdate = req.body;
-
       if (!isDataComplete(dataToUpdate)) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
@@ -483,7 +482,7 @@ class DivisionReport extends Response {
           status: 404,
         });
       }
-
+      const mentionedActivity = isExist?.mentionedActivityId;
       if (isExist?.userId.toString() !== userId) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
@@ -545,7 +544,6 @@ class DivisionReport extends Response {
         ],
         mentionedActivityId: [
           "ijtRafaqa",
-          "studyCircle",
           "ijtKarkunan",
           "darseQuran",
           "shaheenMeeting",
@@ -620,13 +618,22 @@ class DivisionReport extends Response {
           { $set: returnData(obj[refsToUpdate[i]]) }
         );
       }
-
       // Update the DivisionReportModel
       const updatedDivisionReport = await DivisionReportModel.updateOne(
         { _id },
         { $set: dataToUpdate }
       );
-
+      // update studyCircle of division
+      await MentionedActivitiesModel.findOneAndUpdate(
+        {
+          _id: mentionedActivity,
+        },
+        {
+          $set: {
+            studyCircle: dataToUpdate?.studyCircleMentioned,
+          },
+        }
+      );
       if (updatedDivisionReport?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
           message: "Report updated successfully",

@@ -4,6 +4,8 @@ const {
   ResetPasswordModel,
   HalqaModel,
   MaqamModel,
+  DivisionModel,
+  ProvinceModel,
 } = require("../model");
 const { UserRequest } = require("../model/userRequest");
 const {
@@ -175,6 +177,37 @@ class User extends Response {
         userAreaId,
         userAreaType
       );
+      const returnModel = (key) => {
+        switch (key) {
+          case "Maqam":
+            return MaqamModel;
+          case "Division":
+            return DivisionModel;
+          case "Halqa":
+            return HalqaModel;
+          case "Province":
+            return ProvinceModel;
+          default:
+            return "No valid schema found";
+        }
+      };
+
+      const existingNazim = await UserModel.findOne({
+        userAreaId: userAreaId,
+        nazimType: { $in: ["nazim", "rukan-nazim", "umeedwaar-nazim"] },
+        isDeleted: false,
+      });
+      if (
+        existingNazim &&
+        (nazimType === "nazim" ||
+          nazimType === "rukan-nazim" ||
+          nazimType === "umeedwaar-nazim")
+      ) {
+        return this.sendResponse(req, res, {
+          message: `Another ${existingNazim?.nazimType} with ${existingNazim?.email} found for this area`,
+          status: 404,
+        });
+      }
       const newUserRequest = new UserRequest({
         immediate_user_id,
         nazimType,
@@ -507,57 +540,69 @@ class User extends Response {
     try {
       const { userAreaId, nazimType, nazim, userId } = req?.body;
       const token = req?.headers.authorization;
+
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
           status: 401,
         });
       }
+
       const decoded = jwt.decode(token?.split(" ")[1]);
       const superId = decoded?.id;
       const _id = superId;
+
       if (!_id) {
         return this.sendResponse(req, res, {
           message: "ID is required",
           status: 404,
         });
       }
+
       if (superId.toString() !== _id.toString()) {
         return this.sendResponse(req, res, {
           message: "Third-party update not allowed",
           status: 404,
         });
       }
+
       const userExist = await UserModel?.findOne({ _id });
+
       if (!userExist) {
         return this.sendResponse(req, res, {
           message: "Super User not found!",
           status: 404,
         });
       }
-      if (
-        (nazimType === "nazim" ||
-          nazimType === "rukan-nazim" ||
-          nazimType === "umeedwaar-nazim") &&
-        (userExist?.nazimType === "nazim" ||
-          userExist?.nazimType === "rukan-nazim" ||
-          userExist?.nazimType === "umeedwaar-nazim")
-      ) {
-        const xUserExist = await UserModel?.findOne({ userAreaId });
-        if (xUserExist?.isDeleted == false) {
-          return this.sendResponse(req, res, {
-            message: `Another ${xUserExist?.nazimType} with ${xUserExist?.email} found for this area`,
-            status: 404,
-          });
-        }
-      }
+
       const isUser = await UserModel.findOne({ _id: userId });
+
       if (!isUser) {
         return this.sendResponse(req, res, {
           message: "User not found to update",
           status: 404,
         });
       }
+
+      const existingNazim = await UserModel.findOne({
+        userAreaId: userAreaId,
+        nazimType: { $in: ["nazim", "rukan-nazim", "umeedwaar-nazim"] },
+        isDeleted: false,
+      });
+
+      if (
+        existingNazim &&
+        existingNazim._id.toString() !== userId.toString() &&
+        (nazimType === "nazim" ||
+          nazimType === "rukan-nazim" ||
+          nazimType === "umeedwaar-nazim")
+      ) {
+        return this.sendResponse(req, res, {
+          message: `Another ${existingNazim?.nazimType} with ${existingNazim?.email} found for this area`,
+          status: 404,
+        });
+      }
+
       const role = await RoleModel.findOne({ title: nazim.toLowerCase() });
       const isUpdated = await UserModel.updateOne(
         { _id: userId },
@@ -573,6 +618,7 @@ class User extends Response {
           },
         }
       );
+
       if (isUpdated?.modifiedCount > 0) {
         return this.sendResponse(req, res, { message: "User updated." });
       }
@@ -589,6 +635,7 @@ class User extends Response {
       });
     }
   };
+
   updatePassword = async (req, res) => {
     try {
       const token = req.headers.authorization;
