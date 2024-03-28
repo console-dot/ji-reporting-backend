@@ -4,6 +4,8 @@ const {
   ResetPasswordModel,
   HalqaModel,
   MaqamModel,
+  DivisionModel,
+  ProvinceModel,
 } = require("../model");
 const { UserRequest } = require("../model/userRequest");
 const {
@@ -175,10 +177,42 @@ class User extends Response {
         userAreaId,
         userAreaType
       );
+      const returnModel = (key) => {
+        switch (key) {
+          case "Maqam":
+            return MaqamModel;
+          case "Division":
+            return DivisionModel;
+          case "Halqa":
+            return HalqaModel;
+          case "Province":
+            return ProvinceModel;
+          default:
+            return "No valid schema found";
+        }
+      };
+
+      const existingNazim = await UserModel.findOne({
+        userAreaId: userAreaId,
+        nazimType: { $in: ["nazim", "rukan-nazim", "umeedwaar-nazim"] },
+        isDeleted: false,
+      });
+      if (
+        existingNazim &&
+        (nazimType === "nazim" ||
+          nazimType === "rukan-nazim" ||
+          nazimType === "umeedwaar-nazim")
+      ) {
+        return this.sendResponse(req, res, {
+          message: `Another ${existingNazim?.nazimType} with ${existingNazim?.email} found for this area`,
+          status: 404,
+        });
+      }
       const newUserRequest = new UserRequest({
         immediate_user_id,
         nazimType,
       });
+
       const UserRequestReq = await newUserRequest.save();
       const newUser = new UserModel({
         email,
@@ -396,45 +430,6 @@ class User extends Response {
       });
     }
   };
-  active = async (req, res) => {
-    try {
-      const token = req.headers.authorization;
-      const _id = req.params.id;
-      if (!_id) {
-        return this.sendResponse(req, res, {
-          message: "ID is required",
-          status: 404,
-        });
-      }
-      const userExist = await UserModel.findOne({ _id });
-      if (!userExist) {
-        return this.sendResponse(req, res, {
-          message: "User not found",
-          status: 404,
-        });
-      }
-      if (!userExist?.isDeleted) {
-        return this.sendResponse(req, res, {
-          message: "User already active",
-          status: 200,
-        });
-      }
-      const update = await UserModel.updateOne(
-        { _id },
-        { $set: { isDeleted: false } }
-      );
-      if (update?.modifiedCount > 0) {
-        return this.sendResponse(req, res, { message: "User activated" });
-      }
-      return this.sendResponse(req, res, { message: "Nothing to update" });
-    } catch (err) {
-      console.log(err);
-      return this.sendResponse(req, res, {
-        message: "Internal Server Error",
-        status: 500,
-      });
-    }
-  };
   update = async (req, res) => {
     try {
       const token = req.headers.authorization;
@@ -545,41 +540,69 @@ class User extends Response {
     try {
       const { userAreaId, nazimType, nazim, userId } = req?.body;
       const token = req?.headers.authorization;
+
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
           status: 401,
         });
       }
+
       const decoded = jwt.decode(token?.split(" ")[1]);
       const superId = decoded?.id;
       const _id = superId;
+
       if (!_id) {
         return this.sendResponse(req, res, {
           message: "ID is required",
           status: 404,
         });
       }
+
       if (superId.toString() !== _id.toString()) {
         return this.sendResponse(req, res, {
           message: "Third-party update not allowed",
           status: 404,
         });
       }
+
       const userExist = await UserModel?.findOne({ _id });
+
       if (!userExist) {
         return this.sendResponse(req, res, {
           message: "Super User not found!",
           status: 404,
         });
       }
+
       const isUser = await UserModel.findOne({ _id: userId });
+
       if (!isUser) {
         return this.sendResponse(req, res, {
           message: "User not found to update",
           status: 404,
         });
       }
+
+      const existingNazim = await UserModel.findOne({
+        userAreaId: userAreaId,
+        nazimType: { $in: ["nazim", "rukan-nazim", "umeedwaar-nazim"] },
+        isDeleted: false,
+      });
+
+      if (
+        existingNazim &&
+        existingNazim._id.toString() !== userId.toString() &&
+        (nazimType === "nazim" ||
+          nazimType === "rukan-nazim" ||
+          nazimType === "umeedwaar-nazim")
+      ) {
+        return this.sendResponse(req, res, {
+          message: `Another ${existingNazim?.nazimType} with ${existingNazim?.email} found for this area`,
+          status: 404,
+        });
+      }
+
       const role = await RoleModel.findOne({ title: nazim.toLowerCase() });
       const isUpdated = await UserModel.updateOne(
         { _id: userId },
@@ -591,9 +614,11 @@ class User extends Response {
             joiningDate: Date.now(),
             nazimType,
             role: role ? [role?._id] : [],
+            isDeleted: false,
           },
         }
       );
+
       if (isUpdated?.modifiedCount > 0) {
         return this.sendResponse(req, res, { message: "User updated." });
       }
@@ -610,6 +635,7 @@ class User extends Response {
       });
     }
   };
+
   updatePassword = async (req, res) => {
     try {
       const token = req.headers.authorization;
@@ -822,7 +848,7 @@ class User extends Response {
         const { id } = decoded;
         const user = await UserModel.findOne(
           { _id: id },
-          "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType nazim"
+          "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType nazim isDeleted"
         ).populate({ path: "userAreaId", refPath: "userAreaType" });
         return this.sendResponse(req, res, {
           data: user,
@@ -833,7 +859,7 @@ class User extends Response {
         message: "Internal Server Error",
         status: 500,
       });
-    } catch {
+    } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",

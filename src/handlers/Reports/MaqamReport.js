@@ -15,108 +15,63 @@ const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
 const { UserModel, MaqamModel } = require("../../model");
 
-const isDataComplete = ({
-  month,
-  comments,
-  arkan,
-  umeedWaran,
-  tarbiyatGaah,
-  rafaqa,
-  karkunan,
-  shaheen,
-  members,
-  ijtArkan,
-  studyCircle,
-  ijtNazmeen,
-  ijtUmeedwaran,
-  sadurMeeting,
-  rehaishHalqay,
-  taleemHalqay,
-  totalHalqay,
-  subRehaishHalqay,
-  subTaleemHalqay,
-  subTotalHalqay,
-  busmSchoolUnits,
-  busmRehaishUnits,
-  busmTotalUnits,
-  ijtRafaqa,
-  studyCircleMentioned,
-  ijtKarkunan,
-  darseQuran,
-  shaheenMeeting,
-  paighamEvent,
-  dawatiWafud,
-  rawabitParties,
-  nizamSalah,
-  shabBedari,
-  anyOther,
-  rawabitDecided,
-  current,
-  meetings,
-  literatureDistribution,
-  commonStudentMeetings,
-  commonLiteratureDistribution,
-  totalLibraries,
-  totalBooks,
-  totalIncrease,
-  totalDecrease,
-  totalBookRent,
-  totalReceived,
-  totalSold,
-  umeedwaranFilled,
-  rafaqaFilled,
-}) => {
-  if (
-    !month ||
-    !comments ||
-    !arkan ||
-    !umeedWaran ||
-    !rafaqa ||
-    !karkunan ||
-    !shaheen ||
-    !members ||
-    !ijtArkan ||
-    !studyCircle ||
-    !ijtNazmeen ||
-    !ijtUmeedwaran ||
-    !sadurMeeting ||
-    !rehaishHalqay ||
-    !taleemHalqay ||
-    !totalHalqay ||
-    !subRehaishHalqay ||
-    !subTaleemHalqay ||
-    !subTotalHalqay ||
-    !busmSchoolUnits ||
-    !busmRehaishUnits ||
-    !busmTotalUnits ||
-    !tarbiyatGaah ||
-    !ijtRafaqa ||
-    !studyCircleMentioned ||
-    !ijtKarkunan ||
-    !darseQuran ||
-    !shaheenMeeting ||
-    !paighamEvent ||
-    !dawatiWafud ||
-    !rawabitParties ||
-    !nizamSalah ||
-    !shabBedari ||
-    !anyOther ||
-    !rawabitDecided ||
-    !current ||
-    !meetings ||
-    !literatureDistribution ||
-    !commonStudentMeetings ||
-    !commonLiteratureDistribution ||
-    !totalLibraries ||
-    !totalBooks ||
-    !totalIncrease ||
-    !totalDecrease ||
-    !totalBookRent ||
-    !totalReceived ||
-    !totalSold ||
-    !umeedwaranFilled ||
-    !rafaqaFilled
-  ) {
+const isDataComplete = (dataToUpdate) => {
+  const requiredKeys = [
+    "month",
+    "comments",
+    "arkan",
+    "umeedWaran",
+    "tarbiyatGaah",
+    "rafaqa",
+    "karkunan",
+    "shaheen",
+    "members",
+    "ijtArkan",
+    "studyCircle",
+    "ijtNazmeen",
+    "ijtUmeedwaran",
+    "sadurMeeting",
+    "rehaishHalqay",
+    "taleemHalqay",
+    "totalHalqay",
+    "subRehaishHalqay",
+    "subTaleemHalqay",
+    "subTotalHalqay",
+    "busmSchoolUnits",
+    "busmRehaishUnits",
+    "busmTotalUnits",
+    "ijtRafaqa",
+    "studyCircleMentioned",
+    "ijtKarkunan",
+    "darseQuran",
+    "shaheenMeeting",
+    "paighamEvent",
+    "dawatiWafud",
+    "rawabitParties",
+    "nizamSalah",
+    "shabBedari",
+    "anyOther",
+    "rawabitDecided",
+    "current",
+    "meetings",
+    "literatureDistribution",
+    "commonStudentMeetings",
+    "commonLiteratureDistribution",
+    "totalLibraries",
+    "totalBooks",
+    "totalIncrease",
+    "totalDecrease",
+    "totalBookRent",
+    "totalReceived",
+    "totalSold",
+    "umeedwaranFilled",
+    "rafaqaFilled",
+  ];
+
+  const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));
+
+  if (missingKeys.length > 0) {
+    console.log("Missing keys:", missingKeys.join(", "));
     return false;
   }
   return true;
@@ -471,7 +426,7 @@ class MaqamReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const dataToUpdate = req.body;
-      if (!isDataComplete(dataToUpdate)) {
+      if (isDataComplete(dataToUpdate) == false) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
           status: 400,
@@ -484,6 +439,7 @@ class MaqamReport extends Response {
           status: 404,
         });
       }
+      const mentionedActivity = isExist?.mentionedActivityId;
       if (isExist?.userId.toString() !== userId) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
@@ -537,14 +493,13 @@ class MaqamReport extends Response {
         ],
         maqamActivityId: [
           "ijtArkan",
-          "studyCircle",
           "ijtNazmeen",
           "ijtUmeedwaran",
           "sadurMeeting",
+          "studyCircle",
         ],
         mentionedActivityId: [
           "ijtRafaqa",
-          "studyCircle",
           "ijtKarkunan",
           "darseQuran",
           "shaheenMeeting",
@@ -575,6 +530,7 @@ class MaqamReport extends Response {
           "hadithCircle",
           "rawabitParties",
           "dawatiWafud",
+          "tarbiyatGaah",
         ],
       };
 
@@ -650,6 +606,17 @@ class MaqamReport extends Response {
           { $set: returnData(obj[refsToUpdate[i]], refsToUpdate[i]) }
         );
       }
+      // update studyCircle of maqam
+      await MentionedActivitiesModel.findOneAndUpdate(
+        {
+          _id: mentionedActivity,
+        },
+        {
+          $set: {
+            studyCircle: dataToUpdate?.studyCircleMentioned,
+          },
+        }
+      );
 
       // Update the DivisionReportModel
       const updatedMaqamReport = await MaqamReportModel.updateOne(
@@ -735,7 +702,7 @@ class MaqamReport extends Response {
         data: {
           unfilled: unfilled,
           totalmaqam: allMaqamsAreaIds?.length,
-          allMaqams:allMaqams
+          allMaqams: allMaqams,
         },
       });
     } catch (error) {

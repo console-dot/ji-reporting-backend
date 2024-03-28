@@ -98,7 +98,13 @@ const getRoleFlow = async (id, key) => {
         ...maqamList.map((item) => item?._id),
         id,
       ];
-
+    case "pakistan":
+      const provinceList = await ProvinceModel?.find({ countryId: id });
+      const countryPromices = provinceList?.map((province) =>
+        getRoleFlow(province?._id, "province")
+      );
+      const countryResultsm = await Promise.all(countryPromices);
+      return [...countryResultsm.flat()];
     default:
       return [];
   }

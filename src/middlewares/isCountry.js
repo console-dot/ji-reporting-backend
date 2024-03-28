@@ -2,7 +2,7 @@ const Response = require("../handlers/Response");
 const jwt = require("jsonwebtoken");
 const { UserModel } = require("../model");
 
-const isProvince = async (req, res, next) => {
+const isCountry = async (req, res, next) => {
   const resp = new Response();
   try {
     const token = req.headers.authorization;
@@ -17,7 +17,7 @@ const isProvince = async (req, res, next) => {
     const { nazim } = await UserModel.findOne({
       _id: userId,
     });
-    if (["province", "maqam", "division"].includes(nazim)) {
+    if (["province", "maqam", "division", "country"].includes(nazim)) {
       next();
       return;
     }
@@ -34,4 +34,4 @@ const isProvince = async (req, res, next) => {
   }
 };
 
-module.exports = { isProvince };
+module.exports = { isCountry };

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const roles = mongoose.Schema({
   title: {
@@ -18,7 +18,7 @@ const roles = mongoose.Schema({
   },
 });
 
-const RoleModel = mongoose.model('Role', roles);
+const RoleModel = mongoose.model("Role", roles);
 
 module.exports = {
   RoleModel,

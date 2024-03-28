@@ -24,7 +24,7 @@ const users = mongoose.Schema(
     },
     nazim: {
       type: String, // Halqa/Maqam/Division/Province
-      enum: ["halqa", "maqam", "division", "province"],
+      enum: ["halqa", "maqam", "division", "province", "country"],
       required: true,
     },
     userAreaId: {
@@ -34,7 +34,15 @@ const users = mongoose.Schema(
     userAreaType: {
       type: String,
       required: true,
-      enum: ["District", "Division", "Halqa", "Maqam", "Province", "Tehsil"],
+      enum: [
+        "District",
+        "Division",
+        "Halqa",
+        "Maqam",
+        "Province",
+        "Tehsil",
+        "Pakistan",
+      ],
     },
     userRequestId: {
       type: mongoose.Types.ObjectId,
@@ -104,10 +112,6 @@ const users = mongoose.Schema(
     whatsAppNumber: {
       type: String,
       required: false,
-    },
-    active: {
-      type: Boolean,
-      default: false,
     },
     nazimType: {
       type: String,

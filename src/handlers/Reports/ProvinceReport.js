@@ -10,9 +10,6 @@ const {
   MaqamDivisionLibraryModel,
   PaighamDigestModel,
   RozShabBedariModel,
-  HalqaReportModel,
-  MaqamReportModel,
-  DivisionReportModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -221,7 +218,7 @@ class ProvinceReport extends Response {
         yearExist: monthDate.getFullYear(),
         monthExist: monthDate.getMonth(),
       };
-      const reportExist = await ProvinceModel.findOne({
+      const reportExist = await ProvinceReportModel.findOne({
         month: {
           $gte: new Date(yearExist, monthExist, 1),
           $lt: new Date(yearExist, monthExist + 1, 1),

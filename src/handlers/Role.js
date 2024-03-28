@@ -1,7 +1,32 @@
-const { RoleModel } = require('../model');
-const Response = require('./Response');
+const { RoleModel } = require("../model");
+const Response = require("./Response");
 
 class Role extends Response {
+  create = async (req, res) => {
+    try {
+      const { title, access } = req?.body;
+      if (!title || !access) {
+        return this.sendResponse(req, res, {
+          message: "title and access list is required",
+        });
+      }
+      const isCreated = new RoleModel({
+        title,
+        access,
+      });
+      await isCreated.save();
+      return this.sendResponse(req, res, {
+        message: "New Role is created",
+        status: 201,
+      });
+    } catch (error) {
+      console.log(error);
+      return this.sendResponse(req, res, {
+        message: "Internal Server Error",
+        status: 500,
+      });
+    }
+  };
   getAll = async (req, res) => {
     try {
       const data = await RoleModel.find({});
@@ -9,7 +34,7 @@ class Role extends Response {
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -20,7 +45,7 @@ class Role extends Response {
       const data = await RoleModel.findOne({ title });
       if (!data) {
         return this.sendResponse(req, res, {
-          message: 'Role not found!',
+          message: "Role not found!",
           status: 404,
         });
       }
@@ -28,7 +53,7 @@ class Role extends Response {
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }
@@ -39,7 +64,7 @@ class Role extends Response {
       const { access } = req.body;
       if (!access) {
         return this.sendResponse(req, res, {
-          message: 'Access list is required',
+          message: "Access list is required",
           status: 400,
         });
       }
@@ -54,13 +79,13 @@ class Role extends Response {
         });
       }
       return this.sendResponse(req, res, {
-        message: 'Nothing to update',
+        message: "Nothing to update",
         status: 400,
       });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: 'Internal Server Error',
+        message: "Internal Server Error",
         status: 500,
       });
     }

@@ -33,5 +33,5 @@ module.exports = {
   PrayersModel,
   ItaatNazmModel,
   StudiesModel,
-  ToseeDawaModel
+  ToseeDawaModel,
 };
