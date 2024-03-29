@@ -138,6 +138,7 @@ class DivisionReport extends Response {
           status: 401,
         });
       }
+
       const {
         month,
         comments,
@@ -209,6 +210,15 @@ class DivisionReport extends Response {
         },
         userId,
       });
+      const reports = await DivisionReportModel.find({ month: req.body.month });
+      if (reports) {
+        return this.sendResponse(req, res, {
+          message: `Report already created for ${
+            months[monthDate.getMonth()]
+          }.`,
+          status: 400,
+        });
+      }
       if (reportExist) {
         return this.sendResponse(req, res, {
           message: `Report already created for ${
