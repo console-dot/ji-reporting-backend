@@ -283,28 +283,58 @@ class Umeedwar extends Response {
           status: 404,
         });
       }
-      const reports = await UmeedwarModel.find({ areaId: accessList })
-        .populate([
-          {
-            path: "prayersId",
-          },
-          {
-            path: "studiesId",
-          },
-          {
-            path: "toseeDawaId",
-          },
-          {
-            path: "itaatNazmId",
-          },
-          {
-            path: "userId",
-          },
-          {
-            path: "areaId",
-          },
-        ])
-        .sort({ createdAt: -1 });
+      let reports;
+      if (
+        user?.nazim !== "halqa" &&
+        user.nazimType !== "rukan" &&
+        user?.nazimType !== "umeedwar"
+      ) {
+        reports = await UmeedwarModel.find({ areaId: accessList })
+          .populate([
+            {
+              path: "prayersId",
+            },
+            {
+              path: "studiesId",
+            },
+            {
+              path: "toseeDawaId",
+            },
+            {
+              path: "itaatNazmId",
+            },
+            {
+              path: "userId",
+            },
+            {
+              path: "areaId",
+            },
+          ])
+          .sort({ createdAt: -1 });
+      } else {
+        reports = await UmeedwarModel.find({ userId: user?._id })
+          .populate([
+            {
+              path: "prayersId",
+            },
+            {
+              path: "studiesId",
+            },
+            {
+              path: "toseeDawaId",
+            },
+            {
+              path: "itaatNazmId",
+            },
+            {
+              path: "userId",
+            },
+            {
+              path: "areaId",
+            },
+          ])
+          .sort({ createdAt: -1 });
+      }
       return this.sendResponse(req, res, {
         message: "Personal reports are fetched!",
         status: 200,

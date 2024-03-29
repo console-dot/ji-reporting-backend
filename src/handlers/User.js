@@ -552,9 +552,9 @@ class User extends Response {
       const superId = decoded?.id;
       const _id = superId;
 
-      if (!_id) {
+      if (!nazimType) {
         return this.sendResponse(req, res, {
-          message: "ID is required",
+          message: "NazimType  is required",
           status: 404,
         });
       }
@@ -744,6 +744,38 @@ class User extends Response {
           status: 400,
         });
       }
+      if (userExist.nazim.toLowerCase() === "halqa") {
+        const areaExist = await HalqaModel?.findOne({
+          _id: userExist?.userAreaId,
+        });
+        if (areaExist?.disabled == true) {
+          return this.sendResponse(req, res, {
+            message: "Your area exists no more.",
+            status: 404,
+          });
+        }
+      } else if (userExist.nazim.toLowerCase() === "maqam") {
+        const areaExist = await MaqamModel?.findOne({
+          _id: userExist?.userAreaId,
+        });
+        if (areaExist?.disabled == true) {
+          return this.sendResponse(req, res, {
+            message: "Your area exists no more.",
+            status: 404,
+          });
+        }
+      } else if (userExist.nazim.toLowerCase() === "division") {
+        const areaExist = await DivisionModel?.findOne({
+          _id: userExist?.userAreaId,
+        });
+        if (areaExist?.disabled == true) {
+          return this.sendResponse(req, res, {
+            message: "Your area exists no more.",
+            status: 404,
+          });
+        }
+      }
+
       const userRequest = await UserRequest.findOne({
         _id: userExist?.userRequestId,
       });
