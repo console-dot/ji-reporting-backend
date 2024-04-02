@@ -611,7 +611,7 @@ class User extends Response {
             userAreaType: nazim,
             nazim: nazim.toLowerCase(),
             userAreaId,
-            joiningDate: Date.now(),
+            joiningDate: { date: Date.now(), title: nazimType },
             nazimType,
             role: role ? [role?._id] : [],
             isDeleted: false,

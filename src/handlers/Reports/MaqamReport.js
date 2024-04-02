@@ -167,7 +167,7 @@ class MaqamReport extends Response {
         },
         userId,
       });
-      const reports = await MaqamReportModel.find({ month: req.body.month });
+      const reports = await MaqamReportModel.findOne({ month: req.body.month });
       if (reports) {
         return this.sendResponse(req, res, {
           message: `Report already created for ${
@@ -678,14 +678,15 @@ class MaqamReport extends Response {
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       const today = Date.now();
       let desiredYear = new Date(today).getFullYear();
-      let desiredMonth = new Date(today).getMonth() + 1;
+      let desiredMonth = new Date(today).getMonth();
       if (queryDate) {
         const convert = new Date(queryDate);
         desiredYear = new Date(convert).getFullYear();
-        desiredMonth = new Date(convert).getMonth() + 1;
+        desiredMonth = new Date(convert).getMonth();
       }
-      const startDate = new Date(desiredYear, desiredMonth - 1, 1);
-      const endDate = new Date(desiredYear, desiredMonth, 0);
+      const startDate = new Date(desiredYear, desiredMonth, 0);
+      const endDate = new Date(desiredYear, desiredMonth + 1, 1);
+
       const maqamReports = await MaqamReportModel.find({
         month: {
           $gte: startDate,
