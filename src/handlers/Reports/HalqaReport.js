@@ -180,15 +180,6 @@ class HalqaReport extends Response {
         },
         halqaAreaId: user?.userAreaId,
       });
-      const reports = await HalqaReportModel.find({ month: req.body.month });
-      if (reports) {
-        return this.sendResponse(req, res, {
-          message: `Report already created for ${
-            months[monthDate.getMonth()]
-          }.`,
-          status: 400,
-        });
-      }
       if (reportExist) {
         return this.sendResponse(req, res, {
           message: `Report already created for ${
@@ -578,7 +569,7 @@ class HalqaReport extends Response {
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       const today = Date.now();
       let desiredYear = new Date(today).getFullYear();
-      let desiredMonth = new Date(today).getMonth() + 1;
+      let desiredMonth = new Date(today).getMonth();
       let startDate, endDate;
 
       if (queryDate) {
@@ -597,7 +588,7 @@ class HalqaReport extends Response {
         desiredMonth = currentDate.getMonth();
 
         // Set startDate to the 1st of the previous month
-        startDate = new Date(desiredYear, desiredMonth - 1, 1);
+        startDate = new Date(desiredYear, desiredMonth, 1);
 
         // If the previous month is December, adjust the year
         if (desiredMonth === 0) {
@@ -605,9 +596,8 @@ class HalqaReport extends Response {
         }
 
         // Set endDate to the 1st of the current month
-        endDate = new Date(desiredYear, desiredMonth, 1);
+        endDate = new Date(desiredYear, desiredMonth + 1, 1);
       }
-
       const halqaReports = await HalqaReportModel.find({
         month: {
           $gte: startDate,
