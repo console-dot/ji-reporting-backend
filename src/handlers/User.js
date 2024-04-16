@@ -864,9 +864,6 @@ class User extends Response {
   };
   me = async (req, res) => {
     try {
-      const temp = await getRoleFlow("655e9924ef962e2d062ad0f8", "division");
-      const temp2 = temp.map((i) => i.toString());
-      const ha = await HalqaModel.find({ _id: temp2 });
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {

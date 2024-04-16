@@ -15,7 +15,12 @@ app.use(express.json());
 app.use(cors("*"));
 app.use(express.static(path.join(__dirname, "../public")));
 
-
+// CORS
+const corsOptions = {
+  credentials: true,
+  origin: ["http://localhost:3000", "https://ji-reporting-frontend.vercel.app"], // Whitelist the domains you want to allow
+};
+app.use(cors(corsOptions));
 // Routes
 app.use("/api/v1", router);
 
