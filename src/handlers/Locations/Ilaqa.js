@@ -40,7 +40,10 @@ class Ilaqa extends Response {
   };
   getAll = async (req, res) => {
     try {
-      const data = await IlaqaModel.find({}).populate("maqam");
+      const data = await IlaqaModel.find({}).populate({
+        path: "maqam",
+        populate: { path: "province" },
+      });
       return this.sendResponse(req, res, { data, status: 200 });
     } catch (err) {
       console.log(err);

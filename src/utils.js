@@ -62,7 +62,7 @@ const getRoleFlow = async (id, key) => {
     case "maqam":
       const halqaList = await getHalqaList(id);
       const ilaqaList = await IlaqaModel?.find({ maqam: id });
-      if (ilaqaHalqaList) {
+      if (halqaList) {
         return [...halqaList, ilaqaList, id];
       }
       return [...halqaList, id];
