@@ -91,7 +91,7 @@ class HalqaReport extends Response {
       }
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
-      const user = await UserModel.findOne({ _id: userId });
+      let user = await UserModel.findOne({ _id: userId });
       if (user?.nazim !== "halqa") {
         return this.sendResponse(req, res, {
           message: "Access denied",
@@ -178,7 +178,7 @@ class HalqaReport extends Response {
           $gte: new Date(yearExist, monthExist, 1),
           $lt: new Date(yearExist, monthExist + 1, 1),
         },
-        userId,
+        halqaAreaId: user?.userAreaId,
       });
       if (reportExist) {
         return this.sendResponse(req, res, {
@@ -402,7 +402,7 @@ class HalqaReport extends Response {
       }
       if (isExist?.userId.toString() !== userId) {
         return this.sendResponse(req, res, {
-          message: "Access Denied",
+          message: "Only the user who created can update",
           status: 401,
         });
       }
@@ -569,7 +569,7 @@ class HalqaReport extends Response {
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       const today = Date.now();
       let desiredYear = new Date(today).getFullYear();
-      let desiredMonth = new Date(today).getMonth() + 1;
+      let desiredMonth = new Date(today).getMonth();
       let startDate, endDate;
 
       if (queryDate) {
@@ -588,7 +588,7 @@ class HalqaReport extends Response {
         desiredMonth = currentDate.getMonth();
 
         // Set startDate to the 1st of the previous month
-        startDate = new Date(desiredYear, desiredMonth - 1, 1);
+        startDate = new Date(desiredYear, desiredMonth, 1);
 
         // If the previous month is December, adjust the year
         if (desiredMonth === 0) {
@@ -596,9 +596,8 @@ class HalqaReport extends Response {
         }
 
         // Set endDate to the 1st of the current month
-        endDate = new Date(desiredYear, desiredMonth, 1);
+        endDate = new Date(desiredYear, desiredMonth + 1, 1);
       }
-
       const halqaReports = await HalqaReportModel.find({
         month: {
           $gte: startDate,

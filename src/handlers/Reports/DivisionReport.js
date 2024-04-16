@@ -138,6 +138,7 @@ class DivisionReport extends Response {
           status: 401,
         });
       }
+
       const {
         month,
         comments,
@@ -209,6 +210,17 @@ class DivisionReport extends Response {
         },
         userId,
       });
+      const reports = await DivisionReportModel.findOne({
+        month: req.body.month,
+      });
+      if (reports) {
+        return this.sendResponse(req, res, {
+          message: `Report already created for ${
+            months[monthDate.getMonth()]
+          }.`,
+          status: 400,
+        });
+      }
       if (reportExist) {
         return this.sendResponse(req, res, {
           message: `Report already created for ${
@@ -468,7 +480,6 @@ class DivisionReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const dataToUpdate = req.body;
-
       if (!isDataComplete(dataToUpdate)) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
@@ -483,7 +494,7 @@ class DivisionReport extends Response {
           status: 404,
         });
       }
-
+      const mentionedActivity = isExist?.mentionedActivityId;
       if (isExist?.userId.toString() !== userId) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
@@ -545,7 +556,6 @@ class DivisionReport extends Response {
         ],
         mentionedActivityId: [
           "ijtRafaqa",
-          "studyCircle",
           "ijtKarkunan",
           "darseQuran",
           "shaheenMeeting",
@@ -620,13 +630,22 @@ class DivisionReport extends Response {
           { $set: returnData(obj[refsToUpdate[i]]) }
         );
       }
-
       // Update the DivisionReportModel
       const updatedDivisionReport = await DivisionReportModel.updateOne(
         { _id },
         { $set: dataToUpdate }
       );
-
+      // update studyCircle of division
+      await MentionedActivitiesModel.findOneAndUpdate(
+        {
+          _id: mentionedActivity,
+        },
+        {
+          $set: {
+            studyCircle: dataToUpdate?.studyCircleMentioned,
+          },
+        }
+      );
       if (updatedDivisionReport?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
           message: "Report updated successfully",
@@ -668,14 +687,14 @@ class DivisionReport extends Response {
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       const today = Date.now();
       let desiredYear = new Date(today).getFullYear();
-      let desiredMonth = new Date(today).getMonth() + 1;
+      let desiredMonth = new Date(today).getMonth();
       if (queryDate) {
         const convert = new Date(queryDate);
         desiredYear = new Date(convert).getFullYear();
-        desiredMonth = new Date(convert).getMonth() + 1;
+        desiredMonth = new Date(convert).getMonth();
       }
-      const startDate = new Date(desiredYear, desiredMonth - 1, 1);
-      const endDate = new Date(desiredYear, desiredMonth, 0);
+      const startDate = new Date(desiredYear, desiredMonth, 0);
+      const endDate = new Date(desiredYear, desiredMonth + 1, 1);
       const divisionReports = await DivisionReportModel.find({
         month: {
           $gte: startDate,

@@ -10,9 +10,6 @@ const {
   MaqamDivisionLibraryModel,
   PaighamDigestModel,
   RozShabBedariModel,
-  HalqaReportModel,
-  MaqamReportModel,
-  DivisionReportModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -221,13 +218,24 @@ class ProvinceReport extends Response {
         yearExist: monthDate.getFullYear(),
         monthExist: monthDate.getMonth(),
       };
-      const reportExist = await ProvinceModel.findOne({
+      const reportExist = await ProvinceReportModel.findOne({
         month: {
           $gte: new Date(yearExist, monthExist, 1),
           $lt: new Date(yearExist, monthExist + 1, 1),
         },
         userId,
       });
+      const reports = await ProvinceReportModel.findOne({
+        month: req.body.month,
+      });
+      if (reports) {
+        return this.sendResponse(req, res, {
+          message: `Report already created for ${
+            months[monthDate.getMonth()]
+          }.`,
+          status: 400,
+        });
+      }
       if (reportExist) {
         return this.sendResponse(req, res, {
           message: `Report already created for ${
@@ -726,14 +734,15 @@ class ProvinceReport extends Response {
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       const today = Date.now();
       let desiredYear = new Date(today).getFullYear();
-      let desiredMonth = new Date(today).getMonth() + 1;
+      let desiredMonth = new Date(today).getMonth();
       if (queryDate) {
         const convert = new Date(queryDate);
         desiredYear = new Date(convert).getFullYear();
-        desiredMonth = new Date(convert).getMonth() + 1;
+        desiredMonth = new Date(convert).getMonth();
       }
-      const startDate = new Date(desiredYear, desiredMonth - 1, 1);
-      const endDate = new Date(desiredYear, desiredMonth, 0);
+      const startDate = new Date(desiredYear, desiredMonth, 0);
+      const endDate = new Date(desiredYear, desiredMonth + 1, 1);
+
       const provinceReports = await ProvinceReportModel.find({
         month: {
           $gte: startDate,
