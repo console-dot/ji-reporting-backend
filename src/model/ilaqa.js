@@ -8,7 +8,7 @@ const ilaqa = mongoose.Schema({
   maqam: {
     type: mongoose.Types.ObjectId,
     required: true,
-    refPath: "parentType",
+    ref: "Maqam",
   },
   disabled: {
     type: Boolean,

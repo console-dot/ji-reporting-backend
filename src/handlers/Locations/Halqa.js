@@ -54,7 +54,6 @@ class Halqa extends Response {
   getAll = async (req, res) => {
     try {
       const halqaData = await HalqaModel.find();
-
       for (const halqa of halqaData) {
         let populateOptions = {};
         if (halqa.parentType === "Tehsil") {
@@ -89,7 +88,6 @@ class Halqa extends Response {
 
         await halqa.populate(populateOptions);
       }
-
       return this.sendResponse(req, res, { data: halqaData, status: 200 });
     } catch (err) {
       console.log(err);
