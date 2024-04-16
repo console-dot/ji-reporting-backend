@@ -6,6 +6,7 @@ const {
   HalqaModel,
   UserModel,
   ProvinceModel,
+  IlaqaModel,
 } = require("./model");
 
 const getImmediateUser = async (userAreaId, userAreaType) => {
@@ -60,8 +61,14 @@ const getRoleFlow = async (id, key) => {
     case "tehsil":
     case "maqam":
       const halqaList = await getHalqaList(id);
+      const ilaqaList = await IlaqaModel?.find({ maqam: id });
+      if (ilaqaHalqaList) {
+        return [...halqaList, ilaqaList, id];
+      }
       return [...halqaList, id];
-
+    case "ilaqa":
+      const ilaqaHalqaList = await getHalqaList(id);
+      return [...ilaqaHalqaList, id];
     case "district":
       const tehsilList = await TehsilModel.find({ district: id });
       const halqaPromises = tehsilList.map((item) => getHalqaList(item?._id));
@@ -69,16 +76,21 @@ const getRoleFlow = async (id, key) => {
       return [...tehsilList.map((item) => item?._id), ...halqaLists.flat(), id];
 
     case "division":
-      const districtList = await DistrictModel.find({ division: id });
-      const divisionPromises = districtList.map((item) =>
-        getRoleFlow(item?._id, "district")
-      );
-      const divisionResults = await Promise.all(divisionPromises);
-      return [
-        ...divisionResults.flat(),
-        ...districtList.map((item) => item?._id),
-        id,
-      ];
+      if (key !== "division") {
+        const districtList = await DistrictModel.find({ division: id });
+        const divisionPromises = districtList.map((item) =>
+          getRoleFlow(item?._id, "district")
+        );
+        const divisionResults = await Promise.all(divisionPromises);
+        return [
+          ...divisionResults.flat(),
+          ...districtList.map((item) => item?._id),
+          id,
+        ];
+      } else {
+        const halqaList = await getHalqaList(id);
+        return [...halqaList, id];
+      }
 
     case "province":
       const divisionList = await DivisionModel.find({ province: id });

@@ -1,46 +1,33 @@
-const { HalqaModel } = require("../../model");
-const { getPopulateHalqasMethod } = require("../../utils");
-const { getPopulateMethod } = require("../../utils");
+const { IlaqaModel } = require("../../model");
 const Response = require("../Response");
 
-class Halqa extends Response {
+class Ilaqa extends Response {
   createOne = async (req, res) => {
     try {
-      const { name, parentId, parentType } = req.body;
+      const { name, ilaqa } = req.body;
       if (!name) {
         return this.sendResponse(req, res, {
           message: "Name is required!",
           status: 400,
         });
       }
-      if (!parentId) {
+      if (!ilaqa) {
         return this.sendResponse(req, res, {
-          message:
-            parentType === "maqam"
-              ? "Tehsil is required!"
-              : "Tehsil is required!",
+          message: "Ilaqa is required!",
           status: 400,
         });
       }
-      const isExist = await HalqaModel.findOne({
-        name,
-        parentId,
-        parentType: parentType,
-      });
+      const isExist = await IlaqaModel.findOne({ name, maqam });
       if (isExist) {
         return this.sendResponse(req, res, {
-          message: "Halqa already exist!",
+          message: "Ilaqa already exist!",
           status: 400,
         });
       }
-      const newHalqa = new HalqaModel({
-        name,
-        parentId,
-        parentType: parentType,
-      });
-      await newHalqa.save();
+      const newIlaqa = new IlaqaModel({ name, maqam });
+      await newIlaqa.save();
       return this.sendResponse(req, res, {
-        message: "Halqa created",
+        message: "Ilaqa created",
         status: 201,
       });
     } catch (err) {
@@ -53,44 +40,8 @@ class Halqa extends Response {
   };
   getAll = async (req, res) => {
     try {
-      const halqaData = await HalqaModel.find();
-
-      for (const halqa of halqaData) {
-        let populateOptions = {};
-        if (halqa.parentType === "Tehsil") {
-          populateOptions = {
-            path: "parentId",
-            populate: {
-              path: "district",
-              populate: { path: "division", populate: { path: "province" } }, // Populating province within division within district within tehsil
-            },
-          };
-        } else if (halqa.parentType === "Maqam") {
-          populateOptions = {
-            path: "parentId",
-            populate: { path: "province" }, // Populating province within maqam
-          };
-        } else if (halqa.parentType === "Division") {
-          populateOptions = {
-            path: "parentId",
-            populate: { path: "province" }, // Populating province within division
-          };
-        } else if (halqa.parentType === "Ilaqa") {
-          populateOptions = {
-            path: "parentId",
-            populate: {
-              path: "maqam",
-              populate: {
-                path: "province", // Populating province within maqam within ilaqa
-              },
-            },
-          };
-        }
-
-        await halqa.populate(populateOptions);
-      }
-
-      return this.sendResponse(req, res, { data: halqaData, status: 200 });
+      const data = await IlaqaModel.find({}).populate("maqam");
+      return this.sendResponse(req, res, { data, status: 200 });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
@@ -102,19 +53,11 @@ class Halqa extends Response {
   getOne = async (req, res) => {
     try {
       const _id = req.params.id;
-      const halqaData = await HalqaModel.findOne({ _id });
-      if (!halqaData) {
+      const data = await IlaqaModel.findOne({ _id }).populate("maqam");
+      if (!data) {
         return this.sendResponse(req, res, {
           message: "Not found!",
           status: 404,
-        });
-      }
-      const method = getPopulateMethod(halqaData?.parentType);
-      let data = halqaData;
-      if (method) {
-        data = await halqaData.populate({
-          path: "parentId",
-          populate: method,
         });
       }
       return this.sendResponse(req, res, { data, status: 200 });
@@ -130,17 +73,17 @@ class Halqa extends Response {
     try {
       const _id = req.params.id;
       const data = req.body;
-      const isExist = await HalqaModel.findOne({ _id });
+      const isExist = await IlaqaModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
           message: "Not found!",
           status: 404,
         });
       }
-      const updatedData = await HalqaModel.updateOne({ _id }, { $set: data });
+      const updatedData = await IlaqaModel.updateOne({ _id }, { $set: data });
       if (updatedData?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
-          message: "Halqa updated",
+          message: "Ilaqa updated",
           status: 200,
         });
       }
@@ -159,17 +102,17 @@ class Halqa extends Response {
   deleteOne = async (req, res) => {
     try {
       const _id = req.params.id;
-      const isExist = await HalqaModel.findOne({ _id });
+      const isExist = await IlaqaModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
           message: "Not found!",
           status: 404,
         });
       }
-      const deleted = await HalqaModel.deleteOne({ _id });
+      const deleted = await IlaqaModel.deleteOne({ _id });
       if (deleted?.deletedCount > 0) {
         return this.sendResponse(req, res, {
-          message: "Halqa deleted",
+          message: "Ilaqa deleted",
           status: 200,
         });
       }
@@ -189,14 +132,14 @@ class Halqa extends Response {
     try {
       const _id = req.params.id;
       const { disabled } = req.body;
-      const isExist = await HalqaModel.findOne({ _id });
+      const isExist = await IlaqaModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
           message: "Not found!",
           status: 404,
         });
       }
-      const updatedLocation = await HalqaModel.updateOne(
+      const updatedLocation = await IlaqaModel.updateOne(
         { _id },
         {
           $set: { disabled },
@@ -204,7 +147,7 @@ class Halqa extends Response {
       );
       if (updatedLocation?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
-          message: "Halqa Updated",
+          message: "Ilaqa Updated",
           status: 200,
         });
       }
@@ -222,4 +165,4 @@ class Halqa extends Response {
   };
 }
 
-module.exports = Halqa;
+module.exports = Ilaqa;
