@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const halqa = mongoose.Schema({
   name: {
@@ -8,20 +8,24 @@ const halqa = mongoose.Schema({
   parentId: {
     type: mongoose.Types.ObjectId,
     required: true,
-    refPath: 'parentType',
+    refPath: "parentType",
   },
   parentType: {
     type: String,
     required: true,
-    enum: ['Tehsil', 'Maqam'],
+    enum: ["Tehsil", "Maqam", "Division", "Ilaqa"],
   },
   disabled: {
     type: Boolean,
     default: false,
-  }
+  },
+  unitType: {
+    type: String,
+    default: "Residential",
+  },
 });
 
-const HalqaModel = mongoose.model('Halqa', halqa);
+const HalqaModel = mongoose.model("Halqa", halqa);
 
 module.exports = {
   HalqaModel,
