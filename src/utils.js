@@ -82,7 +82,6 @@ const getRoleFlow = async (id, key) => {
           getRoleFlow(item?._id, "district")
         );
         const divisionResults = await Promise.all(divisionPromises);
-        console.log(divisionResults)
         return [
           ...divisionResults.flat(),
           ...districtList.map((item) => item?._id),
