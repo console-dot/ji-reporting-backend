@@ -25,5 +25,5 @@ app.listen(PORT, () => {
     console.error(err);
   });
 });
-app.options("*", cors());
+
 module.exports = { app };

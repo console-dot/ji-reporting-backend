@@ -58,17 +58,27 @@ const getRoleFlow = async (id, key) => {
     case "halqa":
       return [id];
 
-    case "tehsil":
-    case "maqam":
-      const halqaList = await getHalqaList(id);
-      const ilaqaList = await IlaqaModel?.find({ maqam: id });
-      if (halqaList) {
-        return [...halqaList, ilaqaList, id];
-      }
-      return [...halqaList, id];
     case "ilaqa":
       const ilaqaHalqaList = await getHalqaList(id);
       return [...ilaqaHalqaList, id];
+    case "tehsil":
+    case "maqam":
+      const ilaqaList = await IlaqaModel.find({ maqam: id });
+      // Get the halqa documents where the parent is directly the provided maqam ID
+      const directHalqaList = await HalqaModel.find({ parentId: id });
+
+      // Map over each ilaqa to retrieve its associated halqas
+      const ilaqaHalqaPromises = ilaqaList.map((ilaqa) =>
+        getHalqaList(ilaqa._id)
+      );
+      const ilaqaHalqaLists = await Promise.all(ilaqaHalqaPromises);
+
+      // Flatten the list of associated halqas from ilaqas
+      const allIlaqaHalqas = ilaqaHalqaLists.flat();
+      // Combine all the halqas: direct halqas and associated halqas from ilaqas
+      const allHalqas = [...directHalqaList, ...allIlaqaHalqas];
+      // Return the IDs of all halqas
+      return [...allHalqas.map((halqa) => halqa._id), id];
     case "district":
       const tehsilList = await TehsilModel.find({ district: id });
       const halqaPromises = tehsilList.map((item) => getHalqaList(item?._id));
