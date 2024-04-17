@@ -277,6 +277,7 @@ class Compare extends Response {
     Object.keys(db_data).map((key) => {
       const data_arr = db_data[key];
       let t_data = {};
+      console.log("first")
       data_arr.forEach((val) => {
         const accessor = val?.[fields[property]]?._doc;
         delete accessor._id;
