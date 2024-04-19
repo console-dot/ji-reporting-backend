@@ -86,21 +86,18 @@ const getRoleFlow = async (id, key) => {
       return [...tehsilList.map((item) => item?._id), ...halqaLists.flat(), id];
 
     case "division":
-      if (key !== "division") {
-        const districtList = await DistrictModel.find({ division: id });
-        const divisionPromises = districtList.map((item) =>
-          getRoleFlow(item?._id, "district")
-        );
-        const divisionResults = await Promise.all(divisionPromises);
-        return [
-          ...divisionResults.flat(),
-          ...districtList.map((item) => item?._id),
-          id,
-        ];
-      } else {
-        const halqaList = await getHalqaList(id);
-        return [...halqaList, id];
-      }
+      const directDivisionHalqas = await HalqaModel.find({ parentId: id });
+      const districtList = await DistrictModel.find({ division: id });
+      const divisionPromises = districtList.map((item) =>
+        getRoleFlow(item?._id, "district")
+      );
+      const divisionResults = await Promise.all(divisionPromises);
+      return [
+        ...directDivisionHalqas.map((item) => item?._id),
+        ...divisionResults.flat(),
+        ...districtList.map((item) => item?._id),
+        id,
+      ];
 
     case "province":
       const divisionList = await DivisionModel.find({ province: id });
