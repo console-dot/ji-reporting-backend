@@ -589,7 +589,6 @@ class User extends Response {
         nazimType: { $in: ["nazim", "rukan-nazim", "umeedwaar-nazim"] },
         isDeleted: false,
       });
-
       if (
         existingNazim &&
         existingNazim._id.toString() !== userId.toString() &&
