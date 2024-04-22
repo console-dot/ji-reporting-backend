@@ -51,43 +51,63 @@ class Halqa extends Response {
       });
     }
   };
+
+  // Function to populate halqas
+  populateHalqas = async (halqas, populateOptions) => {
+    const populatePromises = [];
+
+    for (const halqa of halqas) {
+      const options = populateOptions[halqa.parentType];
+      if (options) {
+        for (const opt of options) {
+          populatePromises.push(HalqaModel.populate(halqa, opt));
+        }
+      }
+    }
+
+    await Promise.all(populatePromises);
+  };
+  // Function to chunk array into batches
+  chunkArray = (array, size) => {
+    const chunks = [];
+    for (let i = 0; i < array.length; i += size) {
+      chunks.push(array.slice(i, i + size));
+    }
+    return chunks;
+  };
+  // Function to retrieve halqas with population
   getAll = async (req, res) => {
     try {
-      const halqaData = await HalqaModel.find();
-      for (const halqa of halqaData) {
-        let populateOptions = {};
-        if (halqa.parentType === "Tehsil") {
-          populateOptions = {
+      const halqaData = await HalqaModel.find().lean();
+      const populateOptions = {
+        Tehsil: [
+          {
             path: "parentId",
             populate: {
               path: "district",
-              populate: { path: "division", populate: { path: "province" } }, // Populating province within division within district within tehsil
+              populate: { path: "division", populate: { path: "province" } },
             },
-          };
-        } else if (halqa.parentType === "Maqam") {
-          populateOptions = {
+          },
+        ],
+        Maqam: [{ path: "parentId", populate: { path: "province" } }],
+        Division: [{ path: "parentId", populate: { path: "province" } }],
+        Ilaqa: [
+          {
             path: "parentId",
-            populate: { path: "province" }, // Populating province within maqam
-          };
-        } else if (halqa.parentType === "Division") {
-          populateOptions = {
-            path: "parentId",
-            populate: { path: "province" }, // Populating province within division
-          };
-        } else if (halqa.parentType === "Ilaqa") {
-          populateOptions = {
-            path: "parentId",
-            populate: {
-              path: "maqam",
-              populate: {
-                path: "province", // Populating province within maqam within ilaqa
-              },
-            },
-          };
-        }
+            populate: { path: "maqam", populate: { path: "province" } },
+          },
+        ],
+      };
 
-        await halqa.populate(populateOptions);
-      }
+      // Define batch size for parallel processing
+      const batchSize = 500;
+
+      // Populate halqas in parallel in batches
+      await Promise.all(
+        this.chunkArray(halqaData, batchSize).map((batch) =>
+          this.populateHalqas(batch, populateOptions)
+        )
+      );
       return this.sendResponse(req, res, { data: halqaData, status: 200 });
     } catch (err) {
       console.log(err);
@@ -97,6 +117,7 @@ class Halqa extends Response {
       });
     }
   };
+
   getOne = async (req, res) => {
     try {
       const _id = req.params.id;
