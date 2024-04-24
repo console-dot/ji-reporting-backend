@@ -6,10 +6,23 @@ const Response = require("../Response");
 class Halqa extends Response {
   createOne = async (req, res) => {
     try {
-      const { name, parentId, parentType } = req.body;
+      const { name, parentId, parentType, unitType } = req.body;
+      console.log(parentType)
       if (!name) {
         return this.sendResponse(req, res, {
           message: "Name is required!",
+          status: 400,
+        });
+      }
+      if (!unitType) {
+        return this.sendResponse(req, res, {
+          message: "Type of halqa is required!",
+          status: 400,
+        });
+      }
+      if (!parentType) {
+        return this.sendResponse(req, res, {
+          message: "Parent type is required",
           status: 400,
         });
       }
@@ -17,7 +30,9 @@ class Halqa extends Response {
         return this.sendResponse(req, res, {
           message:
             parentType === "maqam"
-              ? "Tehsil is required!"
+              ? "Maqam is required!"
+              : parentType === "ilaqa"
+              ? "Ilaqa is required"
               : "Tehsil is required!",
           status: 400,
         });
@@ -37,6 +52,7 @@ class Halqa extends Response {
         name,
         parentId,
         parentType: parentType,
+        unitType,
       });
       await newHalqa.save();
       return this.sendResponse(req, res, {
