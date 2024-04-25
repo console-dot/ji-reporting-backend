@@ -4,16 +4,16 @@ const Response = require("../Response");
 class Ilaqa extends Response {
   createOne = async (req, res) => {
     try {
-      const { name, ilaqa } = req.body;
+      const { name, maqam } = req.body;
       if (!name) {
         return this.sendResponse(req, res, {
           message: "Name is required!",
           status: 400,
         });
       }
-      if (!ilaqa) {
+      if (!maqam) {
         return this.sendResponse(req, res, {
-          message: "Ilaqa is required!",
+          message: "Maqam is required!",
           status: 400,
         });
       }
