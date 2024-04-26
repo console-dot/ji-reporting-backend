@@ -1,5 +1,4 @@
 const { HalqaModel } = require("../../model");
-const { getPopulateHalqasMethod } = require("../../utils");
 const { getPopulateMethod } = require("../../utils");
 const Response = require("../Response");
 
@@ -172,6 +171,7 @@ class Halqa extends Response {
         });
       }
       const updatedData = await HalqaModel.updateOne({ _id }, { $set: data });
+
       if (updatedData?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
           message: "Halqa updated",
