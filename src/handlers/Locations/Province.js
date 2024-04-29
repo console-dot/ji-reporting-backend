@@ -1,16 +1,17 @@
-const { ProvinceModel } = require("../../model");
+const { ProvinceModel, CountryModel } = require("../../model");
 const Response = require("../Response");
 
 class Province extends Response {
   createOne = async (req, res) => {
     try {
-      const { name } = req.body;
+      const { name, country } = req.body;
       if (!name) {
         return this.sendResponse(req, res, {
           message: "Name is required!",
           status: 400,
         });
       }
+
       const isExist = await ProvinceModel.findOne({ name });
       if (isExist) {
         return this.sendResponse(req, res, {
@@ -18,11 +19,18 @@ class Province extends Response {
           status: 400,
         });
       }
-      const newProvince = new ProvinceModel({ name });
-      await newProvince.save();
+      const isCountry = await CountryModel.findOne({ name: country });
+      if (isCountry) {
+        const newProvince = new ProvinceModel({ name, country: isCountry._id });
+        await newProvince.save();
+        return this.sendResponse(req, res, {
+          message: "Province created",
+          status: 201,
+        });
+      }
       return this.sendResponse(req, res, {
-        message: "Province created",
-        status: 201,
+        message: "No Country exists with this name",
+        status: 404,
       });
     } catch (err) {
       console.log(err);
@@ -67,6 +75,8 @@ class Province extends Response {
     try {
       const _id = req.params.id;
       const data = req.body;
+      const isCuntryExist = await CountryModel.findOne({ name: data?.country });
+      data["country"] = isCuntryExist._id;
       const isExist = await ProvinceModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
@@ -74,20 +84,22 @@ class Province extends Response {
           status: 404,
         });
       }
-      const updatedData = await ProvinceModel.updateOne(
-        { _id },
-        { $set: data }
-      );
-      if (updatedData?.modifiedCount > 0) {
+      if (isCuntryExist) {
+        const updatedData = await ProvinceModel.updateOne(
+          { _id },
+          { $set: data }
+        );
+        if (updatedData?.modifiedCount > 0) {
+          return this.sendResponse(req, res, {
+            message: "Province updated",
+            status: 200,
+          });
+        }
         return this.sendResponse(req, res, {
-          message: "Province updated",
-          status: 200,
+          message: "Nothing to update",
+          status: 400,
         });
       }
-      return this.sendResponse(req, res, {
-        message: "Nothing to update",
-        status: 400,
-      });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {

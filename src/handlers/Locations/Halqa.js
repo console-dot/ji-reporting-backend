@@ -1,5 +1,4 @@
 const { HalqaModel } = require("../../model");
-const { getPopulateHalqasMethod } = require("../../utils");
 const { getPopulateMethod } = require("../../utils");
 const Response = require("../Response");
 
@@ -7,7 +6,6 @@ class Halqa extends Response {
   createOne = async (req, res) => {
     try {
       const { name, parentId, parentType, unitType } = req.body;
-      console.log(parentType)
       if (!name) {
         return this.sendResponse(req, res, {
           message: "Name is required!",
@@ -173,6 +171,7 @@ class Halqa extends Response {
         });
       }
       const updatedData = await HalqaModel.updateOne({ _id }, { $set: data });
+
       if (updatedData?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
           message: "Halqa updated",

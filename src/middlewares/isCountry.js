@@ -6,6 +6,7 @@ const isCountry = async (req, res, next) => {
   const resp = new Response();
   try {
     const token = req.headers.authorization;
+    console.log(token)
     if (!token) {
       return resp.sendResponse(req, res, {
         message: "Access Denied",
@@ -17,7 +18,7 @@ const isCountry = async (req, res, next) => {
     const { nazim } = await UserModel.findOne({
       _id: userId,
     });
-    if (["province", "maqam", "division", "country"].includes(nazim)) {
+    if (["country"].includes(nazim)) {
       next();
       return;
     }
