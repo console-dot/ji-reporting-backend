@@ -15,7 +15,7 @@ const workerInfoModel = mongoose.Schema({
         type: Number,
         required: true,
       },
-      annual: {
+      monthly: {
         type: Number,
         required: true,
       },
@@ -36,7 +36,7 @@ const workerInfoModel = mongoose.Schema({
         type: Number,
         required: true,
       },
-      annual: {
+      monthly: {
         type: Number,
         required: true,
       },
@@ -61,7 +61,7 @@ const workerInfoModel = mongoose.Schema({
         type: Number,
         required: true,
       },
-      annual: {
+      monthly: {
         type: Number,
         required: true,
       },
@@ -86,7 +86,7 @@ const workerInfoModel = mongoose.Schema({
         type: Number,
         required: true,
       },
-      annual: {
+      monthly: {
         type: Number,
         required: true,
       },

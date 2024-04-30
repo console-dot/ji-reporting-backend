@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const toseeDawatModel = mongoose.Schema({
   rawabitDecided: Number,
@@ -8,8 +8,9 @@ const toseeDawatModel = mongoose.Schema({
   registered: { type: Boolean, default: false },
   commonStudentMeetings: Number,
   commonLiteratureDistribution: Number,
+  rwabitMeetingsGoal: Number,
 });
 
-const ToseeDawatModel = mongoose.model('ToseeDawat', toseeDawatModel);
+const ToseeDawatModel = mongoose.model("ToseeDawat", toseeDawatModel);
 
 module.exports = { ToseeDawatModel };

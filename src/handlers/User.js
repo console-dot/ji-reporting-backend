@@ -711,6 +711,7 @@ class User extends Response {
   login = async (req, res) => {
     try {
       const { email, password } = req.body;
+      console.log(email)
       if (!email) {
         return this.sendResponse(req, res, {
           message: "Email is required!",
@@ -724,6 +725,8 @@ class User extends Response {
         });
       }
       const userExist = await UserModel.findOne({ email });
+      console.log(userExist)
+      // return
       if (!userExist) {
         return this.sendResponse(req, res, {
           message: "Invalid username/password",
@@ -1002,6 +1005,7 @@ class User extends Response {
       // Code Here
       const token = req.headers.authorization;
       const { type } = req.query;
+      console.log(type);
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
