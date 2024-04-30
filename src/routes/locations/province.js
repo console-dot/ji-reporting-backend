@@ -1,5 +1,5 @@
 const { Province } = require("../../handlers/Locations");
-const { isProvince, isCountry } = require("../../middlewares");
+const { isCountry } = require("../../middlewares");
 
 const router = require("express").Router();
 

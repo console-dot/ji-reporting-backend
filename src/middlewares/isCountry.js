@@ -6,7 +6,6 @@ const isCountry = async (req, res, next) => {
   const resp = new Response();
   try {
     const token = req.headers.authorization;
-    console.log(token)
     if (!token) {
       return resp.sendResponse(req, res, {
         message: "Access Denied",
@@ -21,6 +20,12 @@ const isCountry = async (req, res, next) => {
     if (["country"].includes(nazim)) {
       next();
       return;
+    }
+    if (["maqam", "province", "division", "ilaqa", "halqa"].includes(nazim)) {
+      return resp.sendResponse(req, res, {
+        message: `loged in as ${nazim.toUpperCase()} User`,
+        status: 200,
+      });
     }
     return resp.sendResponse(req, res, {
       message: "Not super-user",
