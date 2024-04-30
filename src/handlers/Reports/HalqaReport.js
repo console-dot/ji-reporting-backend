@@ -41,7 +41,6 @@ const isDataComplete = ({
   bookRent,
   umeedwaranFilled,
   rafaqaFilled,
-  arkanFilled,
 }) => {
   if (
     !month ||
@@ -71,8 +70,7 @@ const isDataComplete = ({
     !decrease ||
     !bookRent ||
     !umeedwaranFilled ||
-    !rafaqaFilled ||
-    !arkanFilled
+    !rafaqaFilled
   ) {
     return false;
   }
@@ -129,7 +127,7 @@ class HalqaReport extends Response {
         registeredLibrary,
         umeedwaranFilled,
         rafaqaFilled,
-        arkanFilled,
+        rwabitMeetingsGoal,
       } = req.body;
 
       if (
@@ -161,7 +159,7 @@ class HalqaReport extends Response {
         !bookRent ||
         !umeedwaranFilled ||
         !rafaqaFilled ||
-        !arkanFilled
+        !rwabitMeetingsGoal
       ) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
@@ -220,6 +218,7 @@ class HalqaReport extends Response {
         registered: registeredTosee ? true : false,
         commonStudentMeetings,
         commonLiteratureDistribution,
+        rwabitMeetingsGoal,
       });
       const newHalqaLib = new HalqaLibraryModel({
         books,
@@ -231,7 +230,6 @@ class HalqaReport extends Response {
       const newRSD = new RozShabBedariModel({
         umeedwaranFilled,
         rafaqaFilled,
-        arkanFilled,
       });
       const wi = await newWI.save();
       const halqaActivity = await newHalqaActivity.save();
@@ -445,7 +443,7 @@ class HalqaReport extends Response {
           "darseQuran",
         ],
         halqaLibId: ["books", "increase", "decrease", "bookRent", "registered"],
-        rsdId: ["umeedwaranFilled", "rafaqaFilled", "arkanFilled"],
+        rsdId: ["umeedwaranFilled", "rafaqaFilled"],
         tdId: [
           "registered",
           "commonLiteratureDistribution",
@@ -454,6 +452,7 @@ class HalqaReport extends Response {
           "meetings",
           "current",
           "rawabitDecided",
+          "rwabitMeetingsGoal",
         ],
         otherActivityId: [
           "anyOther",
