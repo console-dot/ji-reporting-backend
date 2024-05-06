@@ -22,12 +22,10 @@ const isDataComplete = (dataToUpdate) => {
     "comments",
     "arkan",
     "umeedWaran",
-    "tarbiyatGaah",
     "rafaqa",
     "karkunan",
     "shaheen",
     "members",
-    "ijtArkan",
     "studyCircle",
     "ijtNazmeen",
     "ijtUmeedwaran",
@@ -82,6 +80,7 @@ class IlaqaReport extends Response {
   createReport = async (req, res) => {
     try {
       const token = req.headers.authorization;
+      console.log(token)
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
@@ -91,7 +90,8 @@ class IlaqaReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      if (user?.nazim !== "maqam") {
+      const userAreaId= user.userAreaId;
+      if (user?.nazim !== "ilaqa") {
         return this.sendResponse(req, res, {
           message: "Access denied",
           status: 401,
@@ -106,7 +106,6 @@ class IlaqaReport extends Response {
         karkunan,
         shaheen,
         members,
-        ijtArkan,
         studyCircle,
         ijtNazmeen,
         ijtUmeedwaran,
@@ -184,11 +183,9 @@ class IlaqaReport extends Response {
           status: 400,
         });
       }
-      umeedWaran.registered = umeedWaran?.registered ? true : false;
-      rafaqa.registered = rafaqa?.registered ? true : false;
-      karkunan.registered = karkunan?.registered ? true : false;
-      shaheen.registered = shaheen?.registered ? true : false;
-      members.registered = members?.registered ? true : false;
+      shaheen.annual = shaheen.end;
+      members.annual = members.end;
+      console.log(members)
       const newWI = new WorkerInfoModel({
         arkan,
         umeedWaran,
@@ -197,13 +194,9 @@ class IlaqaReport extends Response {
         shaheen,
         members,
       });
-      ijtArkan.registered = ijtArkan?.registered ? true : false;
-      studyCircle.registered = studyCircle?.registered ? true : false;
-      ijtNazmeen.registered = ijtNazmeen?.registered ? true : false;
-      ijtUmeedwaran.registered = ijtUmeedwaran?.registered ? true : false;
-      sadurMeeting.registered = sadurMeeting?.registered ? true : false;
+      
       const newMaqamActivity = new MaqamActivitiesModel({
-        ijtArkan,
+        
         studyCircle,
         ijtNazmeen,
         ijtUmeedwaran,
@@ -220,14 +213,7 @@ class IlaqaReport extends Response {
         busmRehaishUnits,
         busmTotalUnits,
       });
-      ijtRafaqa.registered = ijtRafaqa?.registered ? true : false;
-      studyCircleMentioned.registered = studyCircleMentioned?.registered
-        ? true
-        : false;
-      ijtKarkunan.registered = ijtKarkunan?.registered ? true : false;
-      darseQuran.registered = darseQuran?.registered ? true : false;
-      shaheenMeeting.registered = shaheenMeeting?.registered ? true : false;
-      paighamEvent.registered = paighamEvent?.registered ? true : false;
+    
       const newMentionedActivity = new MentionedActivitiesModel({
         ijtRafaqa,
         studyCircle: studyCircleMentioned,
@@ -249,7 +235,6 @@ class IlaqaReport extends Response {
         current,
         meetings,
         literatureDistribution,
-        registered: registeredTosee ? true : false,
         commonStudentMeetings,
         commonLiteratureDistribution,
       });
@@ -277,11 +262,11 @@ class IlaqaReport extends Response {
       const maqamDivisionLib = await newMaqamDivisionLib.save();
       const paighamDigest = await newPaighamDigest.save();
       const rsd = await newRsd.save();
-      const newMaqamReport = new MaqamReportModel({
+      const newMaqamReport = new IlaqaReportModel({
         month,
         comments,
         userId,
-        maqamAreaId: user?.userAreaId,
+        ilaqaAreaId: user?.userAreaId,
         maqamTanzeemId: maqamTanzeem?._id,
         wiId: wi._id,
         maqamActivityId: maqamActivity._id,
@@ -294,7 +279,7 @@ class IlaqaReport extends Response {
       });
       await newMaqamReport.save();
       return this.sendResponse(req, res, {
-        message: "Maqam Report Added",
+        message: "Ilaqa Report Added",
         status: 201,
       });
     } catch (err) {

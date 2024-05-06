@@ -21,8 +21,7 @@ const maqamActivitiesModel = mongoose.Schema({
         type: Boolean,
         default: false
       },
-    },
-    required: true,
+    }
   },
   studyCircle: {
     type: {
