@@ -2,6 +2,7 @@ const router = require("express").Router();
 const { Report } = require("../../handlers");
 
 const handler = new Report.IlaqaReport();
+
 router.get("/", handler.getReports);
 router.get("/:id", handler.getSingleReport);
 router.post("/", handler.createReport);

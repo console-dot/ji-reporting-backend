@@ -1,7 +1,7 @@
 const { decode } = require("jsonwebtoken");
 const {
   WorkerInfoModel,
-  MaqamReportModel,
+  IlaqaReportModel,
   MaqamActivitiesModel,
   MaqamTanzeemModel,
   MentionedActivitiesModel,
@@ -10,7 +10,6 @@ const {
   MaqamDivisionLibraryModel,
   PaighamDigestModel,
   RozShabBedariModel,
-  IlaqaReportModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -63,8 +62,10 @@ const isDataComplete = (dataToUpdate) => {
     "totalBookRent",
     "totalReceived",
     "totalSold",
-    "umeedwaranFilled",
-    "rafaqaFilled",
+    "uploadedUmeedwaran",
+    "manualUmeedwaran",
+    "manualRafaqa",
+    "uploadedRafaqa",
   ];
 
   const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));
@@ -80,7 +81,6 @@ class IlaqaReport extends Response {
   createReport = async (req, res) => {
     try {
       const token = req.headers.authorization;
-      console.log(token)
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
@@ -90,7 +90,6 @@ class IlaqaReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const userAreaId= user.userAreaId;
       if (user?.nazim !== "ilaqa") {
         return this.sendResponse(req, res, {
           message: "Access denied",
@@ -134,7 +133,6 @@ class IlaqaReport extends Response {
         current,
         meetings,
         literatureDistribution,
-        registeredTosee,
         commonStudentMeetings,
         commonLiteratureDistribution,
         totalLibraries,
@@ -142,10 +140,14 @@ class IlaqaReport extends Response {
         totalIncrease,
         totalDecrease,
         totalBookRent,
-        totalReceived,
-        totalSold,
-        umeedwaranFilled,
-        rafaqaFilled,
+        totalHalqaReceived,
+        totalZeliHalqaReceived,
+        totalHalqaSold,
+        totalZeliHalqaSold,
+        uploadedUmeedwaran,
+        manualUmeedwaran,
+        manualRafaqa,
+        uploadedRafaqa,
         tarbiyatGaah,
       } = req.body;
       if (!isDataComplete(req.body)) {
@@ -183,9 +185,6 @@ class IlaqaReport extends Response {
           status: 400,
         });
       }
-      shaheen.annual = shaheen.end;
-      members.annual = members.end;
-      console.log(members)
       const newWI = new WorkerInfoModel({
         arkan,
         umeedWaran,
@@ -194,9 +193,8 @@ class IlaqaReport extends Response {
         shaheen,
         members,
       });
-      
+
       const newMaqamActivity = new MaqamActivitiesModel({
-        
         studyCircle,
         ijtNazmeen,
         ijtUmeedwaran,
@@ -213,7 +211,7 @@ class IlaqaReport extends Response {
         busmRehaishUnits,
         busmTotalUnits,
       });
-    
+
       const newMentionedActivity = new MentionedActivitiesModel({
         ijtRafaqa,
         studyCircle: studyCircleMentioned,
@@ -246,12 +244,16 @@ class IlaqaReport extends Response {
         totalBookRent,
       });
       const newPaighamDigest = new PaighamDigestModel({
-        totalReceived,
-        totalSold,
+        totalHalqaReceived,
+        totalZeliHalqaReceived,
+        totalHalqaSold,
+        totalZeliHalqaSold,
       });
       const newRsd = new RozShabBedariModel({
-        umeedwaranFilled,
-        rafaqaFilled,
+        uploadedUmeedwaran,
+        manualUmeedwaran,
+        manualRafaqa,
+        uploadedRafaqa,
       });
       const wi = await newWI.save();
       const maqamActivity = await newMaqamActivity.save();
@@ -306,12 +308,12 @@ class IlaqaReport extends Response {
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
       // if (user?.nazim !== 'province') {
-      reports = await MaqamReportModel.find({
-        maqamAreaId: accessList,
+      reports = await IlaqaReportModel.find({
+        ilaqaAreaId: accessList,
       })
         .populate([
           { path: "userId", select: ["_id", "email", "name", "age"] },
-          { path: "maqamAreaId", populate: { path: "province" } },
+          { path: "ilaqaAreaId", populate: { path: "maqam" } },
           { path: "maqamTanzeemId" },
           { path: "wiId" },
           { path: "maqamActivityId" },
@@ -323,21 +325,6 @@ class IlaqaReport extends Response {
           { path: "rsdId" },
         ])
         .sort({ createdAt: -1 });
-      // } else {
-      //   reports = await MaqamReportModel.find().populate([
-      //     { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
-      //     { path: 'maqamAreaId', populate: { path: 'province' } },
-      //     { path: 'maqamTanzeemId' },
-      //     { path: 'wiId' },
-      //     { path: 'maqamActivityId' },
-      //     { path: 'mentionedActivityId' },
-      //     { path: 'otherActivityId' },
-      //     { path: 'tdId' },
-      //     { path: 'maqamDivisionLibId' },
-      //     { path: 'paighamDigestId' },
-      //     { path: 'rsdId' },
-      //   ]);
-      // }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
@@ -368,18 +355,18 @@ class IlaqaReport extends Response {
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      const { maqamAreaId } = await MaqamReportModel.findOne({ _id }).select(
-        "maqamAreaId"
+      const { ilaqaAreaId } = await IlaqaReportModel.findOne({ _id }).select(
+        "ilaqaAreaId"
       );
-      if (!accessList.includes(maqamAreaId.toString())) {
+      if (!accessList.includes(ilaqaAreaId.toString())) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
           status: 401,
         });
       }
-      const reports = await MaqamReportModel.findOne({ _id }).populate([
+      const reports = await IlaqaReportModel.findOne({ _id }).populate([
         { path: "userId", select: ["_id", "email", "name", "age"] },
-        { path: "maqamAreaId", populate: { path: "province" } },
+        { path: "ilaqaAreaId", populate: { path: "maqam" } },
         { path: "maqamTanzeemId" },
         { path: "wiId" },
         { path: "maqamActivityId" },
@@ -425,7 +412,7 @@ class IlaqaReport extends Response {
           status: 400,
         });
       }
-      const isExist = await MaqamReportModel.findOne({ _id });
+      const isExist = await IlaqaReportModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
           message: "Report not found",
@@ -612,7 +599,7 @@ class IlaqaReport extends Response {
       );
 
       // Update the DivisionReportModel
-      const updatedMaqamReport = await MaqamReportModel.updateOne(
+      const updatedMaqamReport = await IlaqaReportModel.updateOne(
         { _id },
         { $set: dataToUpdate }
       );
@@ -671,16 +658,16 @@ class IlaqaReport extends Response {
       const startDate = new Date(desiredYear, desiredMonth, 0);
       const endDate = new Date(desiredYear, desiredMonth + 1, 1);
 
-      const maqamReports = await MaqamReportModel.find({
+      const maqamReports = await IlaqaReportModel.find({
         month: {
           $gte: startDate,
           $lte: endDate,
         },
-        maqamAreaId: accessList,
-      }).populate("maqamAreaId userId");
+        ilaqaAreaId: accessList,
+      }).populate("ilaqaAreaId userId");
       const allMaqams = await MaqamModel.find({ _id: accessList });
       const maqamReportsAreaIds = maqamReports.map((i) =>
-        i?.maqamAreaId?._id?.toString()
+        i?.ilaqaAreaId?._id?.toString()
       );
       const allMaqamsAreaIds = allMaqams.map((i) => i?._id?.toString());
       const unfilledArr = [];

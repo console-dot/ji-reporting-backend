@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const maqamTanzeemModel = mongoose.Schema({
   rehaishHalqay: {
@@ -8,6 +8,7 @@ const maqamTanzeemModel = mongoose.Schema({
       decrease: { type: Number, required: true },
       continue: { type: Number, required: true },
       paused: { type: Number, required: true },
+      monthly: { type: Number, required: true },
     },
     required: true,
   },
@@ -18,6 +19,7 @@ const maqamTanzeemModel = mongoose.Schema({
       decrease: { type: Number, required: true },
       continue: { type: Number, required: true },
       paused: { type: Number, required: true },
+      monthly: { type: Number, required: true },
     },
     required: true,
   },
@@ -28,6 +30,7 @@ const maqamTanzeemModel = mongoose.Schema({
       decrease: { type: Number, required: true },
       continue: { type: Number, required: true },
       paused: { type: Number, required: true },
+      monthly: { type: Number, required: true },
     },
     required: true,
   },
@@ -38,6 +41,7 @@ const maqamTanzeemModel = mongoose.Schema({
       decrease: { type: Number, required: true },
       continue: { type: Number, required: true },
       paused: { type: Number, required: true },
+      monthly: { type: Number, required: true },
     },
     required: true,
   },
@@ -48,6 +52,7 @@ const maqamTanzeemModel = mongoose.Schema({
       decrease: { type: Number, required: true },
       continue: { type: Number, required: true },
       paused: { type: Number, required: true },
+      monthly: { type: Number, required: true },
     },
     required: true,
   },
@@ -58,6 +63,7 @@ const maqamTanzeemModel = mongoose.Schema({
       decrease: { type: Number, required: true },
       continue: { type: Number, required: true },
       paused: { type: Number, required: true },
+      monthly: { type: Number, required: true },
     },
     required: true,
   },
@@ -68,6 +74,7 @@ const maqamTanzeemModel = mongoose.Schema({
       decrease: { type: Number, required: true },
       continue: { type: Number, required: true },
       paused: { type: Number, required: true },
+      monthly: { type: Number, required: true },
     },
     required: true,
   },
@@ -78,6 +85,7 @@ const maqamTanzeemModel = mongoose.Schema({
       decrease: { type: Number, required: true },
       continue: { type: Number, required: true },
       paused: { type: Number, required: true },
+      monthly: { type: Number, required: true },
     },
     required: true,
   },
@@ -88,11 +96,12 @@ const maqamTanzeemModel = mongoose.Schema({
       decrease: { type: Number, required: true },
       continue: { type: Number, required: true },
       paused: { type: Number, required: true },
+      monthly: { type: Number, required: true },
     },
     required: true,
   },
 });
 
-const MaqamTanzeemModel = mongoose.model('MaqamTanzeem', maqamTanzeemModel);
+const MaqamTanzeemModel = mongoose.model("MaqamTanzeem", maqamTanzeemModel);
 
 module.exports = { MaqamTanzeemModel };
