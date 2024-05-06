@@ -1,11 +1,12 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const rozShabBedariModel = mongoose.Schema({
-  umeedwaranFilled: Number,
-  rafaqaFilled: Number,
-  // arkanFilled: Number
+  manualUmeedwaran: Number,
+  uploadedUmeedwaran: Number,
+  uploadedRafaqa: Number,
+  manualRafaqa: Number,
 });
 
-const RozShabBedariModel = mongoose.model('RozShabBedari', rozShabBedariModel);
+const RozShabBedariModel = mongoose.model("RozShabBedari", rozShabBedariModel);
 
 module.exports = { RozShabBedariModel };

@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const workerInfoModel = mongoose.Schema({
   arkan: {
@@ -111,7 +111,7 @@ const workerInfoModel = mongoose.Schema({
         type: Number,
         required: true,
       },
-      annual: {
+      monthly: {
         type: Number,
         required: true,
       },
@@ -136,7 +136,7 @@ const workerInfoModel = mongoose.Schema({
         type: Number,
         required: true,
       },
-      annual: {
+      monthly: {
         type: Number,
         required: true,
       },
@@ -146,9 +146,9 @@ const workerInfoModel = mongoose.Schema({
       },
     },
     required: false,
-  }
+  },
 });
 
-const WorkerInfoModel = mongoose.model('WorkerInfo', workerInfoModel);
+const WorkerInfoModel = mongoose.model("WorkerInfo", workerInfoModel);
 
 module.exports = { WorkerInfoModel };
