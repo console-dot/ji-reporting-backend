@@ -50,11 +50,17 @@ const isDataComplete = (dataToUpdate) => {
     "shabBedari",
     "anyOther",
     "rawabitDecided",
-    "current",
-    "meetings",
-    "literatureDistribution",
-    "commonStudentMeetings",
-    "commonLiteratureDistribution",
+    "uploadedCurrent",
+    "manualCurrent",
+    "rwabitMeetingsGoal",
+    "uploadedMeetings",
+    "manualMeetings",
+    "uploadedLitrature",
+    "manualLitrature",
+    "uploadedCommonStudentMeetings",
+    "manualCommonStudentMeetings",
+    "uploadedCommonLiteratureDistribution",
+    "manualCommonLiteratureDistribution",
     "totalLibraries",
     "totalBooks",
     "totalIncrease",
@@ -130,11 +136,17 @@ class IlaqaReport extends Response {
         shabBedari,
         anyOther,
         rawabitDecided,
-        current,
-        meetings,
-        literatureDistribution,
-        commonStudentMeetings,
-        commonLiteratureDistribution,
+        uploadedCurrent,
+        manualCurrent,
+        rwabitMeetingsGoal,
+        uploadedMeetings,
+        manualMeetings,
+        uploadedLitrature,
+        manualLitrature,
+        uploadedCommonStudentMeetings,
+        manualCommonStudentMeetings,
+        uploadedCommonLiteratureDistribution,
+        manualCommonLiteratureDistribution,
         totalLibraries,
         totalBooks,
         totalIncrease,
@@ -230,11 +242,17 @@ class IlaqaReport extends Response {
       });
       const newTd = new ToseeDawatModel({
         rawabitDecided,
-        current,
-        meetings,
-        literatureDistribution,
-        commonStudentMeetings,
-        commonLiteratureDistribution,
+        uploadedCurrent,
+        manualCurrent,
+        rwabitMeetingsGoal,
+        uploadedMeetings,
+        manualMeetings,
+        uploadedLitrature,
+        manualLitrature,
+        uploadedCommonStudentMeetings,
+        manualCommonStudentMeetings,
+        uploadedCommonLiteratureDistribution,
+        manualCommonLiteratureDistribution,
       });
       const newMaqamDivisionLib = new MaqamDivisionLibraryModel({
         totalLibraries,
@@ -492,16 +510,32 @@ class IlaqaReport extends Response {
           "totalDecrease",
           "totalBookRent",
         ],
-        paighamDigestId: ["totalReceived", "totalSold"],
-        rsdId: ["umeedwaranFilled", "rafaqaFilled"],
+        paighamDigestId: [
+          "totalHalqaReceived",
+          "totalZeliHalqaReceived",
+          "totalHalqaSold",
+          "totalZeliHalqaSold",
+        ],
+        rsdId: [
+          "manualUmeedwaran",
+          "uploadedUmeedwaran",
+          "uploadedRafaqa",
+          "manualRafaqa",
+        ],
         tdId: [
-          "registered",
-          "commonLiteratureDistribution",
-          "commonStudentMeetings",
-          "literatureDistribution",
-          "meetings",
-          "current",
           "rawabitDecided",
+          "uploadedCurrent",
+          "manualCurrent",
+          "rwabitMeetingsGoal",
+          "uploadedMeetings",
+          "manualMeetings",
+          "uploadedLitrature",
+          "manualLitrature",
+          "uploadedCommonStudentMeetings",
+          "manualCommonStudentMeetings",
+          "uploadedCommonLiteratureDistribution",
+          "manualCommonLiteratureDistribution",
+          "registered",
         ],
         otherActivityId: [
           "anyOther",
@@ -658,20 +692,20 @@ class IlaqaReport extends Response {
       const startDate = new Date(desiredYear, desiredMonth, 0);
       const endDate = new Date(desiredYear, desiredMonth + 1, 1);
 
-      const maqamReports = await IlaqaReportModel.find({
+      const ilaqaReports = await IlaqaReportModel.find({
         month: {
           $gte: startDate,
           $lte: endDate,
         },
         ilaqaAreaId: accessList,
       }).populate("ilaqaAreaId userId");
-      const allMaqams = await MaqamModel.find({ _id: accessList });
-      const maqamReportsAreaIds = maqamReports.map((i) =>
+      const allIlaqas = await MaqamModel.find({ _id: accessList });
+      const maqamReportsAreaIds = ilaqaReports.map((i) =>
         i?.ilaqaAreaId?._id?.toString()
       );
-      const allMaqamsAreaIds = allMaqams.map((i) => i?._id?.toString());
+      const allIlaqaAreaIds = allIlaqas.map((i) => i?._id?.toString());
       const unfilledArr = [];
-      allMaqamsAreaIds.forEach((i, index) => {
+      allIlaqaAreaIds.forEach((i, index) => {
         if (!maqamReportsAreaIds.includes(i)) {
           unfilledArr.push(i);
         }
@@ -682,8 +716,8 @@ class IlaqaReport extends Response {
         status: 200,
         data: {
           unfilled: unfilled,
-          totalmaqam: allMaqamsAreaIds?.length,
-          allMaqams: allMaqams,
+          totalmaqam: allIlaqaAreaIds?.length,
+          allIlaqas: allIlaqas,
         },
       });
     } catch (error) {
