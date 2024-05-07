@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const provinceReportModel = mongoose.Schema(
   {
@@ -9,67 +9,80 @@ const provinceReportModel = mongoose.Schema(
     month: {
       type: Date,
       required: true,
-      unique: true
+      unique: true,
     },
     userId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'User',
+      ref: "User",
     },
     provinceAreaId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'Province',
+      ref: "Province",
+    },
+    jamiaatId: {
+      type: mongoose.Types.ObjectId,
+      required: true,
+      ref: "Jamiaat",
+    },
+    collegesId: {
+      type: mongoose.Types.ObjectId,
+      required: true,
+      ref: "Colleges",
     },
     provinceTanzeemId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'MaqamTanzeem',
+      ref: "MaqamTanzeem",
     },
     wiId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'WorkerInfo',
+      ref: "WorkerInfo",
     },
     provinceActivityId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'MaqamActivities',
+      ref: "MaqamActivities",
     },
     mentionedActivityId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'MentionedActivities',
+      ref: "MentionedActivities",
     },
     otherActivityId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'OtherActivities',
+      ref: "OtherActivities",
     },
     tdId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'ToseeDawat',
+      ref: "ToseeDawat",
     },
     provinceDivisionLibId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'MaqamDivisionLibrary',
+      ref: "MaqamDivisionLibrary",
     },
     paighamDigestId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'PaighamDigest',
+      ref: "PaighamDigest",
     },
     rsdId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'RozShabBedari',
+      ref: "RozShabBedari",
     },
   },
   { timestamps: true }
 );
 
-const ProvinceReportModel = mongoose.model('ProvinceReport', provinceReportModel);
+const ProvinceReportModel = mongoose.model(
+  "ProvinceReport",
+  provinceReportModel
+);
 
 module.exports = { ProvinceReportModel };
