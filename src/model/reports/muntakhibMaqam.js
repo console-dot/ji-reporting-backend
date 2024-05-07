@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const maqamReportModel = mongoose.Schema(
+const muntakhibMaqamReportModel = mongoose.Schema(
   {
     comments: {
       type: String,
@@ -58,7 +58,7 @@ const maqamReportModel = mongoose.Schema(
     tdId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: "ToseeDawat",
+      ref: "MaqamDivToseeDawat",
     },
     maqamDivisionLibId: {
       type: mongoose.Types.ObjectId,
@@ -79,6 +79,9 @@ const maqamReportModel = mongoose.Schema(
   { timestamps: true }
 );
 
-const MaqamReportModel = mongoose.model("MaqamReport", maqamReportModel);
+const MuntakhibMaqamReportModel = mongoose.model(
+  "MuntakhibMaqamReport",
+  muntakhibMaqamReportModel
+);
 
-module.exports = { MaqamReportModel };
+module.exports = { MuntakhibMaqamReportModel };

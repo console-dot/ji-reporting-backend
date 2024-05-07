@@ -10,6 +10,8 @@ const {
   MaqamDivisionLibraryModel,
   PaighamDigestModel,
   RozShabBedariModel,
+  JamiaatModel,
+  CollegesModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -21,7 +23,6 @@ const isDataComplete = (dataToUpdate) => {
     "comments",
     "arkan",
     "umeedWaran",
-    "tarbiyatGaah",
     "rafaqa",
     "karkunan",
     "shaheen",
@@ -54,7 +55,7 @@ const isDataComplete = (dataToUpdate) => {
     "rawabitDecided",
     "current",
     "meetings",
-    "literatureDistribution",
+    "litrature",
     "commonStudentMeetings",
     "commonLiteratureDistribution",
     "totalLibraries",
@@ -66,6 +67,15 @@ const isDataComplete = (dataToUpdate) => {
     "totalSold",
     "umeedwaranFilled",
     "rafaqaFilled",
+    "jamiaatA",
+    "jamiaatB",
+    "jamiaatC",
+    "jamiaatD",
+    "jamiaatE",
+    "collegesA",
+    "collegesB",
+    "collegesC",
+    "collegesD",
   ];
 
   const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));
@@ -132,8 +142,12 @@ class MaqamReport extends Response {
         anyOther,
         rawabitDecided,
         current,
+        currentSum,
+        currentManual,
         meetings,
-        literatureDistribution,
+        meetingsManual,
+        meetingsSum,
+        litrature,
         registeredTosee,
         commonStudentMeetings,
         commonLiteratureDistribution,
@@ -147,7 +161,15 @@ class MaqamReport extends Response {
         umeedwaranFilled,
         rafaqaFilled,
         arkanFilled,
-        tarbiyatGaah,
+        jamiaatA,
+        jamiaatB,
+        jamiaatC,
+        jamiaatD,
+        jamiaatE,
+        collegesA,
+        collegesB,
+        collegesC,
+        collegesD,
       } = req.body;
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
@@ -209,6 +231,19 @@ class MaqamReport extends Response {
         ijtUmeedwaran,
         sadurMeeting,
       });
+      const newJamiaat = new JamiaatModel({
+        jamiaatA,
+        jamiaatB,
+        jamiaatC,
+        jamiaatD,
+        jamiaatE,
+      });
+      const newColleges = new CollegesModel({
+        collegesA,
+        collegesB,
+        collegesC,
+        collegesD,
+      });
       const newMaqamTanzeem = new MaqamTanzeemModel({
         rehaishHalqay,
         taleemHalqay,
@@ -237,18 +272,33 @@ class MaqamReport extends Response {
         paighamEvent,
       });
       const newOtherActivity = new OtherActivitiesModel({
-        tarbiyatGaah,
         dawatiWafud,
         rawabitParties,
         nizamSalah,
         shabBedari,
         anyOther,
       });
+      console.log(
+        rawabitDecided,
+        litrature,
+        meetings,
+        meetingsManual,
+        meetingsSum,
+        current,
+        currentManual,
+        currentSum,
+        commonStudentMeetings,
+        commonLiteratureDistribution
+      );
       const newTd = new ToseeDawatModel({
         rawabitDecided,
-        current,
+        litrature,
         meetings,
-        literatureDistribution,
+        meetingsManual,
+        meetingsSum,
+        current,
+        currentManual,
+        currentSum,
         registered: registeredTosee ? true : false,
         commonStudentMeetings,
         commonLiteratureDistribution,
@@ -278,6 +328,8 @@ class MaqamReport extends Response {
       const maqamDivisionLib = await newMaqamDivisionLib.save();
       const paighamDigest = await newPaighamDigest.save();
       const rsd = await newRsd.save();
+      const clg = await newColleges.save();
+      const jami = await newJamiaat.save();
       const newMaqamReport = new MaqamReportModel({
         month,
         comments,
@@ -292,6 +344,8 @@ class MaqamReport extends Response {
         maqamDivisionLibId: maqamDivisionLib?._id,
         paighamDigestId: paighamDigest?._id,
         rsdId: rsd._id,
+        jamiaatId: jami?._id,
+        collegesId: clg?._id,
       });
       await newMaqamReport.save();
       return this.sendResponse(req, res, {
@@ -337,6 +391,8 @@ class MaqamReport extends Response {
           { path: "maqamDivisionLibId" },
           { path: "paighamDigestId" },
           { path: "rsdId" },
+          { path: "collegesId" },
+          { path: "jamiaatId" },
         ])
         .sort({ createdAt: -1 });
       // } else {
@@ -405,6 +461,8 @@ class MaqamReport extends Response {
         { path: "maqamDivisionLibId" },
         { path: "paighamDigestId" },
         { path: "rsdId" },
+        { path: "collegesId" },
+        { path: "jamiaatId" },
       ]);
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
@@ -478,6 +536,8 @@ class MaqamReport extends Response {
         "maqamDivisionLibId",
         "paighamDigestId",
         "rsdId",
+        "collegesId",
+        "jamiaatId",
       ];
 
       const obj = {
@@ -527,7 +587,7 @@ class MaqamReport extends Response {
           "registered",
           "commonLiteratureDistribution",
           "commonStudentMeetings",
-          "literatureDistribution",
+          "litrature",
           "meetings",
           "current",
           "rawabitDecided",
@@ -539,13 +599,20 @@ class MaqamReport extends Response {
           "hadithCircle",
           "rawabitParties",
           "dawatiWafud",
-          "tarbiyatGaah",
         ],
+        colleges: [
+          "collegesA",
+          "collegesB",
+          "collegesC",
+          "collegesD",
+          "collegesE",
+        ],
+        jamiaat: ["jamiaatA", "jamiaatB", "jamiaatC", "jamiaatD"],
       };
 
       const returnData = (arr, key) => {
         const rs = {};
-        arr.forEach((element) => {
+        arr?.forEach((element) => {
           if (element === "registered") {
             if (key === "tdId") {
               rs[element] = dataToUpdate["registeredTosee"] ? true : false;
@@ -605,6 +672,10 @@ class MaqamReport extends Response {
             return ToseeDawatModel;
           case "otherActivityId":
             return OtherActivitiesModel;
+          case "jamiaatId":
+            return JamiaatModel;
+          case "collegesId":
+            return CollegesModel;
           default:
             return null;
         }
@@ -615,6 +686,7 @@ class MaqamReport extends Response {
           { $set: returnData(obj[refsToUpdate[i]], refsToUpdate[i]) }
         );
       }
+      console.log(dataToUpdate);
       // update studyCircle of maqam
       await MentionedActivitiesModel.findOneAndUpdate(
         {

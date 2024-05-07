@@ -2,9 +2,8 @@ const mongoose = require("mongoose");
 
 const rozShabBedariModel = mongoose.Schema({
   manualUmeedwaran: Number,
-  uploadedUmeedwaran: Number,
-  uploadedRafaqa: Number,
-  manualRafaqa: Number,
+  umeedwaranFilled: Number,
+  rafaqaFilled: Number,
 });
 
 const RozShabBedariModel = mongoose.model("RozShabBedari", rozShabBedariModel);

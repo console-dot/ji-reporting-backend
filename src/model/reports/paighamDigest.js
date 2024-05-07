@@ -1,16 +1,10 @@
 const mongoose = require("mongoose");
 
 const paighamDigestModel = mongoose.Schema({
-  totalHalqaReceived: {
+  totalReceived: {
     type: Number,
   },
-  totalZeliHalqaReceived: {
-    type: Number,
-  },
-  totalHalqaSold: {
-    type: Number,
-  },
-  totalZeliHalqaSold: {
+  totalSold: {
     type: Number,
   },
   monthlyReceivingGoal: {

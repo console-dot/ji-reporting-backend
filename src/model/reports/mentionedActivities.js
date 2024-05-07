@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const mentionedActivitiesModel = mongoose.Schema({
   ijtRafaqa: {
@@ -34,6 +34,8 @@ const mentionedActivitiesModel = mongoose.Schema({
       decided: { type: Number, required: true },
       done: { type: Number, required: true },
       averageAttendance: { type: Number, required: true },
+      manual: { type: Number, required: false },
+      sum: { type: Number, required: false },
       registered: {
         type: Boolean,
         default: false,
@@ -46,6 +48,8 @@ const mentionedActivitiesModel = mongoose.Schema({
       decided: { type: Number, required: true },
       done: { type: Number, required: true },
       averageAttendance: { type: Number, required: true },
+      manual: { type: Number, required: false },
+      sum: { type: Number, required: false },
       registered: {
         type: Boolean,
         default: false,
@@ -80,7 +84,7 @@ const mentionedActivitiesModel = mongoose.Schema({
 });
 
 const MentionedActivitiesModel = mongoose.model(
-  'MentionedActivities',
+  "MentionedActivities",
   mentionedActivitiesModel
 );
 
