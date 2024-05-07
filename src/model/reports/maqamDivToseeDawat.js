@@ -10,7 +10,6 @@ const maqamDivToseeDawat = mongoose.Schema({
   litrature: Number,
   commonStudentLiterature: Number,
   commonStudentMeetings: Number,
-
   registered: { type: Boolean, default: false },
 });
 
