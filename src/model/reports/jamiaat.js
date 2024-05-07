@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const jamiaat = mongoose.Schema({
-  a: {
+  jamiaatA: {
     type: {
       start: {
         type: Number,
@@ -22,7 +22,7 @@ const jamiaat = mongoose.Schema({
     },
     required: false,
   },
-  b: {
+  jamiaatB: {
     type: {
       start: {
         type: Number,
@@ -43,7 +43,7 @@ const jamiaat = mongoose.Schema({
     },
     required: false,
   },
-  c: {
+  jamiaatC: {
     type: {
       start: {
         type: Number,
@@ -64,7 +64,7 @@ const jamiaat = mongoose.Schema({
     },
     required: false,
   },
-  d: {
+  jamiaatD: {
     type: {
       start: {
         type: Number,
@@ -85,7 +85,7 @@ const jamiaat = mongoose.Schema({
     },
     required: false,
   },
-  e: {
+  jamiaatE: {
     type: {
       start: {
         type: Number,

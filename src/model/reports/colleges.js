@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const colleges = mongoose.Schema({
-  a: {
+  collegesA: {
     type: {
       start: {
         type: Number,
@@ -22,7 +22,7 @@ const colleges = mongoose.Schema({
     },
     required: false,
   },
-  b: {
+  collegesB: {
     type: {
       start: {
         type: Number,
@@ -43,7 +43,7 @@ const colleges = mongoose.Schema({
     },
     required: false,
   },
-  c: {
+  collegesC: {
     type: {
       start: {
         type: Number,
@@ -64,7 +64,7 @@ const colleges = mongoose.Schema({
     },
     required: false,
   },
-  d: {
+  collegesD: {
     type: {
       start: {
         type: Number,
