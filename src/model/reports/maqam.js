@@ -20,6 +20,16 @@ const maqamReportModel = mongoose.Schema(
       required: true,
       ref: "Maqam",
     },
+    jamiaatId: {
+      type: mongoose.Types.ObjectId,
+      required: true,
+      ref: "Jamiaat",
+    },
+    collegesId: {
+      type: mongoose.Types.ObjectId,
+      required: true,
+      ref: "Colleges",
+    },
     maqamTanzeemId: {
       type: mongoose.Types.ObjectId,
       required: true,
@@ -48,7 +58,7 @@ const maqamReportModel = mongoose.Schema(
     tdId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: "ToseeDawat",
+      ref: "MaqamDivToseeDawat",
     },
     maqamDivisionLibId: {
       type: mongoose.Types.ObjectId,

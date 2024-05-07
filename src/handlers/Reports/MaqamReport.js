@@ -10,6 +10,9 @@ const {
   MaqamDivisionLibraryModel,
   PaighamDigestModel,
   RozShabBedariModel,
+  JamiaatModel,
+  CollegesModel,
+  MaqamDivToseeDawatModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -52,11 +55,32 @@ const isDataComplete = (dataToUpdate) => {
     "shabBedari",
     "anyOther",
     "rawabitDecided",
-    "current",
-    "meetings",
-    "literatureDistribution",
+    "uploadedCurrent",
+    "manualCurrent",
+    "rwabitMeetingsGoal",
+    "uploadedMeetings",
+    "manualMeetings",
+    "litrature",
     "commonStudentMeetings",
-    "commonLiteratureDistribution",
+    "commonStudentLiterature",
+    "totalHalqaReceived",
+    "totalZeliHalqaReceived",
+    "totalHalqaSold",
+    "totalZeliHalqaSold",
+    "monthlyReceivingGoal",
+    "uploadedUmeedwaran",
+    "manualUmeedwaran",
+    "manualRafaqa",
+    "uploadedRafaqa",
+    "jamiaatA",
+    "jamiaatB",
+    "jamiaatC",
+    "jamiaatD",
+    "jamiaatE",
+    "collegesA",
+    "collegesB",
+    "collegesC",
+    "collegesD",
     "totalLibraries",
     "totalBooks",
     "totalIncrease",
@@ -64,8 +88,10 @@ const isDataComplete = (dataToUpdate) => {
     "totalBookRent",
     "totalReceived",
     "totalSold",
-    "umeedwaranFilled",
-    "rafaqaFilled",
+    "uploadedUmeedwaran",
+    "manualUmeedwaran",
+    "manualRafaqa",
+    "uploadedRafaqa",
   ];
 
   const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));
@@ -131,23 +157,36 @@ class MaqamReport extends Response {
         shabBedari,
         anyOther,
         rawabitDecided,
-        current,
-        meetings,
-        literatureDistribution,
-        registeredTosee,
+        uploadedCurrent,
+        manualCurrent,
+        rwabitMeetingsGoal,
+        uploadedMeetings,
+        manualMeetings,
+        litrature,
         commonStudentMeetings,
-        commonLiteratureDistribution,
+        commonStudentLiterature,
+        totalHalqaReceived,
+        totalZeliHalqaReceived,
+        totalHalqaSold,
+        totalZeliHalqaSold,
+        uploadedUmeedwaran,
+        manualUmeedwaran,
+        manualRafaqa,
+        uploadedRafaqa,
+        jamiaatA,
+        jamiaatB,
+        jamiaatC,
+        jamiaatD,
+        jamiaatE,
+        collegesA,
+        collegesB,
+        collegesC,
+        collegesD,
         totalLibraries,
         totalBooks,
         totalIncrease,
         totalDecrease,
         totalBookRent,
-        totalReceived,
-        totalSold,
-        umeedwaranFilled,
-        rafaqaFilled,
-        arkanFilled,
-        tarbiyatGaah,
       } = req.body;
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
@@ -202,6 +241,19 @@ class MaqamReport extends Response {
       ijtNazmeen.registered = ijtNazmeen?.registered ? true : false;
       ijtUmeedwaran.registered = ijtUmeedwaran?.registered ? true : false;
       sadurMeeting.registered = sadurMeeting?.registered ? true : false;
+      const newJamiaat = new JamiaatModel({
+        jamiaatA,
+        jamiaatB,
+        jamiaatC,
+        jamiaatD,
+        jamiaatE,
+      });
+      const newColleges = new CollegesModel({
+        collegesA,
+        collegesB,
+        collegesC,
+        collegesD,
+      });
       const newMaqamActivity = new MaqamActivitiesModel({
         ijtArkan,
         studyCircle,
@@ -237,21 +289,22 @@ class MaqamReport extends Response {
         paighamEvent,
       });
       const newOtherActivity = new OtherActivitiesModel({
-        tarbiyatGaah,
         dawatiWafud,
         rawabitParties,
         nizamSalah,
         shabBedari,
         anyOther,
       });
-      const newTd = new ToseeDawatModel({
+      const newTd = new MaqamDivToseeDawatModel({
         rawabitDecided,
-        current,
-        meetings,
-        literatureDistribution,
-        registered: registeredTosee ? true : false,
+        uploadedCurrent,
+        manualCurrent,
+        rwabitMeetingsGoal,
+        uploadedMeetings,
+        manualMeetings,
+        litrature,
         commonStudentMeetings,
-        commonLiteratureDistribution,
+        commonStudentLiterature,
       });
       const newMaqamDivisionLib = new MaqamDivisionLibraryModel({
         totalLibraries,
@@ -261,13 +314,17 @@ class MaqamReport extends Response {
         totalBookRent,
       });
       const newPaighamDigest = new PaighamDigestModel({
-        totalReceived,
-        totalSold,
+        totalHalqaReceived,
+        totalZeliHalqaReceived,
+        totalHalqaSold,
+        totalZeliHalqaSold,
+        monthlyReceivingGoal,
       });
       const newRsd = new RozShabBedariModel({
-        umeedwaranFilled,
-        rafaqaFilled,
-        arkanFilled,
+        uploadedUmeedwaran,
+        manualUmeedwaran,
+        manualRafaqa,
+        uploadedRafaqa,
       });
       const wi = await newWI.save();
       const maqamActivity = await newMaqamActivity.save();
@@ -278,6 +335,8 @@ class MaqamReport extends Response {
       const maqamDivisionLib = await newMaqamDivisionLib.save();
       const paighamDigest = await newPaighamDigest.save();
       const rsd = await newRsd.save();
+      const clg = newColleges.save();
+      const jami = newJamiaat.save();
       const newMaqamReport = new MaqamReportModel({
         month,
         comments,
@@ -292,6 +351,8 @@ class MaqamReport extends Response {
         maqamDivisionLibId: maqamDivisionLib?._id,
         paighamDigestId: paighamDigest?._id,
         rsdId: rsd._id,
+        jamiaatId: jami?._id,
+        collegesIds: clg?._id,
       });
       await newMaqamReport.save();
       return this.sendResponse(req, res, {

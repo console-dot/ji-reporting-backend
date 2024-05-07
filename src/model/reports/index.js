@@ -15,6 +15,10 @@ const { DivisionActivitiesModel } = require("./divisionActivities");
 const { DivisionReportModel } = require("./division");
 const { ProvinceReportModel } = require("./province");
 const { IlaqaReportModel } = require("./ilaqa");
+const { JamiaatModel } = require("./jamiaat");
+const { CollegesModel } = require("./colleges");
+const { MaqamDivToseeDawatModel } = require("./maqamDivToseeDawat");
+const { MaqamDivPaighamDigestModel } = require("./maqamDivPaighamDigest");
 module.exports = {
   HalqaActivityModel,
   HalqaLibraryModel,
@@ -33,4 +37,8 @@ module.exports = {
   DivisionReportModel,
   ProvinceReportModel,
   IlaqaReportModel,
+  CollegesModel,
+  JamiaatModel,
+  MaqamDivToseeDawatModel,
+  MaqamDivPaighamDigestModel,
 };
