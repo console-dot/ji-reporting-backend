@@ -2,17 +2,16 @@ const mongoose = require("mongoose");
 
 const toseeDawatModel = mongoose.Schema({
   rawabitDecided: Number,
-  uploadedCurrent: Number,
-  manualCurrent: Number,
+  current: Number,
+  currentManual: Number,
+  currentSum: Number,
+  meetings: Number,
+  meetingsManual: Number,
+  meetingsSum: Number,
   rwabitMeetingsGoal: Number,
-  uploadedMeetings: Number,
-  manualMeetings: Number,
-  uploadedLitrature: Number,
-  manualLitrature: Number,
-  uploadedCommonStudentMeetings: Number,
-  manualCommonStudentMeetings: Number,
-  uploadedCommonLiteratureDistribution: Number,
-  manualCommonLiteratureDistribution: Number,
+  literatureDistribution: Number,
+  commonLiteratureDistribution: Number,
+  commonStudentMeetings: Number,
   registered: { type: Boolean, default: false },
 });
 

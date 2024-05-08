@@ -87,6 +87,6 @@ const colleges = mongoose.Schema({
   },
 });
 
-const CollegesModel = mongoose.model("colleges", colleges);
+const CollegesModel = mongoose.model("Colleges", colleges);
 
 module.exports = { CollegesModel };

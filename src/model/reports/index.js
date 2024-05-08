@@ -17,8 +17,6 @@ const { ProvinceReportModel } = require("./province");
 const { IlaqaReportModel } = require("./ilaqa");
 const { JamiaatModel } = require("./jamiaat");
 const { CollegesModel } = require("./colleges");
-const { MaqamDivToseeDawatModel } = require("./maqamDivToseeDawat");
-const { MaqamDivPaighamDigestModel } = require("./maqamDivPaighamDigest");
 module.exports = {
   HalqaActivityModel,
   HalqaLibraryModel,
@@ -39,6 +37,4 @@ module.exports = {
   IlaqaReportModel,
   CollegesModel,
   JamiaatModel,
-  MaqamDivToseeDawatModel,
-  MaqamDivPaighamDigestModel,
 };

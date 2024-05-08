@@ -12,7 +12,6 @@ const {
   RozShabBedariModel,
   JamiaatModel,
   CollegesModel,
-  MaqamDivToseeDawatModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -24,7 +23,6 @@ const isDataComplete = (dataToUpdate) => {
     "comments",
     "arkan",
     "umeedWaran",
-    "tarbiyatGaah",
     "rafaqa",
     "karkunan",
     "shaheen",
@@ -55,11 +53,8 @@ const isDataComplete = (dataToUpdate) => {
     "shabBedari",
     "anyOther",
     "rawabitDecided",
-    "uploadedCurrent",
-    "manualCurrent",
-    "rwabitMeetingsGoal",
-    "uploadedMeetings",
-    "manualMeetings",
+    "current",
+    "meetings",
     "litrature",
     "commonStudentMeetings",
     "commonStudentLiterature",
@@ -88,10 +83,17 @@ const isDataComplete = (dataToUpdate) => {
     "totalBookRent",
     "totalReceived",
     "totalSold",
-    "uploadedUmeedwaran",
-    "manualUmeedwaran",
-    "manualRafaqa",
-    "uploadedRafaqa",
+    "umeedwaranFilled",
+    "rafaqaFilled",
+    "jamiaatA",
+    "jamiaatB",
+    "jamiaatC",
+    "jamiaatD",
+    "jamiaatE",
+    "collegesA",
+    "collegesB",
+    "collegesC",
+    "collegesD",
   ];
 
   const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));
@@ -157,12 +159,14 @@ class MaqamReport extends Response {
         shabBedari,
         anyOther,
         rawabitDecided,
-        uploadedCurrent,
-        manualCurrent,
-        rwabitMeetingsGoal,
-        uploadedMeetings,
-        manualMeetings,
+        current,
+        currentSum,
+        currentManual,
+        meetings,
+        meetingsManual,
+        meetingsSum,
         litrature,
+        registeredTosee,
         commonStudentMeetings,
         commonStudentLiterature,
         totalHalqaReceived,
@@ -187,6 +191,23 @@ class MaqamReport extends Response {
         totalIncrease,
         totalDecrease,
         totalBookRent,
+        totalReceived,
+        totalSold,
+        umeedwaranFilled,
+        manualUmeedwaran,
+        rafaqaFilled,
+        arkanFilled,
+        jamiaatA,
+        jamiaatB,
+        jamiaatC,
+        jamiaatD,
+        jamiaatE,
+        collegesA,
+        collegesB,
+        collegesC,
+        collegesD,
+        rwabitMeetingsGoal,
+        monthlyReceivingGoal,
       } = req.body;
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
@@ -261,6 +282,19 @@ class MaqamReport extends Response {
         ijtUmeedwaran,
         sadurMeeting,
       });
+      const newJamiaat = new JamiaatModel({
+        jamiaatA,
+        jamiaatB,
+        jamiaatC,
+        jamiaatD,
+        jamiaatE,
+      });
+      const newColleges = new CollegesModel({
+        collegesA,
+        collegesB,
+        collegesC,
+        collegesD,
+      });
       const newMaqamTanzeem = new MaqamTanzeemModel({
         rehaishHalqay,
         taleemHalqay,
@@ -295,16 +329,32 @@ class MaqamReport extends Response {
         shabBedari,
         anyOther,
       });
-      const newTd = new MaqamDivToseeDawatModel({
+      console.log(
         rawabitDecided,
-        uploadedCurrent,
-        manualCurrent,
-        rwabitMeetingsGoal,
-        uploadedMeetings,
-        manualMeetings,
         litrature,
+        meetings,
+        meetingsManual,
+        meetingsSum,
+        current,
+        currentManual,
+        currentSum,
         commonStudentMeetings,
-        commonStudentLiterature,
+        commonLiteratureDistribution,
+        rwabitMeetingsGoal
+      );
+      const newTd = new ToseeDawatModel({
+        rawabitDecided,
+        literatureDistribution: litrature,
+        meetings,
+        meetingsManual,
+        meetingsSum,
+        current,
+        currentManual,
+        currentSum,
+        registered: registeredTosee ? true : false,
+        commonStudentMeetings,
+        commonLiteratureDistribution,
+        rwabitMeetingsGoal,
       });
       const newMaqamDivisionLib = new MaqamDivisionLibraryModel({
         totalLibraries,
@@ -314,17 +364,15 @@ class MaqamReport extends Response {
         totalBookRent,
       });
       const newPaighamDigest = new PaighamDigestModel({
-        totalHalqaReceived,
-        totalZeliHalqaReceived,
-        totalHalqaSold,
-        totalZeliHalqaSold,
+        totalReceived,
+        totalSold,
         monthlyReceivingGoal,
       });
       const newRsd = new RozShabBedariModel({
-        uploadedUmeedwaran,
+        umeedwaranFilled,
         manualUmeedwaran,
-        manualRafaqa,
-        uploadedRafaqa,
+        rafaqaFilled,
+        arkanFilled,
       });
       const wi = await newWI.save();
       const maqamActivity = await newMaqamActivity.save();
@@ -335,8 +383,8 @@ class MaqamReport extends Response {
       const maqamDivisionLib = await newMaqamDivisionLib.save();
       const paighamDigest = await newPaighamDigest.save();
       const rsd = await newRsd.save();
-      const clg = newColleges.save();
-      const jami = newJamiaat.save();
+      const clg = await newColleges.save();
+      const jami = await newJamiaat.save();
       const newMaqamReport = new MaqamReportModel({
         month,
         comments,
@@ -352,7 +400,7 @@ class MaqamReport extends Response {
         paighamDigestId: paighamDigest?._id,
         rsdId: rsd._id,
         jamiaatId: jami?._id,
-        collegesIds: clg?._id,
+        collegesId: clg?._id,
       });
       await newMaqamReport.save();
       return this.sendResponse(req, res, {
@@ -398,6 +446,8 @@ class MaqamReport extends Response {
           { path: "maqamDivisionLibId" },
           { path: "paighamDigestId" },
           { path: "rsdId" },
+          { path: "collegesId" },
+          { path: "jamiaatId" },
         ])
         .sort({ createdAt: -1 });
       // } else {
@@ -466,6 +516,8 @@ class MaqamReport extends Response {
         { path: "maqamDivisionLibId" },
         { path: "paighamDigestId" },
         { path: "rsdId" },
+        { path: "collegesId" },
+        { path: "jamiaatId" },
       ]);
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
@@ -539,6 +591,8 @@ class MaqamReport extends Response {
         "maqamDivisionLibId",
         "paighamDigestId",
         "rsdId",
+        "collegesId",
+        "jamiaatId",
       ];
 
       const obj = {
@@ -582,16 +636,20 @@ class MaqamReport extends Response {
           "totalDecrease",
           "totalBookRent",
         ],
-        paighamDigestId: ["totalReceived", "totalSold"],
-        rsdId: ["umeedwaranFilled", "rafaqaFilled"],
+        paighamDigestId: ["totalReceived", "totalSold", "monthlyReceivingGoal"],
+        rsdId: ["umeedwaranFilled", "rafaqaFilled", "manualUmeedwaran"],
         tdId: [
-          "registered",
-          "commonLiteratureDistribution",
-          "commonStudentMeetings",
+          "rawabitDecided",
           "literatureDistribution",
           "meetings",
+          "meetingsManual",
+          "meetingsSum",
           "current",
-          "rawabitDecided",
+          "currentManual",
+          "currentSum",
+          "commonStudentMeetings",
+          "commonLiteratureDistribution",
+          "rwabitMeetingsGoal",
         ],
         otherActivityId: [
           "anyOther",
@@ -600,15 +658,17 @@ class MaqamReport extends Response {
           "hadithCircle",
           "rawabitParties",
           "dawatiWafud",
-          "tarbiyatGaah",
         ],
+        collegesId: ["collegesA", "collegesB", "collegesC", "collegesD"],
+        jamiaatId: ["jamiaatA", "jamiaatB", "jamiaatC", "jamiaatD", "jamiaatE"],
       };
 
       const returnData = (arr, key) => {
         const rs = {};
-        arr.forEach((element) => {
+        arr?.forEach((element) => {
           if (element === "registered") {
             if (key === "tdId") {
+              console.log(rs[element]);
               rs[element] = dataToUpdate["registeredTosee"] ? true : false;
             }
             if (key === "wiId") {
@@ -639,6 +699,8 @@ class MaqamReport extends Response {
             } else {
               rs[element] = { ...dataToUpdate[element], registered: false };
             }
+          } else if (element === "literatureDistribution") {
+            rs[element] = req?.body?.litrature;
           } else {
             rs[element] = dataToUpdate[element];
           }
@@ -666,6 +728,10 @@ class MaqamReport extends Response {
             return ToseeDawatModel;
           case "otherActivityId":
             return OtherActivitiesModel;
+          case "jamiaatId":
+            return JamiaatModel;
+          case "collegesId":
+            return CollegesModel;
           default:
             return null;
         }
