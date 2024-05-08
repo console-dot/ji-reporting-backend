@@ -57,16 +57,8 @@ const isDataComplete = (dataToUpdate) => {
     "meetings",
     "litrature",
     "commonStudentMeetings",
-    "commonStudentLiterature",
-    "totalHalqaReceived",
-    "totalZeliHalqaReceived",
-    "totalHalqaSold",
-    "totalZeliHalqaSold",
     "monthlyReceivingGoal",
-    "uploadedUmeedwaran",
     "manualUmeedwaran",
-    "manualRafaqa",
-    "uploadedRafaqa",
     "jamiaatA",
     "jamiaatB",
     "jamiaatC",
@@ -124,6 +116,7 @@ class MaqamReport extends Response {
           status: 401,
         });
       }
+      console.log(req?.body);
       const {
         month,
         comments,
@@ -166,26 +159,9 @@ class MaqamReport extends Response {
         meetingsManual,
         meetingsSum,
         litrature,
+        commonLiteratureDistribution,
         registeredTosee,
         commonStudentMeetings,
-        commonStudentLiterature,
-        totalHalqaReceived,
-        totalZeliHalqaReceived,
-        totalHalqaSold,
-        totalZeliHalqaSold,
-        uploadedUmeedwaran,
-        manualUmeedwaran,
-        manualRafaqa,
-        uploadedRafaqa,
-        jamiaatA,
-        jamiaatB,
-        jamiaatC,
-        jamiaatD,
-        jamiaatE,
-        collegesA,
-        collegesB,
-        collegesC,
-        collegesD,
         totalLibraries,
         totalBooks,
         totalIncrease,
@@ -195,8 +171,8 @@ class MaqamReport extends Response {
         totalSold,
         umeedwaranFilled,
         manualUmeedwaran,
+        umeedwaranFilledSum,
         rafaqaFilled,
-        arkanFilled,
         jamiaatA,
         jamiaatB,
         jamiaatC,
@@ -282,19 +258,6 @@ class MaqamReport extends Response {
         ijtUmeedwaran,
         sadurMeeting,
       });
-      const newJamiaat = new JamiaatModel({
-        jamiaatA,
-        jamiaatB,
-        jamiaatC,
-        jamiaatD,
-        jamiaatE,
-      });
-      const newColleges = new CollegesModel({
-        collegesA,
-        collegesB,
-        collegesC,
-        collegesD,
-      });
       const newMaqamTanzeem = new MaqamTanzeemModel({
         rehaishHalqay,
         taleemHalqay,
@@ -371,8 +334,8 @@ class MaqamReport extends Response {
       const newRsd = new RozShabBedariModel({
         umeedwaranFilled,
         manualUmeedwaran,
+        umeedwaranFilledSum,
         rafaqaFilled,
-        arkanFilled,
       });
       const wi = await newWI.save();
       const maqamActivity = await newMaqamActivity.save();
