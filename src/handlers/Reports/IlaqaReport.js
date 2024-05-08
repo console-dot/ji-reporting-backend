@@ -147,11 +147,6 @@ class IlaqaReport extends Response {
         manualCommonStudentMeetings,
         uploadedCommonLiteratureDistribution,
         manualCommonLiteratureDistribution,
-        totalLibraries,
-        totalBooks,
-        totalIncrease,
-        totalDecrease,
-        totalBookRent,
         totalHalqaReceived,
         totalZeliHalqaReceived,
         totalHalqaSold,
@@ -160,7 +155,11 @@ class IlaqaReport extends Response {
         manualUmeedwaran,
         manualRafaqa,
         uploadedRafaqa,
-        tarbiyatGaah,
+        totalLibraries,
+        totalBooks,
+        totalIncrease,
+        totalDecrease,
+        totalBookRent,
       } = req.body;
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {

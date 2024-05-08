@@ -20,6 +20,16 @@ const divisionReportModel = mongoose.Schema(
       required: true,
       ref: "Division",
     },
+    jamiaatId: {
+      type: mongoose.Types.ObjectId,
+      required: true,
+      ref: "Jamiaat",
+    },
+    collegesId: {
+      type: mongoose.Types.ObjectId,
+      required: true,
+      ref: "Colleges",
+    },
     maqamTanzeemId: {
       type: mongoose.Types.ObjectId,
       required: true,
