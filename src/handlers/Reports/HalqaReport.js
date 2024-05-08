@@ -12,66 +12,42 @@ const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
 const { UserModel, HalqaModel } = require("../../model");
 
-const isDataComplete = ({
-  month,
-  comments,
-  arkan,
-  umeedWaran,
-  rafaqa,
-  karkunan,
-  ijtRafaqa,
-  ijtKarkunan,
-  studyCircle,
-  darseQuran,
-  dawatiWafud,
-  rawabitParties,
-  hadithCircle,
-  nizamSalah,
-  shabBedari,
-  anyOther,
-  rawabitDecided,
-  current,
-  meetings,
-  literatureDistribution,
-  commonStudentMeetings,
-  commonLiteratureDistribution,
-  books,
-  increase,
-  decrease,
-  bookRent,
-  umeedwaranFilled,
-  rafaqaFilled,
-}) => {
-  if (
-    !month ||
-    !comments ||
-    !arkan ||
-    !umeedWaran ||
-    !rafaqa ||
-    !karkunan ||
-    !ijtRafaqa ||
-    !ijtKarkunan ||
-    !studyCircle ||
-    !darseQuran ||
-    !dawatiWafud ||
-    !rawabitParties ||
-    !hadithCircle ||
-    !nizamSalah ||
-    !shabBedari ||
-    !anyOther ||
-    !rawabitDecided ||
-    !current ||
-    !meetings ||
-    !literatureDistribution ||
-    !commonStudentMeetings ||
-    !commonLiteratureDistribution ||
-    !books ||
-    !increase ||
-    !decrease ||
-    !bookRent ||
-    !umeedwaranFilled ||
-    !rafaqaFilled
-  ) {
+const isDataComplete = (dataToUpdate) => {
+  const requiredKeys = [
+    "month",
+    "comments",
+    "arkan",
+    "umeedWaran",
+    "rafaqa",
+    "karkunan",
+    "ijtRafaqa",
+    "ijtKarkunan",
+    "studyCircle",
+    "darseQuran",
+    "dawatiWafud",
+    "rawabitParties",
+    "hadithCircle",
+    "nizamSalah",
+    "shabBedari",
+    "anyOther",
+    "rawabitDecided",
+    "current",
+    "meetings",
+    "literatureDistribution",
+    "commonStudentMeetings",
+    "commonLiteratureDistribution",
+    "books",
+    "increase",
+    "decrease",
+    "bookRent",
+    "umeedwaranFilled",
+    "rafaqaFilled",
+  ];
+
+  const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));
+
+  if (missingKeys.length > 0) {
+    console.log("Missing keys:", missingKeys.join(", "));
     return false;
   }
   return true;
@@ -117,56 +93,25 @@ class HalqaReport extends Response {
         current,
         meetings,
         literatureDistribution,
-        registeredTosee,
         commonStudentMeetings,
         commonLiteratureDistribution,
         books,
         increase,
         decrease,
         bookRent,
-        registeredLibrary,
         umeedwaranFilled,
         rafaqaFilled,
         rwabitMeetingsGoal,
+        registeredTosee,
+        registeredLibrary
       } = req.body;
-
-      if (
-        !month ||
-        !comments ||
-        !arkan ||
-        !umeedWaran ||
-        !rafaqa ||
-        !karkunan ||
-        !ijtRafaqa ||
-        !ijtKarkunan ||
-        !studyCircle ||
-        !darseQuran ||
-        !dawatiWafud ||
-        !rawabitParties ||
-        !hadithCircle ||
-        !nizamSalah ||
-        !shabBedari ||
-        !anyOther ||
-        !rawabitDecided ||
-        !current ||
-        !meetings ||
-        !literatureDistribution ||
-        !commonStudentMeetings ||
-        !commonLiteratureDistribution ||
-        !books ||
-        !increase ||
-        !decrease ||
-        !bookRent ||
-        !umeedwaranFilled ||
-        !rafaqaFilled ||
-        !rwabitMeetingsGoal
-      ) {
+      if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
           status: 400,
         });
       }
-      const monthDate = new Date(month);
+      const monthDate = new Date(req?.body.month);
       const { yearExist, monthExist } = {
         yearExist: monthDate.getFullYear(),
         monthExist: monthDate.getMonth(),
@@ -215,10 +160,10 @@ class HalqaReport extends Response {
         current,
         meetings,
         literatureDistribution,
-        registered: registeredTosee ? true : false,
         commonStudentMeetings,
         commonLiteratureDistribution,
         rwabitMeetingsGoal,
+        registered: registeredTosee ? true : false,
       });
       const newHalqaLib = new HalqaLibraryModel({
         books,
@@ -448,7 +393,7 @@ class HalqaReport extends Response {
           "registered",
           "commonLiteratureDistribution",
           "commonStudentMeetings",
-          "literatureDistribution",
+          "litratureDistribution",
           "meetings",
           "current",
           "rawabitDecided",

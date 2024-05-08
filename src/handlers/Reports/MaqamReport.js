@@ -159,6 +159,7 @@ class MaqamReport extends Response {
         totalReceived,
         totalSold,
         umeedwaranFilled,
+        manualUmeedwaran,
         rafaqaFilled,
         arkanFilled,
         jamiaatA,
@@ -170,6 +171,8 @@ class MaqamReport extends Response {
         collegesB,
         collegesC,
         collegesD,
+        rwabitMeetingsGoal,
+        monthlyReceivingGoal,
       } = req.body;
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
@@ -288,11 +291,12 @@ class MaqamReport extends Response {
         currentManual,
         currentSum,
         commonStudentMeetings,
-        commonLiteratureDistribution
+        commonLiteratureDistribution,
+        rwabitMeetingsGoal
       );
       const newTd = new ToseeDawatModel({
         rawabitDecided,
-        litrature,
+        literatureDistribution: litrature,
         meetings,
         meetingsManual,
         meetingsSum,
@@ -302,6 +306,7 @@ class MaqamReport extends Response {
         registered: registeredTosee ? true : false,
         commonStudentMeetings,
         commonLiteratureDistribution,
+        rwabitMeetingsGoal,
       });
       const newMaqamDivisionLib = new MaqamDivisionLibraryModel({
         totalLibraries,
@@ -313,9 +318,11 @@ class MaqamReport extends Response {
       const newPaighamDigest = new PaighamDigestModel({
         totalReceived,
         totalSold,
+        monthlyReceivingGoal,
       });
       const newRsd = new RozShabBedariModel({
         umeedwaranFilled,
+        manualUmeedwaran,
         rafaqaFilled,
         arkanFilled,
       });
@@ -581,16 +588,20 @@ class MaqamReport extends Response {
           "totalDecrease",
           "totalBookRent",
         ],
-        paighamDigestId: ["totalReceived", "totalSold"],
-        rsdId: ["umeedwaranFilled", "rafaqaFilled"],
+        paighamDigestId: ["totalReceived", "totalSold", "monthlyReceivingGoal"],
+        rsdId: ["umeedwaranFilled", "rafaqaFilled", "manualUmeedwaran"],
         tdId: [
-          "registered",
-          "commonLiteratureDistribution",
-          "commonStudentMeetings",
-          "litrature",
-          "meetings",
-          "current",
           "rawabitDecided",
+          "literatureDistribution",
+          "meetings",
+          "meetingsManual",
+          "meetingsSum",
+          "current",
+          "currentManual",
+          "currentSum",
+          "commonStudentMeetings",
+          "commonLiteratureDistribution",
+          "rwabitMeetingsGoal",
         ],
         otherActivityId: [
           "anyOther",
@@ -600,14 +611,8 @@ class MaqamReport extends Response {
           "rawabitParties",
           "dawatiWafud",
         ],
-        colleges: [
-          "collegesA",
-          "collegesB",
-          "collegesC",
-          "collegesD",
-          "collegesE",
-        ],
-        jamiaat: ["jamiaatA", "jamiaatB", "jamiaatC", "jamiaatD"],
+        collegesId: ["collegesA", "collegesB", "collegesC", "collegesD"],
+        jamiaatId: ["jamiaatA", "jamiaatB", "jamiaatC", "jamiaatD", "jamiaatE"],
       };
 
       const returnData = (arr, key) => {
@@ -615,6 +620,7 @@ class MaqamReport extends Response {
         arr?.forEach((element) => {
           if (element === "registered") {
             if (key === "tdId") {
+              console.log(rs[element]);
               rs[element] = dataToUpdate["registeredTosee"] ? true : false;
             }
             if (key === "wiId") {
@@ -645,6 +651,8 @@ class MaqamReport extends Response {
             } else {
               rs[element] = { ...dataToUpdate[element], registered: false };
             }
+          } else if (element === "literatureDistribution") {
+            rs[element] = req?.body?.litrature;
           } else {
             rs[element] = dataToUpdate[element];
           }
@@ -686,7 +694,6 @@ class MaqamReport extends Response {
           { $set: returnData(obj[refsToUpdate[i]], refsToUpdate[i]) }
         );
       }
-      console.log(dataToUpdate);
       // update studyCircle of maqam
       await MentionedActivitiesModel.findOneAndUpdate(
         {
