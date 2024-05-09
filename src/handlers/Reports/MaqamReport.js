@@ -89,6 +89,17 @@ const isDataComplete = (dataToUpdate) => {
   return true;
 };
 
+const isMuntakhib = async (userId) => {
+  const isUser = await UserModel.findOne({ _id: userId });
+  if (isUser) {
+    const isIlaqa = await IlaqaModel.find({ maqam: isUser?.userAreaId });
+    if (isIlaqa.length > 1) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+};
 class MaqamReport extends Response {
   createReport = async (req, res) => {
     try {
@@ -108,7 +119,6 @@ class MaqamReport extends Response {
           status: 401,
         });
       }
-      console.log(req?.body);
       const {
         month,
         comments,
@@ -206,25 +216,8 @@ class MaqamReport extends Response {
           $gte: new Date(yearExist, monthExist, 1),
           $lt: new Date(yearExist, monthExist + 1, 1),
         },
-        userId,
+        maqamAreaId: user?.userAreaId,
       });
-      const isUser = await UserModel.findOne({ _id: userId });
-      let isMuntakhib;
-      if (isUser) {
-        const isIlaqa = await IlaqaModel.find({ maqam: isUser?.userAreaId });
-        if (isIlaqa.length > 0) {
-          isMuntakhib = true;
-        }
-      }
-      const reports = await MaqamReportModel.findOne({ month: req.body.month });
-      if (reports) {
-        return this.sendResponse(req, res, {
-          message: `Report already created for ${
-            months[monthDate.getMonth()]
-          }.`,
-          status: 400,
-        });
-      }
       if (reportExist) {
         return this.sendResponse(req, res, {
           message: `Report already created for ${
@@ -306,9 +299,8 @@ class MaqamReport extends Response {
         anyOther,
       });
       let newTd;
-      console.log(isMuntakhib);
-      if (isMuntakhib) {
-        console.log("is in muntakhib");
+
+      if (await isMuntakhib(userId)) {
         newTd = new MuntakhibTdModel({
           rawabitDecided,
           uploadedCurrent,
@@ -329,7 +321,6 @@ class MaqamReport extends Response {
           commonLiteratureDistributionSum,
         });
       } else {
-        console.log("is in ghair");
         newTd = new ToseeDawatModel({
           rawabitDecided,
           literatureDistribution: litrature,
@@ -375,7 +366,7 @@ class MaqamReport extends Response {
       const clg = await newColleges.save();
       const jami = await newJamiaat.save();
       let newMaqamReport;
-      if (isMuntakhib) {
+      if (await isMuntakhib(userId)) {
         newMaqamReport = new MaqamReportModel({
           month,
           comments,
@@ -416,6 +407,295 @@ class MaqamReport extends Response {
       return this.sendResponse(req, res, {
         message: "Maqam Report Added",
         status: 201,
+      });
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: "Internal Server Error",
+        status: 500,
+      });
+    }
+  };
+
+  editReport = async (req, res) => {
+    try {
+      const token = req.headers.authorization;
+      const _id = req.params.id;
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
+      if (!_id) {
+        return this.sendResponse(req, res, {
+          message: "Id is required",
+          status: 404,
+        });
+      }
+      const decoded = decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const dataToUpdate = req.body;
+      if (isDataComplete(dataToUpdate) == false) {
+        return this.sendResponse(req, res, {
+          message: "All fields are required",
+          status: 400,
+        });
+      }
+      const isExist = await MaqamReportModel.findOne({ _id });
+      if (!isExist) {
+        return this.sendResponse(req, res, {
+          message: "Report not found",
+          status: 404,
+        });
+      }
+      const mentionedActivity = isExist?.mentionedActivityId;
+      if (isExist?.userId.toString() !== userId) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 401,
+        });
+      }
+      const startDate = new Date(isExist?.createdAt);
+      const currentDate = new Date();
+      const difference = currentDate - startDate;
+      const millisecondsPerDay = 1000 * 60 * 60 * 24;
+      const daysDifference = Math.floor(difference / millisecondsPerDay);
+      if (daysDifference >= 5) {
+        return this.sendResponse(req, res, {
+          message: "Cannot update after 5 days",
+          status: 400,
+        });
+      }
+
+      // Update referenced models
+      let refsToUpdate;
+
+      (await isMuntakhib(userId))
+        ? (refsToUpdate = [
+            "maqamTanzeemId",
+            "wiId",
+            "maqamActivityId",
+            "mentionedActivityId",
+            "otherActivityId",
+            "muntakhibTdId",
+            "maqamDivisionLibId",
+            "paighamDigestId",
+            "rsdId",
+            "collegesId",
+            "jamiaatId",
+          ])
+        : (refsToUpdate = [
+            "maqamTanzeemId",
+            "wiId",
+            "maqamActivityId",
+            "mentionedActivityId",
+            "otherActivityId",
+            "tdId",
+            "maqamDivisionLibId",
+            "paighamDigestId",
+            "rsdId",
+            "collegesId",
+            "jamiaatId",
+          ]);
+      const obj = {
+        maqamTanzeemId: [
+          "rehaishHalqay",
+          "taleemHalqay",
+          "totalHalqay",
+          "subRehaishHalqay",
+          "subTaleemHalqay",
+          "subTotalHalqay",
+          "busmSchoolUnits",
+          "busmRehaishUnits",
+          "busmTotalUnits",
+        ],
+        wiId: [
+          "arkan",
+          "umeedWaran",
+          "rafaqa",
+          "karkunan",
+          "shaheen",
+          "members",
+        ],
+        maqamActivityId: [
+          "ijtArkan",
+          "ijtNazmeen",
+          "ijtUmeedwaran",
+          "sadurMeeting",
+          "studyCircle",
+        ],
+        mentionedActivityId: [
+          "ijtRafaqa",
+          "ijtKarkunan",
+          "darseQuran",
+          "shaheenMeeting",
+          "paighamEvent",
+        ],
+        maqamDivisionLibId: [
+          "totalLibraries",
+          "totalBooks",
+          "totalIncrease",
+          "totalDecrease",
+          "totalBookRent",
+        ],
+        paighamDigestId: ["totalReceived", "totalSold", "monthlyReceivingGoal"],
+        rsdId: ["umeedwaranFilled", "rafaqaFilled", "manualUmeedwaran"],
+        tdId: [
+          "rawabitDecided",
+          "literatureDistribution",
+          "meetings",
+          "meetingsManual",
+          "meetingsSum",
+          "current",
+          "currentManual",
+          "currentSum",
+          "commonStudentMeetings",
+          "commonLiteratureDistribution",
+          "rwabitMeetingsGoal",
+        ],
+        muntakhibTdId: [
+          "rawabitDecided",
+          "uploadedCurrent",
+          "manualCurrent",
+          "currentSum",
+          "rwabitMeetingsGoal",
+          "uploadedMeetings",
+          "manualMeetings",
+          "meetingsSum",
+          "uploadedLitrature",
+          "manualLitrature",
+          "literatureSum",
+          "uploadedCommonStudentMeetings",
+          "manualCommonStudentMeetings",
+          "commonStudentMeetingsSum",
+          "uploadedCommonLiteratureDistribution",
+          "manualCommonLiteratureDistribution",
+          "commonLiteratureDistributionSum",
+        ],
+        otherActivityId: [
+          "anyOther",
+          "shabBedari",
+          "nizamSalah",
+          "hadithCircle",
+          "rawabitParties",
+          "dawatiWafud",
+        ],
+        collegesId: ["collegesA", "collegesB", "collegesC", "collegesD"],
+        jamiaatId: ["jamiaatA", "jamiaatB", "jamiaatC", "jamiaatD", "jamiaatE"],
+      };
+
+      const returnData = (arr, key) => {
+        const rs = {};
+        arr?.forEach((element) => {
+          if (element === "registered") {
+            if (key === "tdId" || key === "muntakhibTdId") {
+              rs[element] = dataToUpdate["registeredTosee"] ? true : false;
+            }
+            if (key === "wiId") {
+              rs[element] = dataToUpdate["registeredWorker"] ? true : false;
+            }
+          } else if (
+            element === "umeedWaran" ||
+            element === "rafaqa" ||
+            element === "karkunan" ||
+            element === "shaheen" ||
+            element === "members" ||
+            element === "ijtArkan" ||
+            element === "studyCircle" ||
+            element === "ijtNazmeen" ||
+            element === "sadurMeeting" ||
+            element === "ijtUmeedWaran" ||
+            element === "ijtRafaqa" ||
+            element === "ijtKarkunan" ||
+            element === "darseQuran" ||
+            element === "shaheenMeeting" ||
+            element === "paighamEvent"
+          ) {
+            if (
+              dataToUpdate[element] &&
+              dataToUpdate[element].hasOwnProperty("registered")
+            ) {
+              rs[element] = { ...dataToUpdate[element], registered: true };
+            } else {
+              rs[element] = { ...dataToUpdate[element], registered: false };
+            }
+          } else if (element === "literatureDistribution") {
+            rs[element] = req?.body?.litrature;
+          } else {
+            rs[element] = dataToUpdate[element];
+          }
+        });
+
+        return rs;
+      };
+      const returnModel = (i) => {
+        switch (i) {
+          case "maqamTanzeemId":
+            return MaqamTanzeemModel;
+          case "wiId":
+            return WorkerInfoModel;
+          case "maqamActivityId":
+            return MaqamActivitiesModel;
+          case "mentionedActivityId":
+            return MentionedActivitiesModel;
+          case "maqamDivisionLibId":
+            return MaqamDivisionLibraryModel;
+          case "paighamDigestId":
+            return PaighamDigestModel;
+          case "rsdId":
+            return RozShabBedariModel;
+          case "tdId":
+            return ToseeDawatModel;
+          case "muntakhibTdId":
+            return MuntakhibTdModel;
+          case "otherActivityId":
+            return OtherActivitiesModel;
+          case "jamiaatId":
+            return JamiaatModel;
+          case "collegesId":
+            return CollegesModel;
+          default:
+            return null;
+        }
+      };
+      for (let i = 0; i < refsToUpdate.length; i++) {
+        await returnModel(refsToUpdate[i]).updateOne(
+          { _id: isExist?.[refsToUpdate[i]] },
+          { $set: returnData(obj[refsToUpdate[i]], refsToUpdate[i]) }
+        );
+      }
+      // update studyCircle of maqam
+      await MentionedActivitiesModel.findOneAndUpdate(
+        {
+          _id: mentionedActivity,
+        },
+        {
+          $set: {
+            studyCircle: dataToUpdate?.studyCircleMentioned,
+          },
+        }
+      );
+
+      // Update the DivisionReportModel
+      const updatedMaqamReport = await MaqamReportModel.updateOne(
+        { _id },
+        { $set: dataToUpdate }
+      );
+
+      if (updatedMaqamReport?.modifiedCount > 0) {
+        return this.sendResponse(req, res, {
+          message: "Report updated successfully",
+        });
+      }
+      if (updated?.modifiedCount > 0) {
+        return this.sendResponse(req, res, {
+          message: "Report updated",
+        });
+      }
+      return this.sendResponse(req, res, {
+        message: "Nothing to update",
+        status: 500,
       });
     } catch (err) {
       console.log(err);
@@ -531,289 +811,6 @@ class MaqamReport extends Response {
         { path: "jamiaatId" },
       ]);
       return this.sendResponse(req, res, { data: reports });
-    } catch (err) {
-      console.log(err);
-      return this.sendResponse(req, res, {
-        message: "Internal Server Error",
-        status: 500,
-      });
-    }
-  };
-
-  editReport = async (req, res) => {
-    try {
-      const token = req.headers.authorization;
-      const _id = req.params.id;
-      if (!token) {
-        return this.sendResponse(req, res, {
-          message: "Access Denied",
-          status: 401,
-        });
-      }
-      if (!_id) {
-        return this.sendResponse(req, res, {
-          message: "Id is required",
-          status: 404,
-        });
-      }
-      const decoded = decode(token.split(" ")[1]);
-      const userId = decoded?.id;
-      const isUser = await UserModel.findOne({ _id: userId });
-      let isMuntakhib;
-      if (isUser) {
-        const isIlaqa = await IlaqaModel.find({ maqam: isUser?.userAreaId });
-        if (isIlaqa.length > 0) {
-          isMuntakhib = true;
-        }
-      }
-      const dataToUpdate = req.body;
-      if (isDataComplete(dataToUpdate) == false) {
-        return this.sendResponse(req, res, {
-          message: "All fields are required",
-          status: 400,
-        });
-      }
-      const isExist = await MaqamReportModel.findOne({ _id });
-      if (!isExist) {
-        return this.sendResponse(req, res, {
-          message: "Report not found",
-          status: 404,
-        });
-      }
-      const mentionedActivity = isExist?.mentionedActivityId;
-      if (isExist?.userId.toString() !== userId) {
-        return this.sendResponse(req, res, {
-          message: "Access Denied",
-          status: 401,
-        });
-      }
-      const startDate = new Date(isExist?.createdAt);
-      const currentDate = new Date();
-      const difference = currentDate - startDate;
-      const millisecondsPerDay = 1000 * 60 * 60 * 24;
-      const daysDifference = Math.floor(difference / millisecondsPerDay);
-      if (daysDifference >= 5) {
-        return this.sendResponse(req, res, {
-          message: "Cannot update after 5 days",
-          status: 400,
-        });
-      }
-
-      // Update referenced models
-      const refsToUpdate = [
-        "maqamTanzeemId",
-        "wiId",
-        "maqamActivityId",
-        "mentionedActivityId",
-        "otherActivityId",
-        isMuntakhib ? "muntakhibTdId" : "tdId",
-        "maqamDivisionLibId",
-        "paighamDigestId",
-        "rsdId",
-        "collegesId",
-        "jamiaatId",
-      ];
-
-      const obj = {
-        maqamTanzeemId: [
-          "rehaishHalqay",
-          "taleemHalqay",
-          "totalHalqay",
-          "subRehaishHalqay",
-          "subTaleemHalqay",
-          "subTotalHalqay",
-          "busmSchoolUnits",
-          "busmRehaishUnits",
-          "busmTotalUnits",
-        ],
-        wiId: [
-          "arkan",
-          "umeedWaran",
-          "rafaqa",
-          "karkunan",
-          "shaheen",
-          "members",
-        ],
-        maqamActivityId: [
-          "ijtArkan",
-          "ijtNazmeen",
-          "ijtUmeedwaran",
-          "sadurMeeting",
-          "studyCircle",
-        ],
-        mentionedActivityId: [
-          "ijtRafaqa",
-          "ijtKarkunan",
-          "darseQuran",
-          "shaheenMeeting",
-          "paighamEvent",
-        ],
-        maqamDivisionLibId: [
-          "totalLibraries",
-          "totalBooks",
-          "totalIncrease",
-          "totalDecrease",
-          "totalBookRent",
-        ],
-        paighamDigestId: ["totalReceived", "totalSold", "monthlyReceivingGoal"],
-        rsdId: ["umeedwaranFilled", "rafaqaFilled", "manualUmeedwaran"],
-        tdId: [
-          "rawabitDecided",
-          "literatureDistribution",
-          "meetings",
-          "meetingsManual",
-          "meetingsSum",
-          "current",
-          "currentManual",
-          "currentSum",
-          "commonStudentMeetings",
-          "commonLiteratureDistribution",
-          "rwabitMeetingsGoal",
-        ],
-        muntakhibTdId: [
-          "rawabitDecided",
-          "uploadedCurrent",
-          "manualCurrent",
-          "currentSum",
-          "rwabitMeetingsGoal",
-          "uploadedMeetings",
-          "manualMeetings",
-          "meetingsSum",
-          "uploadedLitrature",
-          "manualLitrature",
-          "literatureSum",
-          "uploadedCommonStudentMeetings",
-          "manualCommonStudentMeetings",
-          "commonStudentMeetingsSum",
-          "uploadedCommonLiteratureDistribution",
-          "manualCommonLiteratureDistribution",
-          "commonLiteratureDistributionSum",
-        ],
-        otherActivityId: [
-          "anyOther",
-          "shabBedari",
-          "nizamSalah",
-          "hadithCircle",
-          "rawabitParties",
-          "dawatiWafud",
-        ],
-        collegesId: ["collegesA", "collegesB", "collegesC", "collegesD"],
-        jamiaatId: ["jamiaatA", "jamiaatB", "jamiaatC", "jamiaatD", "jamiaatE"],
-      };
-
-      const returnData = (arr, key) => {
-        const rs = {};
-        arr?.forEach((element) => {
-          if (element === "registered") {
-            if (key === "tdId") {
-              console.log(rs[element]);
-              rs[element] = dataToUpdate["registeredTosee"] ? true : false;
-            }
-            if (key === "wiId") {
-              rs[element] = dataToUpdate["registeredWorker"] ? true : false;
-            }
-          } else if (
-            element === "umeedWaran" ||
-            element === "rafaqa" ||
-            element === "karkunan" ||
-            element === "shaheen" ||
-            element === "members" ||
-            element === "ijtArkan" ||
-            element === "studyCircle" ||
-            element === "ijtNazmeen" ||
-            element === "sadurMeeting" ||
-            element === "ijtUmeedWaran" ||
-            element === "ijtRafaqa" ||
-            element === "ijtKarkunan" ||
-            element === "darseQuran" ||
-            element === "shaheenMeeting" ||
-            element === "paighamEvent"
-          ) {
-            if (
-              dataToUpdate[element] &&
-              dataToUpdate[element].hasOwnProperty("registered")
-            ) {
-              rs[element] = { ...dataToUpdate[element], registered: true };
-            } else {
-              rs[element] = { ...dataToUpdate[element], registered: false };
-            }
-          } else if (element === "literatureDistribution") {
-            rs[element] = req?.body?.litrature;
-          } else {
-            rs[element] = dataToUpdate[element];
-          }
-        });
-
-        return rs;
-      };
-      const returnModel = (i) => {
-        switch (i) {
-          case "maqamTanzeemId":
-            return MaqamTanzeemModel;
-          case "wiId":
-            return WorkerInfoModel;
-          case "maqamActivityId":
-            return MaqamActivitiesModel;
-          case "mentionedActivityId":
-            return MentionedActivitiesModel;
-          case "maqamDivisionLibId":
-            return MaqamDivisionLibraryModel;
-          case "paighamDigestId":
-            return PaighamDigestModel;
-          case "rsdId":
-            return RozShabBedariModel;
-          case "tdId":
-            return ToseeDawatModel;
-          case "muntakhibTdId":
-            return MuntakhibTdModel;
-          case "otherActivityId":
-            return OtherActivitiesModel;
-          case "jamiaatId":
-            return JamiaatModel;
-          case "collegesId":
-            return CollegesModel;
-          default:
-            return null;
-        }
-      };
-      for (let i = 0; i < refsToUpdate.length; i++) {
-        await returnModel(refsToUpdate[i]).updateOne(
-          { _id: isExist?.[refsToUpdate[i]] },
-          { $set: returnData(obj[refsToUpdate[i]], refsToUpdate[i]) }
-        );
-      }
-      // update studyCircle of maqam
-      await MentionedActivitiesModel.findOneAndUpdate(
-        {
-          _id: mentionedActivity,
-        },
-        {
-          $set: {
-            studyCircle: dataToUpdate?.studyCircleMentioned,
-          },
-        }
-      );
-
-      // Update the DivisionReportModel
-      const updatedMaqamReport = await MaqamReportModel.updateOne(
-        { _id },
-        { $set: dataToUpdate }
-      );
-
-      if (updatedMaqamReport?.modifiedCount > 0) {
-        return this.sendResponse(req, res, {
-          message: "Report updated successfully",
-        });
-      }
-      if (updated?.modifiedCount > 0) {
-        return this.sendResponse(req, res, {
-          message: "Report updated",
-        });
-      }
-      return this.sendResponse(req, res, {
-        message: "Nothing to update",
-        status: 500,
-      });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
