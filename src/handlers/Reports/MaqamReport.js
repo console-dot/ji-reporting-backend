@@ -182,6 +182,8 @@ class MaqamReport extends Response {
         manualUmeedwaran,
         umeedwaranFilledSum,
         rafaqaFilled,
+        rafaqaFilledSum,
+        manualRafaqaFilled,
         jamiaatA,
         jamiaatB,
         jamiaatC,
@@ -348,11 +350,19 @@ class MaqamReport extends Response {
         totalSold,
         monthlyReceivingGoal,
       });
+      console.log("umeedwaranFilled",umeedwaranFilled,
+        "manualUmeedwaran",manualUmeedwaran,
+        "umeedwaranFilledSum",umeedwaranFilledSum,
+        "rafaqaFilled",rafaqaFilled,
+        "manualRafaqaFilled",rafaqaFilled,
+        "rafaqaFilledSum",rafaqaFilledSum)
       const newRsd = new RozShabBedariModel({
         umeedwaranFilled,
         manualUmeedwaran,
         umeedwaranFilledSum,
         rafaqaFilled,
+        manualRafaqaFilled,
+        rafaqaFilledSum
       });
       const wi = await newWI.save();
       const maqamActivity = await newMaqamActivity.save();
@@ -540,7 +550,7 @@ class MaqamReport extends Response {
           "totalBookRent",
         ],
         paighamDigestId: ["totalReceived", "totalSold", "monthlyReceivingGoal"],
-        rsdId: ["umeedwaranFilled", "rafaqaFilled", "manualUmeedwaran"],
+        rsdId: ["umeedwaranFilled", "rafaqaFilled", "manualUmeedwaran","umeedwaranFilledSum","manualRafaqaFilled","rafaqaFilledSum"],
         tdId: [
           "rawabitDecided",
           "literatureDistribution",
