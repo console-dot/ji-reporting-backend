@@ -10,6 +10,8 @@ const {
   MaqamDivisionLibraryModel,
   PaighamDigestModel,
   RozShabBedariModel,
+  IlaqaDigestModel,
+  MuntakhibTdModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -52,26 +54,40 @@ const isDataComplete = (dataToUpdate) => {
     "rawabitDecided",
     "uploadedCurrent",
     "manualCurrent",
+    "currentSum",
     "rwabitMeetingsGoal",
     "uploadedMeetings",
     "manualMeetings",
+    "meetingsSum",
     "uploadedLitrature",
     "manualLitrature",
+    "literatureSum",
     "uploadedCommonStudentMeetings",
     "manualCommonStudentMeetings",
+    "commonStudentMeetingsSum",
     "uploadedCommonLiteratureDistribution",
     "manualCommonLiteratureDistribution",
+    "commonLiteratureDistributionSum",
     "totalLibraries",
     "totalBooks",
     "totalIncrease",
     "totalDecrease",
     "totalBookRent",
     "totalReceived",
+    "manualReceived",
+    "receivedSum",
     "totalSold",
+    "manualSold",
+    "soldSum",
+    "monthlyReceivingGoal",
+    "manualMonthlyReceivingGoal",
+    "monthlyReceivingGoalSum",
     "uploadedUmeedwaran",
     "manualUmeedwaran",
-    "manualRafaqa",
+    "umeedwaranFilledSum",
+    "manualRafaqaFilled",
     "uploadedRafaqa",
+    "rafaqaFilledSum",
   ];
 
   const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));
@@ -138,23 +154,35 @@ class IlaqaReport extends Response {
         rawabitDecided,
         uploadedCurrent,
         manualCurrent,
+        currentSum,
         rwabitMeetingsGoal,
         uploadedMeetings,
         manualMeetings,
+        meetingsSum,
         uploadedLitrature,
         manualLitrature,
+        literatureSum,
         uploadedCommonStudentMeetings,
         manualCommonStudentMeetings,
+        commonStudentMeetingsSum,
         uploadedCommonLiteratureDistribution,
         manualCommonLiteratureDistribution,
-        totalHalqaReceived,
-        totalZeliHalqaReceived,
-        totalHalqaSold,
-        totalZeliHalqaSold,
+        commonLiteratureDistributionSum,
+        totalReceived,
+        manualReceived,
+        receivedSum,
+        totalSold,
+        manualSold,
+        soldSum,
+        monthlyReceivingGoal,
+        manualMonthlyReceivingGoal,
+        monthlyReceivingGoalSum,
         uploadedUmeedwaran,
         manualUmeedwaran,
-        manualRafaqa,
+        umeedwaranFilledSum,
         uploadedRafaqa,
+        manualRafaqaFilled,
+        rafaqaFilledSum,
         totalLibraries,
         totalBooks,
         totalIncrease,
@@ -222,7 +250,6 @@ class IlaqaReport extends Response {
         busmRehaishUnits,
         busmTotalUnits,
       });
-
       const newMentionedActivity = new MentionedActivitiesModel({
         ijtRafaqa,
         studyCircle: studyCircleMentioned,
@@ -232,26 +259,30 @@ class IlaqaReport extends Response {
         paighamEvent,
       });
       const newOtherActivity = new OtherActivitiesModel({
-        tarbiyatGaah,
         dawatiWafud,
         rawabitParties,
         nizamSalah,
         shabBedari,
         anyOther,
       });
-      const newTd = new ToseeDawatModel({
+      const newTd = new MuntakhibTdModel({
         rawabitDecided,
         uploadedCurrent,
         manualCurrent,
+        currentSum,
         rwabitMeetingsGoal,
         uploadedMeetings,
         manualMeetings,
+        meetingsSum,
         uploadedLitrature,
         manualLitrature,
+        literatureSum,
         uploadedCommonStudentMeetings,
         manualCommonStudentMeetings,
+        commonStudentMeetingsSum,
         uploadedCommonLiteratureDistribution,
         manualCommonLiteratureDistribution,
+        commonLiteratureDistributionSum,
       });
       const newMaqamDivisionLib = new MaqamDivisionLibraryModel({
         totalLibraries,
@@ -260,17 +291,33 @@ class IlaqaReport extends Response {
         totalDecrease,
         totalBookRent,
       });
-      const newPaighamDigest = new PaighamDigestModel({
-        totalHalqaReceived,
-        totalZeliHalqaReceived,
-        totalHalqaSold,
-        totalZeliHalqaSold,
+
+      const newPaighamDigest = new IlaqaDigestModel({
+        totalReceived,
+        manualReceived,
+        receivedSum,
+        totalSold,
+        manualSold,
+        soldSum,
+        monthlyReceivingGoal,
+        manualMonthlyReceivingGoal,
+        monthlyReceivingGoalSum,
       });
+      console.log(
+        uploadedUmeedwaran,
+        manualUmeedwaran,
+        umeedwaranFilledSum,
+        manualRafaqaFilled,
+        uploadedRafaqa,
+        rafaqaFilledSum
+      );
       const newRsd = new RozShabBedariModel({
         uploadedUmeedwaran,
         manualUmeedwaran,
-        manualRafaqa,
+        umeedwaranFilledSum,
+        manualRafaqaFilled,
         uploadedRafaqa,
+        rafaqaFilledSum,
       });
       const wi = await newWI.save();
       const maqamActivity = await newMaqamActivity.save();
@@ -414,6 +461,14 @@ class IlaqaReport extends Response {
           status: 401,
         });
       }
+      const {
+        uploadedUmeedwaran,
+        manualUmeedwaran,
+        umeedwaranFilledSum,
+        manualRafaqaFilled,
+        uploadedRafaqa,
+        rafaqaFilledSum,
+      } = req.body;
       if (!_id) {
         return this.sendResponse(req, res, {
           message: "Id is required",
@@ -437,6 +492,7 @@ class IlaqaReport extends Response {
         });
       }
       const mentionedActivity = isExist?.mentionedActivityId;
+      const rsdId = isExist?.rsdId;
       if (isExist?.userId.toString() !== userId) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
@@ -465,7 +521,6 @@ class IlaqaReport extends Response {
         "tdId",
         "maqamDivisionLibId",
         "paighamDigestId",
-        "rsdId",
       ];
 
       const obj = {
@@ -510,30 +565,34 @@ class IlaqaReport extends Response {
           "totalBookRent",
         ],
         paighamDigestId: [
-          "totalHalqaReceived",
-          "totalZeliHalqaReceived",
-          "totalHalqaSold",
-          "totalZeliHalqaSold",
-        ],
-        rsdId: [
-          "manualUmeedwaran",
-          "uploadedUmeedwaran",
-          "uploadedRafaqa",
-          "manualRafaqa",
+          "totalReceived",
+          "manualReceived",
+          "receivedSum",
+          "totalSold",
+          "manualSold",
+          "soldSum",
+          "monthlyReceivingGoal",
+          "manualMonthlyReceivingGoal",
+          "monthlyReceivingGoalSum",
         ],
         tdId: [
           "rawabitDecided",
           "uploadedCurrent",
           "manualCurrent",
+          "currentSum",
           "rwabitMeetingsGoal",
           "uploadedMeetings",
           "manualMeetings",
+          "meetingsSum",
           "uploadedLitrature",
           "manualLitrature",
+          "literatureSum",
           "uploadedCommonStudentMeetings",
           "manualCommonStudentMeetings",
+          "commonStudentMeetingsSum",
           "uploadedCommonLiteratureDistribution",
           "manualCommonLiteratureDistribution",
+          "commonLiteratureDistributionSum",
           "registered",
         ],
         otherActivityId: [
@@ -543,7 +602,6 @@ class IlaqaReport extends Response {
           "hadithCircle",
           "rawabitParties",
           "dawatiWafud",
-          "tarbiyatGaah",
         ],
       };
 
@@ -602,11 +660,11 @@ class IlaqaReport extends Response {
           case "maqamDivisionLibId":
             return MaqamDivisionLibraryModel;
           case "paighamDigestId":
-            return PaighamDigestModel;
+            return IlaqaDigestModel;
           case "rsdId":
             return RozShabBedariModel;
           case "tdId":
-            return ToseeDawatModel;
+            return MuntakhibTdModel;
           case "otherActivityId":
             return OtherActivitiesModel;
           default:
@@ -619,7 +677,7 @@ class IlaqaReport extends Response {
           { $set: returnData(obj[refsToUpdate[i]], refsToUpdate[i]) }
         );
       }
-      // update studyCircle of maqam
+      // update studyCircle of ilaqa
       await MentionedActivitiesModel.findOneAndUpdate(
         {
           _id: mentionedActivity,
@@ -630,14 +688,30 @@ class IlaqaReport extends Response {
           },
         }
       );
+      // update RsdId of ilaqa
+      await RozShabBedariModel.findOneAndUpdate(
+        {
+          _id: rsdId,
+        },
+        {
+          $set: {
+            umeedwaranFilled: uploadedUmeedwaran,
+            manualUmeedwaran: manualUmeedwaran,
+            umeedwaranFilledSum: umeedwaranFilledSum,
+            rafaqaFilled: uploadedRafaqa,
+            manualRafaqaFilled: manualRafaqaFilled,
+            rafaqaFilledSum: rafaqaFilledSum,
+          },
+        }
+      );
 
       // Update the DivisionReportModel
-      const updatedMaqamReport = await IlaqaReportModel.updateOne(
+      const ilaqaReportModel = await IlaqaReportModel.updateOne(
         { _id },
         { $set: dataToUpdate }
       );
 
-      if (updatedMaqamReport?.modifiedCount > 0) {
+      if (ilaqaReportModel?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
           message: "Report updated successfully",
         });

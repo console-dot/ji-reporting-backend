@@ -48,7 +48,7 @@ const ilaqaReportModel = mongoose.Schema(
     tdId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: "ToseeDawat",
+      ref: "MuntakhibMaqamTd",
     },
     maqamDivisionLibId: {
       type: mongoose.Types.ObjectId,
@@ -58,7 +58,7 @@ const ilaqaReportModel = mongoose.Schema(
     paighamDigestId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: "PaighamDigest",
+      ref: "IlaqaDigest",
     },
     rsdId: {
       type: mongoose.Types.ObjectId,

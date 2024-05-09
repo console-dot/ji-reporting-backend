@@ -58,7 +58,7 @@ const muntakhibMaqamReportModel = mongoose.Schema(
     tdId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: "MaqamDivToseeDawat",
+      ref: "MuntakhibMaqamTd",
     },
     maqamDivisionLibId: {
       type: mongoose.Types.ObjectId,
