@@ -12,10 +12,11 @@ const {
   RozShabBedariModel,
   JamiaatModel,
   CollegesModel,
+  MuntakhibTdModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
-const { UserModel, MaqamModel } = require("../../model");
+const { UserModel, MaqamModel, IlaqaModel } = require("../../model");
 
 const isDataComplete = (dataToUpdate) => {
   const requiredKeys = [
@@ -53,12 +54,6 @@ const isDataComplete = (dataToUpdate) => {
     "shabBedari",
     "anyOther",
     "rawabitDecided",
-    "current",
-    "meetings",
-    "litrature",
-    "commonStudentMeetings",
-    "monthlyReceivingGoal",
-    "manualUmeedwaran",
     "jamiaatA",
     "jamiaatB",
     "jamiaatC",
@@ -75,8 +70,6 @@ const isDataComplete = (dataToUpdate) => {
     "totalBookRent",
     "totalReceived",
     "totalSold",
-    "umeedwaranFilled",
-    "rafaqaFilled",
     "jamiaatA",
     "jamiaatB",
     "jamiaatC",
@@ -89,7 +82,6 @@ const isDataComplete = (dataToUpdate) => {
   ];
 
   const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));
-
   if (missingKeys.length > 0) {
     console.log("Missing keys:", missingKeys.join(", "));
     return false;
@@ -162,6 +154,13 @@ class MaqamReport extends Response {
         commonLiteratureDistribution,
         registeredTosee,
         commonStudentMeetings,
+        literatureSum,
+        uploadedCommonStudentMeetings,
+        manualCommonStudentMeetings,
+        commonStudentMeetingsSum,
+        uploadedCommonLiteratureDistribution,
+        manualCommonLiteratureDistribution,
+        commonLiteratureDistributionSum,
         totalLibraries,
         totalBooks,
         totalIncrease,
@@ -182,8 +181,14 @@ class MaqamReport extends Response {
         collegesB,
         collegesC,
         collegesD,
-        rwabitMeetingsGoal,
         monthlyReceivingGoal,
+        uploadedCurrent,
+        manualCurrent,
+        rwabitMeetingsGoal,
+        uploadedMeetings,
+        manualMeetings,
+        uploadedLitrature,
+        manualLitrature,
       } = req.body;
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
@@ -203,6 +208,14 @@ class MaqamReport extends Response {
         },
         userId,
       });
+      const isUser = await UserModel.findOne({ _id: userId });
+      let isMuntakhib;
+      if (isUser) {
+        const isIlaqa = await IlaqaModel.find({ maqam: isUser?.userAreaId });
+        if (isIlaqa.length > 0) {
+          isMuntakhib = true;
+        }
+      }
       const reports = await MaqamReportModel.findOne({ month: req.body.month });
       if (reports) {
         return this.sendResponse(req, res, {
@@ -292,33 +305,46 @@ class MaqamReport extends Response {
         shabBedari,
         anyOther,
       });
-      console.log(
-        rawabitDecided,
-        litrature,
-        meetings,
-        meetingsManual,
-        meetingsSum,
-        current,
-        currentManual,
-        currentSum,
-        commonStudentMeetings,
-        commonLiteratureDistribution,
-        rwabitMeetingsGoal
-      );
-      const newTd = new ToseeDawatModel({
-        rawabitDecided,
-        literatureDistribution: litrature,
-        meetings,
-        meetingsManual,
-        meetingsSum,
-        current,
-        currentManual,
-        currentSum,
-        registered: registeredTosee ? true : false,
-        commonStudentMeetings,
-        commonLiteratureDistribution,
-        rwabitMeetingsGoal,
-      });
+      let newTd;
+      console.log(isMuntakhib);
+      if (isMuntakhib) {
+        console.log("is in muntakhib");
+        newTd = new MuntakhibTdModel({
+          rawabitDecided,
+          uploadedCurrent,
+          manualCurrent,
+          currentSum,
+          rwabitMeetingsGoal,
+          uploadedMeetings,
+          manualMeetings,
+          meetingsSum,
+          uploadedLitrature,
+          manualLitrature,
+          literatureSum,
+          uploadedCommonStudentMeetings,
+          manualCommonStudentMeetings,
+          commonStudentMeetingsSum,
+          uploadedCommonLiteratureDistribution,
+          manualCommonLiteratureDistribution,
+          commonLiteratureDistributionSum,
+        });
+      } else {
+        console.log("is in ghair");
+        newTd = new ToseeDawatModel({
+          rawabitDecided,
+          literatureDistribution: litrature,
+          meetings,
+          meetingsManual,
+          meetingsSum,
+          current,
+          currentManual,
+          currentSum,
+          registered: registeredTosee ? true : false,
+          commonStudentMeetings,
+          commonLiteratureDistribution,
+          rwabitMeetingsGoal,
+        });
+      }
       const newMaqamDivisionLib = new MaqamDivisionLibraryModel({
         totalLibraries,
         totalBooks,
@@ -348,23 +374,44 @@ class MaqamReport extends Response {
       const rsd = await newRsd.save();
       const clg = await newColleges.save();
       const jami = await newJamiaat.save();
-      const newMaqamReport = new MaqamReportModel({
-        month,
-        comments,
-        userId,
-        maqamAreaId: user?.userAreaId,
-        maqamTanzeemId: maqamTanzeem?._id,
-        wiId: wi._id,
-        maqamActivityId: maqamActivity._id,
-        mentionedActivityId: mentionedActivity._id,
-        otherActivityId: otherActivity._id,
-        tdId: td._id,
-        maqamDivisionLibId: maqamDivisionLib?._id,
-        paighamDigestId: paighamDigest?._id,
-        rsdId: rsd._id,
-        jamiaatId: jami?._id,
-        collegesId: clg?._id,
-      });
+      let newMaqamReport;
+      if (isMuntakhib) {
+        newMaqamReport = new MaqamReportModel({
+          month,
+          comments,
+          userId,
+          maqamAreaId: user?.userAreaId,
+          maqamTanzeemId: maqamTanzeem?._id,
+          wiId: wi._id,
+          maqamActivityId: maqamActivity._id,
+          mentionedActivityId: mentionedActivity._id,
+          otherActivityId: otherActivity._id,
+          muntakhibTdId: td._id,
+          maqamDivisionLibId: maqamDivisionLib?._id,
+          paighamDigestId: paighamDigest?._id,
+          rsdId: rsd._id,
+          jamiaatId: jami?._id,
+          collegesId: clg?._id,
+        });
+      } else {
+        newMaqamReport = new MaqamReportModel({
+          month,
+          comments,
+          userId,
+          maqamAreaId: user?.userAreaId,
+          maqamTanzeemId: maqamTanzeem?._id,
+          wiId: wi._id,
+          maqamActivityId: maqamActivity._id,
+          mentionedActivityId: mentionedActivity._id,
+          otherActivityId: otherActivity._id,
+          tdId: td._id,
+          maqamDivisionLibId: maqamDivisionLib?._id,
+          paighamDigestId: paighamDigest?._id,
+          rsdId: rsd._id,
+          jamiaatId: jami?._id,
+          collegesId: clg?._id,
+        });
+      }
       await newMaqamReport.save();
       return this.sendResponse(req, res, {
         message: "Maqam Report Added",
@@ -406,6 +453,7 @@ class MaqamReport extends Response {
           { path: "mentionedActivityId" },
           { path: "otherActivityId" },
           { path: "tdId" },
+          { path: "muntakhibTdId" },
           { path: "maqamDivisionLibId" },
           { path: "paighamDigestId" },
           { path: "rsdId" },
@@ -510,6 +558,14 @@ class MaqamReport extends Response {
       }
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
+      const isUser = await UserModel.findOne({ _id: userId });
+      let isMuntakhib;
+      if (isUser) {
+        const isIlaqa = await IlaqaModel.find({ maqam: isUser?.userAreaId });
+        if (isIlaqa.length > 0) {
+          isMuntakhib = true;
+        }
+      }
       const dataToUpdate = req.body;
       if (isDataComplete(dataToUpdate) == false) {
         return this.sendResponse(req, res, {
@@ -550,7 +606,7 @@ class MaqamReport extends Response {
         "maqamActivityId",
         "mentionedActivityId",
         "otherActivityId",
-        "tdId",
+        isMuntakhib ? "muntakhibTdId" : "tdId",
         "maqamDivisionLibId",
         "paighamDigestId",
         "rsdId",
@@ -613,6 +669,25 @@ class MaqamReport extends Response {
           "commonStudentMeetings",
           "commonLiteratureDistribution",
           "rwabitMeetingsGoal",
+        ],
+        muntakhibTdId: [
+          "rawabitDecided",
+          "uploadedCurrent",
+          "manualCurrent",
+          "currentSum",
+          "rwabitMeetingsGoal",
+          "uploadedMeetings",
+          "manualMeetings",
+          "meetingsSum",
+          "uploadedLitrature",
+          "manualLitrature",
+          "literatureSum",
+          "uploadedCommonStudentMeetings",
+          "manualCommonStudentMeetings",
+          "commonStudentMeetingsSum",
+          "uploadedCommonLiteratureDistribution",
+          "manualCommonLiteratureDistribution",
+          "commonLiteratureDistributionSum",
         ],
         otherActivityId: [
           "anyOther",
@@ -689,6 +764,8 @@ class MaqamReport extends Response {
             return RozShabBedariModel;
           case "tdId":
             return ToseeDawatModel;
+          case "muntakhibTdId":
+            return MuntakhibTdModel;
           case "otherActivityId":
             return OtherActivitiesModel;
           case "jamiaatId":

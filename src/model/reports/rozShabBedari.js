@@ -1,10 +1,13 @@
 const mongoose = require("mongoose");
 
 const rozShabBedariModel = mongoose.Schema({
-  manualUmeedwaran: Number,
   umeedwaranFilled: Number,
-  rafaqaFilled: Number,
+  manualUmeedwaran: Number,
   umeedwaranFilledSum: Number,
+  rafaqaFilled: Number,
+  // only for the ilaqa reprt 
+  manualRafaqaFilled: Number,
+  rafaqaFilledSum: Number,
 });
 
 const RozShabBedariModel = mongoose.model("RozShabBedari", rozShabBedariModel);
