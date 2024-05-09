@@ -10,7 +10,9 @@ const {
   MaqamDivisionLibraryModel,
   PaighamDigestModel,
   RozShabBedariModel,
-  MaqamReportModel,
+  JamiaatModel,
+  CollegesModel,
+  MaqamActivitiesModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -52,7 +54,7 @@ const isDataComplete = ({
   rawabitDecided,
   current,
   meetings,
-  literatureDistribution,
+  litrature,
   commonStudentMeetings,
   commonLiteratureDistribution,
   totalLibraries,
@@ -66,53 +68,53 @@ const isDataComplete = ({
   rafaqaFilled,
 }) => {
   if (
-    !month ||
+    (month,
     !comments ||
-    !arkan ||
-    !umeedWaran ||
-    !rafaqa ||
-    !karkunan ||
-    !shaheen ||
-    !members ||
-    !studyCircle ||
-    !ijtNazmeen ||
-    !ijtUmeedwaran ||
-    !sadurMeeting ||
-    !rehaishHalqay ||
-    !taleemHalqay ||
-    !totalHalqay ||
-    !subRehaishHalqay ||
-    !subTaleemHalqay ||
-    !subTotalHalqay ||
-    !busmSchoolUnits ||
-    !busmRehaishUnits ||
-    !busmTotalUnits ||
-    !ijtRafaqa ||
-    !studyCircleMentioned ||
-    !ijtKarkunan ||
-    !darseQuran ||
-    !shaheenMeeting ||
-    !paighamEvent ||
-    !dawatiWafud ||
-    !rawabitParties ||
-    !nizamSalah ||
-    !shabBedari ||
-    !anyOther ||
-    !rawabitDecided ||
-    !current ||
-    !meetings ||
-    !literatureDistribution ||
-    !commonStudentMeetings ||
-    !commonLiteratureDistribution ||
-    !totalLibraries ||
-    !totalBooks ||
-    !totalIncrease ||
-    !totalDecrease ||
-    !totalBookRent ||
-    !totalReceived ||
-    !totalSold ||
-    !umeedwaranFilled ||
-    !rafaqaFilled
+      !arkan ||
+      !umeedWaran ||
+      !rafaqa ||
+      !karkunan ||
+      !shaheen ||
+      !members ||
+      !studyCircle ||
+      !ijtNazmeen ||
+      !ijtUmeedwaran ||
+      !sadurMeeting ||
+      !rehaishHalqay ||
+      !taleemHalqay ||
+      !totalHalqay ||
+      !subRehaishHalqay ||
+      !subTaleemHalqay ||
+      !subTotalHalqay ||
+      !busmSchoolUnits ||
+      !busmRehaishUnits ||
+      !busmTotalUnits ||
+      !ijtRafaqa ||
+      !studyCircleMentioned ||
+      !ijtKarkunan ||
+      !darseQuran ||
+      !shaheenMeeting ||
+      !paighamEvent ||
+      !dawatiWafud ||
+      !rawabitParties ||
+      !nizamSalah ||
+      !shabBedari ||
+      !anyOther ||
+      !rawabitDecided ||
+      !current ||
+      !meetings ||
+      !litrature ||
+      !commonStudentMeetings ||
+      !commonLiteratureDistribution ||
+      !totalLibraries ||
+      !totalBooks ||
+      !totalIncrease ||
+      !totalDecrease ||
+      !totalBookRent ||
+      !totalReceived ||
+      !totalSold ||
+      !umeedwaranFilled ||
+      !rafaqaFilled)
   ) {
     return false;
   }
@@ -138,7 +140,6 @@ class DivisionReport extends Response {
           status: 401,
         });
       }
-
       const {
         month,
         comments,
@@ -148,7 +149,7 @@ class DivisionReport extends Response {
         karkunan,
         shaheen,
         members,
-        registeredWorker,
+        ijtArkan,
         studyCircle,
         ijtNazmeen,
         ijtUmeedwaran,
@@ -175,11 +176,22 @@ class DivisionReport extends Response {
         anyOther,
         rawabitDecided,
         current,
+        currentSum,
+        currentManual,
         meetings,
-        literatureDistribution,
+        meetingsManual,
+        meetingsSum,
+        litrature,
+        commonLiteratureDistribution,
         registeredTosee,
         commonStudentMeetings,
-        commonLiteratureDistribution,
+        literatureSum,
+        uploadedCommonStudentMeetings,
+        manualCommonStudentMeetings,
+        commonStudentMeetingsSum,
+        uploadedCommonLiteratureDistribution,
+        manualCommonLiteratureDistribution,
+        commonLiteratureDistributionSum,
         totalLibraries,
         totalBooks,
         totalIncrease,
@@ -188,9 +200,28 @@ class DivisionReport extends Response {
         totalReceived,
         totalSold,
         umeedwaranFilled,
+        manualUmeedwaran,
+        umeedwaranFilledSum,
         rafaqaFilled,
-        tarbiyatGaah,
-        arkanFilled,
+        jamiaatA,
+        jamiaatB,
+        jamiaatC,
+        jamiaatD,
+        jamiaatE,
+        collegesA,
+        collegesB,
+        collegesC,
+        collegesD,
+        rafaqaFilledSum,
+        manualRafaqaFilled,
+        monthlyReceivingGoal,
+        uploadedCurrent,
+        manualCurrent,
+        rwabitMeetingsGoal,
+        uploadedMeetings,
+        manualMeetings,
+        uploadedLitrature,
+        manualLitrature,
       } = req.body;
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
@@ -210,6 +241,7 @@ class DivisionReport extends Response {
         },
         userId,
       });
+
       const reports = await DivisionReportModel.findOne({
         month: req.body.month,
       });
@@ -241,13 +273,27 @@ class DivisionReport extends Response {
         karkunan,
         shaheen,
         members,
-        registered: registeredWorker,
       });
+      ijtArkan.registered = ijtArkan?.registered ? true : false;
       studyCircle.registered = studyCircle?.registered ? true : false;
       ijtNazmeen.registered = ijtNazmeen?.registered ? true : false;
       ijtUmeedwaran.registered = ijtUmeedwaran?.registered ? true : false;
       sadurMeeting.registered = sadurMeeting?.registered ? true : false;
-      const newDivisionActivity = new DivisionActivitiesModel({
+      const newJamiaat = new JamiaatModel({
+        jamiaatA,
+        jamiaatB,
+        jamiaatC,
+        jamiaatD,
+        jamiaatE,
+      });
+      const newColleges = new CollegesModel({
+        collegesA,
+        collegesB,
+        collegesC,
+        collegesD,
+      });
+      const newdivisionActivityId = new DivisionActivitiesModel({
+        ijtArkan,
         studyCircle,
         ijtNazmeen,
         ijtUmeedwaran,
@@ -265,7 +311,9 @@ class DivisionReport extends Response {
         busmTotalUnits,
       });
       ijtRafaqa.registered = ijtRafaqa?.registered ? true : false;
-      studyCircle.registered = studyCircle?.registered ? true : false;
+      studyCircleMentioned.registered = studyCircleMentioned?.registered
+        ? true
+        : false;
       ijtKarkunan.registered = ijtKarkunan?.registered ? true : false;
       darseQuran.registered = darseQuran?.registered ? true : false;
       shaheenMeeting.registered = shaheenMeeting?.registered ? true : false;
@@ -284,17 +332,23 @@ class DivisionReport extends Response {
         nizamSalah,
         shabBedari,
         anyOther,
-        tarbiyatGaah,
       });
-      const newTd = new ToseeDawatModel({
+
+      let newTd = new ToseeDawatModel({
         rawabitDecided,
-        current,
+        literatureDistribution: litrature,
         meetings,
-        literatureDistribution,
-        registered: registeredTosee,
+        meetingsManual,
+        meetingsSum,
+        current,
+        currentManual,
+        currentSum,
+        registered: registeredTosee ? true : false,
         commonStudentMeetings,
         commonLiteratureDistribution,
+        rwabitMeetingsGoal,
       });
+
       const newMaqamDivisionLib = new MaqamDivisionLibraryModel({
         totalLibraries,
         totalBooks,
@@ -305,14 +359,18 @@ class DivisionReport extends Response {
       const newPaighamDigest = new PaighamDigestModel({
         totalReceived,
         totalSold,
+        monthlyReceivingGoal,
       });
       const newRsd = new RozShabBedariModel({
         umeedwaranFilled,
+        manualUmeedwaran,
+        umeedwaranFilledSum,
+        manualRafaqaFilled,
         rafaqaFilled,
-        arkanFilled,
+        rafaqaFilledSum
       });
       const wi = await newWI.save();
-      const divisionActivity = await newDivisionActivity.save();
+      const divisionActivityId = await newdivisionActivityId.save();
       const maqamTanzeem = await newMaqamTanzeem.save();
       const mentionedActivity = await newMentionedActivity.save();
       const otherActivity = await newOtherActivity.save();
@@ -320,21 +378,27 @@ class DivisionReport extends Response {
       const maqamDivisionLib = await newMaqamDivisionLib.save();
       const paighamDigest = await newPaighamDigest.save();
       const rsd = await newRsd.save();
-      const newDivisionReport = new DivisionReportModel({
+      const clg = await newColleges.save();
+      const jami = await newJamiaat.save();
+
+      let newDivisionReport = new DivisionReportModel({
         month,
         comments,
         userId,
         divisionAreaId: user?.userAreaId,
         maqamTanzeemId: maqamTanzeem?._id,
         wiId: wi._id,
-        divisionActivityId: divisionActivity._id,
+        divisionActivityId: divisionActivityId._id,
         mentionedActivityId: mentionedActivity._id,
         otherActivityId: otherActivity._id,
         tdId: td._id,
         maqamDivisionLibId: maqamDivisionLib?._id,
         paighamDigestId: paighamDigest?._id,
         rsdId: rsd._id,
+        jamiaatId: jami?._id,
+        collegesId: clg?._id,
       });
+
       await newDivisionReport.save();
       return this.sendResponse(req, res, {
         message: "Division Report Added",
@@ -379,6 +443,8 @@ class DivisionReport extends Response {
           { path: "maqamDivisionLibId" },
           { path: "paighamDigestId" },
           { path: "rsdId" },
+          { path: "collegesId" },
+          { path: "jamiaatId" },
         ])
         .sort({ createdAt: -1 });
       // } else {
@@ -440,14 +506,17 @@ class DivisionReport extends Response {
         { path: "divisionAreaId", populate: { path: "province" } },
         { path: "maqamTanzeemId" },
         { path: "wiId" },
-        { path: "divisionActivityId" },
+        { path: "maqamActivityId" },
         { path: "mentionedActivityId" },
         { path: "otherActivityId" },
         { path: "tdId" },
         { path: "maqamDivisionLibId" },
         { path: "paighamDigestId" },
         { path: "rsdId" },
+        { path: "collegesId" },
+        { path: "jamiaatId" },
       ]);
+      console.log(reports);
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
@@ -569,7 +638,7 @@ class DivisionReport extends Response {
           "totalBookRent",
         ],
         paighamDigestId: ["totalReceived", "totalSold"],
-        rsdId: ["umeedwaranFilled", "rafaqaFilled", "arkanFilled"],
+        rsdId: ["umeedwaranFilled", "rafaqaFilled"],
         tdId: [
           "registered",
           "commonLiteratureDistribution",
