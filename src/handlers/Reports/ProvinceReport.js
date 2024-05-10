@@ -10,122 +10,72 @@ const {
   MaqamDivisionLibraryModel,
   PaighamDigestModel,
   RozShabBedariModel,
+  JamiaatModel,
+  CollegesModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
 const { UserModel, ProvinceModel } = require("../../model");
 
-const isDataComplete = ({
-  arkanFilled,
-  tanzeemiRound,
-  divMushawarat,
-  ijtNazmeen,
-  month,
-  comments,
-  arkan,
-  umeedWaran,
-  rafaqa,
-  gift,
-  karkunan,
-  shaheen,
-  members,
-  ijtArkan,
-  studyCircle,
-  ijtUmeedwaran,
-  sadurMeeting,
-  rehaishHalqay,
-  taleemHalqay,
-  totalHalqay,
-  subRehaishHalqay,
-  subTaleemHalqay,
-  subTotalHalqay,
-  busmSchoolUnits,
-  busmRehaishUnits,
-  busmTotalUnits,
-  ijtRafaqa,
-  studyCircleMentioned,
-  ijtKarkunan,
-  darseQuran,
-  shaheenMeeting,
-  paighamEvent,
-  dawatiWafud,
-  rawabitParties,
-  nizamSalah,
-  shabBedari,
-  anyOther,
-  rawabitDecided,
-  current,
-  meetings,
-  literatureDistribution,
-  commonStudentMeetings,
-  commonLiteratureDistribution,
-  totalLibraries,
-  totalBooks,
-  totalIncrease,
-  totalDecrease,
-  totalBookRent,
-  totalSoldMarket,
-  totalPrinted,
-  totalSoldTanzeemi,
-  umeedwaranFilled,
-  rafaqaFilled,
-}) => {
-  if (
-    !arkanFilled ||
-    !tanzeemiRound ||
-    !divMushawarat ||
-    !ijtNazmeen ||
-    !month ||
-    !comments ||
-    !totalSoldMarket ||
-    !totalSoldTanzeemi ||
-    !arkan ||
-    !umeedWaran ||
-    !rafaqa ||
-    !totalPrinted ||
-    !karkunan ||
-    !shaheen ||
-    !members ||
-    !ijtArkan ||
-    !studyCircle ||
-    !gift ||
-    !ijtUmeedwaran ||
-    !sadurMeeting ||
-    !rehaishHalqay ||
-    !taleemHalqay ||
-    !totalHalqay ||
-    !subRehaishHalqay ||
-    !subTaleemHalqay ||
-    !subTotalHalqay ||
-    !busmSchoolUnits ||
-    !busmRehaishUnits ||
-    !busmTotalUnits ||
-    !ijtRafaqa ||
-    !studyCircleMentioned ||
-    !ijtKarkunan ||
-    !darseQuran ||
-    !shaheenMeeting ||
-    !paighamEvent ||
-    !dawatiWafud ||
-    !rawabitParties ||
-    !nizamSalah ||
-    !shabBedari ||
-    !anyOther ||
-    !rawabitDecided ||
-    !current ||
-    !meetings ||
-    !literatureDistribution ||
-    !commonStudentMeetings ||
-    !commonLiteratureDistribution ||
-    !totalLibraries ||
-    !totalBooks ||
-    !totalIncrease ||
-    !totalDecrease ||
-    !totalBookRent ||
-    !umeedwaranFilled ||
-    !rafaqaFilled ||
-    !totalPrinted
-  ) {
+const isDataComplete = (dataToUpdate) => {
+  const requiredKeys = [
+    "tanzeemiRound",
+    "divMushawarat",
+    "ijtNazmeen",
+    "month",
+    "comments",
+    "arkan",
+    "umeedWaran",
+    "rafaqa",
+    "gift",
+    "karkunan",
+    "shaheen",
+    "members",
+    "ijtArkan",
+    "studyCircle",
+    "ijtUmeedwaran",
+    "sadurMeeting",
+    "rehaishHalqay",
+    "taleemHalqay",
+    "totalHalqay",
+    "subRehaishHalqay",
+    "subTaleemHalqay",
+    "subTotalHalqay",
+    "busmSchoolUnits",
+    "busmRehaishUnits",
+    "busmTotalUnits",
+    "ijtRafaqa",
+    "studyCircleMentioned",
+    "ijtKarkunan",
+    "darseQuran",
+    "shaheenMeeting",
+    "paighamEvent",
+    "dawatiWafud",
+    "rawabitParties",
+    "nizamSalah",
+    "shabBedari",
+    "anyOther",
+    "rawabitDecided",
+    "current",
+    "meetings",
+    "literatureDistribution",
+    "commonStudentMeetings",
+    "commonLiteratureDistribution",
+    "totalLibraries",
+    "totalBooks",
+    "totalIncrease",
+    "totalDecrease",
+    "totalBookRent",
+    "totalSoldMarket",
+    "totalPrinted",
+    "totalSoldTanzeemi",
+    "umeedwaranFilled",
+    "rafaqaFilled",
+  ];
+
+  const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));
+  if (missingKeys.length > 0) {
+    console.log("Missing keys:", missingKeys.join(", "));
     return false;
   }
   return true;
@@ -150,8 +100,13 @@ class ProvinceReport extends Response {
           status: 401,
         });
       }
+      if (!isDataComplete(req.body)) {
+        return this.sendResponse(req, res, {
+          message: "All fields are required",
+          status: 400,
+        });
+      }
       const {
-        arkanFilled,
         tanzeemiRound,
         divMushawarat,
         ijtNazmeen,
@@ -205,6 +160,18 @@ class ProvinceReport extends Response {
         umeedwaranFilled,
         rafaqaFilled,
         registeredTosee,
+        tarbiyatGaah,
+        tarbiyatGaahGoal,
+        tarbiyatGaahHeld,
+        jamiaatA,
+        jamiaatB,
+        jamiaatC,
+        jamiaatD,
+        jamiaatE,
+        collegesA,
+        collegesB,
+        collegesC,
+        collegesD,
       } = req.body;
 
       if (!isDataComplete(req.body)) {
@@ -249,6 +216,19 @@ class ProvinceReport extends Response {
       karkunan.registered = karkunan?.registered ? true : false;
       shaheen.registered = shaheen?.registered ? true : false;
       members.registered = members?.registered ? true : false;
+      const newJamiaat = new JamiaatModel({
+        jamiaatA,
+        jamiaatB,
+        jamiaatC,
+        jamiaatD,
+        jamiaatE,
+      });
+      const newColleges = new CollegesModel({
+        collegesA,
+        collegesB,
+        collegesC,
+        collegesD,
+      });
       const newWI = new WorkerInfoModel({
         arkan,
         umeedWaran,
@@ -303,6 +283,9 @@ class ProvinceReport extends Response {
         shabBedari,
         anyOther,
         tanzeemiRound,
+        tarbiyatGaah,
+        tarbiyatGaahGoal,
+        tarbiyatGaahHeld,
       });
       const newTd = new ToseeDawatModel({
         rawabitDecided,
@@ -329,8 +312,9 @@ class ProvinceReport extends Response {
       const newRsd = new RozShabBedariModel({
         umeedwaranFilled,
         rafaqaFilled,
-        arkanFilled,
       });
+      const clg = await newColleges.save();
+      const jami = await newJamiaat.save();
       const wi = await newWI.save();
       const provinceActivity = await newMaqamActivity.save();
       const provinceTanzeem = await newMaqamTanzeem.save();
@@ -354,6 +338,8 @@ class ProvinceReport extends Response {
         provinceDivisionLibId: provinceDivisionLib?._id,
         paighamDigestId: paighamDigest?._id,
         rsdId: rsd._id,
+        jamiaatId: jami?._id,
+        collegesId: clg?._id,
       });
       await newProvinceReport.save();
       return this.sendResponse(req, res, {
@@ -606,6 +592,9 @@ class ProvinceReport extends Response {
           "hadithCircle",
           "rawabitParties",
           "dawatiWafud",
+          "tarbiyatGaah",
+          "tarbiyatGaahGoal",
+          "tarbiyatGaahHeld",
         ],
       };
 
