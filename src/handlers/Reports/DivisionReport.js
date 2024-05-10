@@ -367,7 +367,7 @@ class DivisionReport extends Response {
         umeedwaranFilledSum,
         manualRafaqaFilled,
         rafaqaFilled,
-        rafaqaFilledSum
+        rafaqaFilledSum,
       });
       const wi = await newWI.save();
       const divisionActivityId = await newdivisionActivityId.save();
@@ -595,6 +595,8 @@ class DivisionReport extends Response {
         "rsdId",
         "tdId",
         "otherActivityId",
+        "collegesId",
+        "jamiaatId",
       ];
 
       const obj = {
@@ -657,6 +659,8 @@ class DivisionReport extends Response {
           "dawatiWafud",
           "tarbiyatGaah",
         ],
+        collegesId: ["collegesA", "collegesB", "collegesC", "collegesD"],
+        jamiaatId: ["jamiaatA", "jamiaatB", "jamiaatC", "jamiaatD", "jamiaatE"],
       };
 
       const returnData = (arr) => {
@@ -688,6 +692,10 @@ class DivisionReport extends Response {
             return ToseeDawatModel;
           case "otherActivityId":
             return OtherActivitiesModel;
+          case "jamiaatId":
+            return JamiaatModel;
+          case "collegesId":
+            return CollegesModel;
           default:
             return null;
         }

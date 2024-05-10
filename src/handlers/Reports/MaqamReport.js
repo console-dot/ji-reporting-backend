@@ -54,15 +54,6 @@ const isDataComplete = (dataToUpdate) => {
     "shabBedari",
     "anyOther",
     "rawabitDecided",
-    "jamiaatA",
-    "jamiaatB",
-    "jamiaatC",
-    "jamiaatD",
-    "jamiaatE",
-    "collegesA",
-    "collegesB",
-    "collegesC",
-    "collegesD",
     "totalLibraries",
     "totalBooks",
     "totalIncrease",
@@ -200,6 +191,7 @@ class MaqamReport extends Response {
         uploadedLitrature,
         manualLitrature,
       } = req.body;
+      console.log(jamiaatA, jamiaatB, jamiaatC, jamiaatD, jamiaatE);
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
