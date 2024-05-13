@@ -503,6 +503,8 @@ class ProvinceReport extends Response {
         "tdId",
         "provinceDivisionLibId",
         "rsdId",
+        "collegesId",
+        "jamiaatId",
       ];
 
       const obj = {
