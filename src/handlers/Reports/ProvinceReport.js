@@ -388,21 +388,6 @@ class ProvinceReport extends Response {
           { path: "jamiaatId" },
         ])
         .sort({ createdAt: -1 });
-      // } else {
-      //   reports = await ProvinceReportModel.find().populate([
-      //     { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
-      //     { path: 'provinceAreaId' },
-      //     { path: 'provinceTanzeemId' },
-      //     { path: 'wiId' },
-      //     { path: 'provinceActivityId' },
-      //     { path: 'mentionedActivityId' },
-      //     { path: 'otherActivityId' },
-      //     { path: 'tdId' },
-      //     { path: 'provinceDivisionLibId' },
-      //     { path: 'paighamDigestId' },
-      //     { path: 'rsdId' },
-      //   ]);
-      // }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
@@ -454,6 +439,8 @@ class ProvinceReport extends Response {
         { path: "provinceDivisionLibId" },
         { path: "paighamDigestId" },
         { path: "rsdId" },
+        { path: "collegesId" },
+        { path: "jamiaatId" },
       ]);
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
@@ -527,6 +514,8 @@ class ProvinceReport extends Response {
         "provinceDivisionLibId",
         "paighamDigestId",
         "rsdId",
+        "collegesId",
+        "jamiaatId",
       ];
 
       const obj = {
@@ -599,6 +588,8 @@ class ProvinceReport extends Response {
           "tarbiyatGaahGoal",
           "tarbiyatGaahHeld",
         ],
+        collegesId: ["collegesA", "collegesB", "collegesC", "collegesD"],
+        jamiaatId: ["jamiaatA", "jamiaatB", "jamiaatC", "jamiaatD", "jamiaatE"],
       };
 
       const returnData = (arr, key) => {
@@ -638,6 +629,10 @@ class ProvinceReport extends Response {
             return ToseeDawatModel;
           case "otherActivityId":
             return OtherActivitiesModel;
+          case "jamiaatId":
+            return JamiaatModel;
+          case "collegesId":
+            return CollegesModel;
           default:
             return null;
         }
