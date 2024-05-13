@@ -12,6 +12,7 @@ const {
   RozShabBedariModel,
   JamiaatModel,
   CollegesModel,
+  MarkazWorkerInfoModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -229,7 +230,7 @@ class ProvinceReport extends Response {
         collegesC,
         collegesD,
       });
-      const newWI = new WorkerInfoModel({
+      const newWI = new MarkazWorkerInfoModel({
         arkan,
         umeedWaran,
         rafaqa,
@@ -330,7 +331,7 @@ class ProvinceReport extends Response {
         userId,
         provinceAreaId: user?.userAreaId,
         provinceTanzeemId: provinceTanzeem?._id,
-        wiId: wi._id,
+        provinceWorkerInfoId: wi._id,
         provinceActivityId: provinceActivity._id,
         mentionedActivityId: mentionedActivity._id,
         otherActivityId: otherActivity._id,
@@ -376,7 +377,7 @@ class ProvinceReport extends Response {
           { path: "userId", select: ["_id", "email", "name", "age"] },
           { path: "provinceAreaId" },
           { path: "provinceTanzeemId" },
-          { path: "wiId" },
+          { path: "provinceWorkerInfoId" },
           { path: "provinceActivityId" },
           { path: "mentionedActivityId" },
           { path: "otherActivityId" },
@@ -431,7 +432,7 @@ class ProvinceReport extends Response {
         { path: "userId", select: ["_id", "email", "name", "age"] },
         { path: "provinceAreaId" },
         { path: "provinceTanzeemId" },
-        { path: "wiId" },
+        { path: "provinceWorkerInfoId" },
         { path: "provinceActivityId" },
         { path: "mentionedActivityId" },
         { path: "otherActivityId" },
@@ -506,7 +507,7 @@ class ProvinceReport extends Response {
       // Update referenced models
       const refsToUpdate = [
         "provinceTanzeemId",
-        "wiId",
+        "provinceWorkerInfoId",
         "provinceActivityId",
         "mentionedActivityId",
         "otherActivityId",
@@ -530,7 +531,7 @@ class ProvinceReport extends Response {
           "busmRehaishUnits",
           "busmTotalUnits",
         ],
-        wiId: [
+        provinceWorkerInfoId: [
           "arkan",
           "umeedWaran",
           "rafaqa",
@@ -599,7 +600,7 @@ class ProvinceReport extends Response {
             if (key === "tdId") {
               rs[element] = dataToUpdate["registeredTosee"] ? true : false;
             }
-            if (key === "wiId") {
+            if (key === "provinceWorkerInfoId") {
               rs[element] = dataToUpdate["registeredWorker"] ? true : false;
             }
           } else {
@@ -613,8 +614,8 @@ class ProvinceReport extends Response {
         switch (i) {
           case "provinceTanzeemId":
             return MaqamTanzeemModel;
-          case "wiId":
-            return WorkerInfoModel;
+          case "provinceWorkerInfoId":
+            return MarkazWorkerInfoModel;
           case "provinceActivityId":
             return MaqamActivitiesModel;
           case "mentionedActivityId":
