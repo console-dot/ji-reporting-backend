@@ -342,12 +342,6 @@ class MaqamReport extends Response {
         totalSold,
         monthlyReceivingGoal,
       });
-      console.log("umeedwaranFilled",umeedwaranFilled,
-        "manualUmeedwaran",manualUmeedwaran,
-        "umeedwaranFilledSum",umeedwaranFilledSum,
-        "rafaqaFilled",rafaqaFilled,
-        "manualRafaqaFilled",rafaqaFilled,
-        "rafaqaFilledSum",rafaqaFilledSum)
       const newRsd = new RozShabBedariModel({
         umeedwaranFilled,
         manualUmeedwaran,
