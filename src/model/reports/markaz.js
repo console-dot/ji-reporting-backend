@@ -19,7 +19,7 @@ const markazReport = mongoose.Schema(
     countryAreaId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: "Province",
+      ref: "Country",
     },
     jamiaatId: {
       type: mongoose.Types.ObjectId,
