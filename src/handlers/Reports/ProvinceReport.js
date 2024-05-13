@@ -577,6 +577,7 @@ class ProvinceReport extends Response {
           "totalSoldTanzeemi",
           "totalSoldMarket",
           "gift",
+          
         ],
         rsdId: ["umeedwaranFilled", "rafaqaFilled"],
         tdId: [
