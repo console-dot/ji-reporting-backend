@@ -431,6 +431,8 @@ class ProvinceReport extends Response {
         { path: "tdId" },
         { path: "markazDivisionLibId" },
         { path: "rsdId" },
+        { path: "collegesId" },
+        { path: "jamiaatId" },
       ]);
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
@@ -495,20 +497,20 @@ class ProvinceReport extends Response {
 
       // Update referenced models
       const refsToUpdate = [
-        "provinceTanzeemId",
+        "markazTanzeemId",
         "markazWorkerInfoId",
-        "provinceActivityId",
+        "markazActivityId",
         "mentionedActivityId",
         "otherActivityId",
         "tdId",
-        "provinceDivisionLibId",
+        "markazDivisionLibId",
         "rsdId",
         "collegesId",
         "jamiaatId",
       ];
 
       const obj = {
-        provinceTanzeemId: [
+        markazTanzeemId: [
           "rehaishHalqay",
           "taleemHalqay",
           "totalHalqay",
@@ -527,7 +529,7 @@ class ProvinceReport extends Response {
           "shaheen",
           "members",
         ],
-        provinceActivityId: [
+        markazActivityId: [
           "ijtArkan",
           "studyCircle",
           "ijtNazmeen",
@@ -543,7 +545,7 @@ class ProvinceReport extends Response {
           "shaheenMeeting",
           "paighamEvent",
         ],
-        provinceDivisionLibId: [
+        markazDivisionLibId: [
           "totalLibraries",
           "totalBooks",
           "totalIncrease",
@@ -574,6 +576,8 @@ class ProvinceReport extends Response {
           "tarbiyatGaahHeldManual",
           "tarbiyatGaahHeldSum",
         ],
+        collegesId: ["collegesA", "collegesB", "collegesC", "collegesD"],
+        jamiaatId: ["jamiaatA", "jamiaatB", "jamiaatC", "jamiaatD", "jamiaatE"],
       };
 
       const returnData = (arr, key) => {
@@ -583,7 +587,7 @@ class ProvinceReport extends Response {
             if (key === "tdId") {
               rs[element] = dataToUpdate["registeredTosee"] ? true : false;
             }
-            if (key === "markazWorkerInfoId") {
+            if (key === "provinceWorkerInfoId") {
               rs[element] = dataToUpdate["registeredWorker"] ? true : false;
             }
           } else {
@@ -595,34 +599,40 @@ class ProvinceReport extends Response {
       };
       const returnModel = (i) => {
         switch (i) {
-          case "provinceTanzeemId":
+          case "markazTanzeemId":
             return MaqamTanzeemModel;
           case "markazWorkerInfoId":
             return MarkazWorkerInfoModel;
-          case "provinceActivityId":
+          case "markazActivityId":
             return MaqamActivitiesModel;
           case "mentionedActivityId":
             return MentionedActivitiesModel;
-          case "provinceDivisionLibId":
+          case "markazDivisionLibId":
             return MaqamDivisionLibraryModel;
-          case "paighamDigestId":
-            return PaighamDigestModel;
           case "rsdId":
             return RozShabBedariModel;
           case "tdId":
             return ToseeDawatModel;
           case "otherActivityId":
             return OtherActivitiesModel;
+          case "jamiaatId":
+            return JamiaatModel;
+          case "collegesId":
+            return CollegesModel;
           default:
             return null;
         }
       };
 
       for (let i = 0; i < refsToUpdate.length; i++) {
-        await returnModel(refsToUpdate[i]).updateOne(
-          { _id: isExist?.[refsToUpdate[i]] },
-          { $set: returnData(obj[refsToUpdate[i]], refsToUpdate[i]) }
-        );
+        try {
+          await returnModel(refsToUpdate[i]).updateOne(
+            { _id: isExist?.[refsToUpdate[i]] },
+            { $set: returnData(obj[refsToUpdate[i]], refsToUpdate[i]) }
+          );
+        } catch (error) {
+          console.log(error);
+        }
       }
 
       // update studyCircle of maqam
@@ -646,11 +656,6 @@ class ProvinceReport extends Response {
       if (updatedProvinceReport?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
           message: "Report updated successfully",
-        });
-      }
-      if (updated?.modifiedCount > 0) {
-        return this.sendResponse(req, res, {
-          message: "Report updated",
         });
       }
       return this.sendResponse(req, res, {
