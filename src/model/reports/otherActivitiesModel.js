@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const otherActivitiesModel = mongoose.Schema({
   dawatiWafud: Number,
@@ -10,11 +10,15 @@ const otherActivitiesModel = mongoose.Schema({
   tanzeemiRound: Number,
   tarbiyatGaah: Number,
   tarbiyatGaahGoal: Number,
-  tarbiyatGaahHeld: Number
+  tarbiyatGaahGoalManual: Number,
+  tarbiyatGaahGoalSum: Number,
+  tarbiyatGaahHeld: Number,
+  tarbiyatGaahHeldManual: Number,
+  tarbiyatGaahHeldSum: Number,
 });
 
 const OtherActivitiesModel = mongoose.model(
-  'OtherActivities',
+  "OtherActivities",
   otherActivitiesModel
 );
 
