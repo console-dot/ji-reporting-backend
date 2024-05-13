@@ -1,6 +1,5 @@
 const { decode } = require("jsonwebtoken");
 const {
-  WorkerInfoModel,
   MaqamActivitiesModel,
   MaqamTanzeemModel,
   MentionedActivitiesModel,
