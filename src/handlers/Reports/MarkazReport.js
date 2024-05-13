@@ -1,7 +1,6 @@
 const { decode } = require("jsonwebtoken");
 const {
   WorkerInfoModel,
-  ProvinceReportModel,
   MaqamActivitiesModel,
   MaqamTanzeemModel,
   MentionedActivitiesModel,
@@ -12,6 +11,8 @@ const {
   RozShabBedariModel,
   JamiaatModel,
   CollegesModel,
+  MarkazWorkerInfoModel,
+  MarkazReportModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -19,15 +20,12 @@ const { UserModel, ProvinceModel } = require("../../model");
 
 const isDataComplete = (dataToUpdate) => {
   const requiredKeys = [
-    "tanzeemiRound",
-    "divMushawarat",
     "ijtNazmeen",
     "month",
     "comments",
     "arkan",
     "umeedWaran",
     "rafaqa",
-    "gift",
     "karkunan",
     "shaheen",
     "members",
@@ -66,11 +64,16 @@ const isDataComplete = (dataToUpdate) => {
     "totalIncrease",
     "totalDecrease",
     "totalBookRent",
-    "totalSoldMarket",
-    "totalPrinted",
-    "totalSoldTanzeemi",
     "umeedwaranFilled",
     "rafaqaFilled",
+    "divMushawarat",
+    "tarbiyatGaah",
+    "tarbiyatGaahGoal",
+    "tarbiyatGaahGoalManual",
+    "tarbiyatGaahGoalSum",
+    "tarbiyatGaahHeld",
+    "tarbiyatGaahHeldManual",
+    "tarbiyatGaahHeldSum",
   ];
 
   const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));
@@ -94,7 +97,7 @@ class ProvinceReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      if (user?.nazim !== "province") {
+      if (user?.nazim !== "country") {
         return this.sendResponse(req, res, {
           message: "Access denied",
           status: 401,
@@ -115,7 +118,6 @@ class ProvinceReport extends Response {
         arkan,
         umeedWaran,
         rafaqa,
-        gift,
         karkunan,
         shaheen,
         members,
@@ -154,15 +156,16 @@ class ProvinceReport extends Response {
         totalIncrease,
         totalDecrease,
         totalBookRent,
-        totalSoldMarket,
-        totalPrinted,
-        totalSoldTanzeemi,
         umeedwaranFilled,
         rafaqaFilled,
         registeredTosee,
         tarbiyatGaah,
         tarbiyatGaahGoal,
+        tarbiyatGaahGoalManual,
+        tarbiyatGaahGoalSum,
         tarbiyatGaahHeld,
+        tarbiyatGaahHeldManual,
+        tarbiyatGaahHeldSum,
         jamiaatA,
         jamiaatB,
         jamiaatC,
@@ -185,14 +188,14 @@ class ProvinceReport extends Response {
         yearExist: monthDate.getFullYear(),
         monthExist: monthDate.getMonth(),
       };
-      const reportExist = await ProvinceReportModel.findOne({
+      const reportExist = await MarkazReportModel.findOne({
         month: {
           $gte: new Date(yearExist, monthExist, 1),
           $lt: new Date(yearExist, monthExist + 1, 1),
         },
         userId,
       });
-      const reports = await ProvinceReportModel.findOne({
+      const reports = await MarkazReportModel.findOne({
         month: req.body.month,
       });
       if (reports) {
@@ -229,7 +232,7 @@ class ProvinceReport extends Response {
         collegesC,
         collegesD,
       });
-      const newWI = new WorkerInfoModel({
+      const newWI = new MarkazWorkerInfoModel({
         arkan,
         umeedWaran,
         rafaqa,
@@ -285,7 +288,11 @@ class ProvinceReport extends Response {
         tanzeemiRound,
         tarbiyatGaah,
         tarbiyatGaahGoal,
+        tarbiyatGaahGoalManual,
+        tarbiyatGaahGoalSum,
         tarbiyatGaahHeld,
+        tarbiyatGaahHeldManual,
+        tarbiyatGaahHeldSum,
       });
       const newTd = new ToseeDawatModel({
         rawabitDecided,
@@ -303,12 +310,6 @@ class ProvinceReport extends Response {
         totalDecrease,
         totalBookRent,
       });
-      const newPaighamDigest = new PaighamDigestModel({
-        totalPrinted,
-        totalSoldMarket,
-        totalSoldTanzeemi,
-        gift,
-      });
       const newRsd = new RozShabBedariModel({
         umeedwaranFilled,
         rafaqaFilled,
@@ -317,31 +318,29 @@ class ProvinceReport extends Response {
       const jami = await newJamiaat.save();
       const wi = await newWI.save();
       const provinceActivity = await newMaqamActivity.save();
-      const provinceTanzeem = await newMaqamTanzeem.save();
+      const markazTanzeem = await newMaqamTanzeem.save();
       const mentionedActivity = await newMentionedActivity.save();
       const otherActivity = await newOtherActivity.save();
       const td = await newTd.save();
-      const provinceDivisionLib = await newMaqamDivisionLib.save();
-      const paighamDigest = await newPaighamDigest.save();
+      const markazDivisionLib = await newMaqamDivisionLib.save();
       const rsd = await newRsd.save();
-      const newProvinceReport = new ProvinceReportModel({
+      const newMarkazReport = new MarkazReportModel({
         month,
         comments,
         userId,
-        provinceAreaId: user?.userAreaId,
-        provinceTanzeemId: provinceTanzeem?._id,
+        countryAreaId: user?.userAreaId,
+        markazTanzeemId: markazTanzeem?._id,
         wiId: wi._id,
-        provinceActivityId: provinceActivity._id,
+        markazActivityId: provinceActivity._id,
         mentionedActivityId: mentionedActivity._id,
         otherActivityId: otherActivity._id,
         tdId: td._id,
-        provinceDivisionLibId: provinceDivisionLib?._id,
-        paighamDigestId: paighamDigest?._id,
+        markazDivisionLibId: markazDivisionLib?._id,
         rsdId: rsd._id,
         jamiaatId: jami?._id,
         collegesId: clg?._id,
       });
-      await newProvinceReport.save();
+      await newMarkazReport.save();
       return this.sendResponse(req, res, {
         message: "Province Report Added",
         status: 201,
@@ -366,43 +365,23 @@ class ProvinceReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
-      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      reports = await ProvinceReportModel.find({
-        provinceAreaId: accessList,
-      })
+      reports = await MarkazReportModel.find({})
         .populate([
           { path: "userId", select: ["_id", "email", "name", "age"] },
-          { path: "provinceAreaId" },
-          { path: "provinceTanzeemId" },
+          { path: "countryAreaId" },
+          { path: "markazTanzeemId" },
           { path: "wiId" },
-          { path: "provinceActivityId" },
+          { path: "markazActivityId" },
           { path: "mentionedActivityId" },
           { path: "otherActivityId" },
           { path: "tdId" },
-          { path: "provinceDivisionLibId" },
-          { path: "paighamDigestId" },
+          { path: "markazDivisionLibId" },
           { path: "rsdId" },
           { path: "collegesId" },
           { path: "jamiaatId" },
         ])
         .sort({ createdAt: -1 });
-      // } else {
-      //   reports = await ProvinceReportModel.find().populate([
-      //     { path: 'userId', select: ['_id', 'email', 'name', 'age'] },
-      //     { path: 'provinceAreaId' },
-      //     { path: 'provinceTanzeemId' },
-      //     { path: 'wiId' },
-      //     { path: 'provinceActivityId' },
-      //     { path: 'mentionedActivityId' },
-      //     { path: 'otherActivityId' },
-      //     { path: 'tdId' },
-      //     { path: 'provinceDivisionLibId' },
-      //     { path: 'paighamDigestId' },
-      //     { path: 'rsdId' },
-      //   ]);
-      // }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
@@ -433,7 +412,7 @@ class ProvinceReport extends Response {
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      const { provinceAreaId } = await ProvinceReportModel.findOne({
+      const { provinceAreaId } = await MarkazReportModel.findOne({
         _id,
       }).select("provinceAreaId");
       if (!accessList.includes(provinceAreaId.toString())) {
@@ -442,17 +421,16 @@ class ProvinceReport extends Response {
           status: 401,
         });
       }
-      const reports = await ProvinceReportModel.findOne({ _id }).populate([
+      const reports = await MarkazReportModel.findOne({ _id }).populate([
         { path: "userId", select: ["_id", "email", "name", "age"] },
-        { path: "provinceAreaId" },
-        { path: "provinceTanzeemId" },
+        { path: "countryAreaId" },
+        { path: "markazTanzeemId" },
         { path: "wiId" },
-        { path: "provinceActivityId" },
+        { path: "markazActivityId" },
         { path: "mentionedActivityId" },
         { path: "otherActivityId" },
         { path: "tdId" },
-        { path: "provinceDivisionLibId" },
-        { path: "paighamDigestId" },
+        { path: "markazDivisionLibId" },
         { path: "rsdId" },
       ]);
       return this.sendResponse(req, res, { data: reports });
@@ -490,7 +468,7 @@ class ProvinceReport extends Response {
           status: 400,
         });
       }
-      const isExist = await ProvinceReportModel.findOne({ _id });
+      const isExist = await MarkazReportModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
           message: "Report not found",
@@ -525,7 +503,6 @@ class ProvinceReport extends Response {
         "otherActivityId",
         "tdId",
         "provinceDivisionLibId",
-        "paighamDigestId",
         "rsdId",
       ];
 
@@ -572,12 +549,6 @@ class ProvinceReport extends Response {
           "totalDecrease",
           "totalBookRent",
         ],
-        paighamDigestId: [
-          "totalPrinted",
-          "totalSoldTanzeemi",
-          "totalSoldMarket",
-          "gift",
-        ],
         rsdId: ["umeedwaranFilled", "rafaqaFilled"],
         tdId: [
           "registered",
@@ -595,9 +566,12 @@ class ProvinceReport extends Response {
           "hadithCircle",
           "rawabitParties",
           "dawatiWafud",
-          "tarbiyatGaah",
           "tarbiyatGaahGoal",
+          "tarbiyatGaahGoalManual",
+          "tarbiyatGaahGoalSum",
           "tarbiyatGaahHeld",
+          "tarbiyatGaahHeldManual",
+          "tarbiyatGaahHeldSum",
         ],
       };
 
@@ -623,7 +597,7 @@ class ProvinceReport extends Response {
           case "provinceTanzeemId":
             return MaqamTanzeemModel;
           case "wiId":
-            return WorkerInfoModel;
+            return MarkazWorkerInfoModel;
           case "provinceActivityId":
             return MaqamActivitiesModel;
           case "mentionedActivityId":
@@ -663,7 +637,7 @@ class ProvinceReport extends Response {
       );
 
       // Update the DivisionReportModel
-      const updatedProvinceReport = await ProvinceReportModel.updateOne(
+      const updatedProvinceReport = await MarkazReportModel.updateOne(
         { _id },
         { $set: dataToUpdate }
       );
@@ -722,7 +696,7 @@ class ProvinceReport extends Response {
       const startDate = new Date(desiredYear, desiredMonth, 0);
       const endDate = new Date(desiredYear, desiredMonth + 1, 1);
 
-      const provinceReports = await ProvinceReportModel.find({
+      const provinceReports = await MarkazReportModel.find({
         month: {
           $gte: startDate,
           $lte: endDate,
