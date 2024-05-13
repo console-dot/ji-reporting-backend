@@ -447,21 +447,6 @@ class DivisionReport extends Response {
           { path: "jamiaatId" },
         ])
         .sort({ createdAt: -1 });
-      // } else {
-      //   reports = await DivisionReportModel.find().populate([
-      //     { path: "userId", select: ["_id", "email", "name", "age"] },
-      //     { path: "divisionAreaId", populate: { path: "province" } },
-      //     { path: "maqamTanzeemId" },
-      //     { path: "wiId" },
-      //     { path: "divisionActivityId" },
-      //     { path: "mentionedActivityId" },
-      //     { path: "otherActivityId" },
-      //     { path: "tdId" },
-      //     { path: "maqamDivisionLibId" },
-      //     { path: "paighamDigestId" },
-      //     { path: "rsdId" },
-      //   ]);
-      // }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);

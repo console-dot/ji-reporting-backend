@@ -36,7 +36,7 @@ const markazReport = mongoose.Schema(
       required: true,
       ref: "MaqamTanzeem",
     },
-    wiId: {
+    markazWorkerInfoId: {
       type: mongoose.Types.ObjectId,
       required: true,
       ref: "MarkazWorkerInfo",

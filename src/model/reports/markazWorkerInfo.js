@@ -8,6 +8,12 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualStart: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      startSum: {
+        default: 0,
         type: Number,
         required: true,
       },
@@ -16,6 +22,12 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualIncrease: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      increaseSum: {
+        default: 0,
         type: Number,
         required: true,
       },
@@ -24,6 +36,12 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualDecrease: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      decreaseSum: {
+        default: 0,
         type: Number,
         required: true,
       },
@@ -41,6 +59,12 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualStart: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      startSum: {
+        default: 0,
         type: Number,
         required: true,
       },
@@ -49,6 +73,13 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualIncrease: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      increaseSum: {
+        default: 0,
+        default: 0,
         type: Number,
         required: true,
       },
@@ -57,6 +88,12 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualDecrease: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      decreaseSum: {
+        default: 0,
         type: Number,
         required: true,
       },
@@ -74,6 +111,12 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualStart: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      startSum: {
+        default: 0,
         type: Number,
         required: true,
       },
@@ -82,6 +125,13 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualIncrease: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      increaseSum: {
+        default: 0,
+        default: 0,
         type: Number,
         required: true,
       },
@@ -90,6 +140,12 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualDecrease: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      decreaseSum: {
+        default: 0,
         type: Number,
         required: true,
       },
@@ -107,6 +163,12 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualStart: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      startSum: {
+        default: 0,
         type: Number,
         required: true,
       },
@@ -115,6 +177,13 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualIncrease: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      increaseSum: {
+        default: 0,
+        default: 0,
         type: Number,
         required: true,
       },
@@ -123,6 +192,12 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualDecrease: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      decreaseSum: {
+        default: 0,
         type: Number,
         required: true,
       },
@@ -140,6 +215,12 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualStart: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      startSum: {
+        default: 0,
         type: Number,
         required: true,
       },
@@ -148,6 +229,13 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualIncrease: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      increaseSum: {
+        default: 0,
+        default: 0,
         type: Number,
         required: true,
       },
@@ -156,6 +244,12 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualDecrease: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      decreaseSum: {
+        default: 0,
         type: Number,
         required: true,
       },
@@ -173,6 +267,12 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualStart: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      startSum: {
+        default: 0,
         type: Number,
         required: true,
       },
@@ -181,6 +281,13 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualIncrease: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      increaseSum: {
+        default: 0,
+        default: 0,
         type: Number,
         required: true,
       },
@@ -189,6 +296,12 @@ const markazWorkerInfo = mongoose.Schema({
         required: true,
       },
       manualDecrease: {
+        default: 0,
+        type: Number,
+        required: true,
+      },
+      decreaseSum: {
+        default: 0,
         type: Number,
         required: true,
       },
@@ -201,6 +314,9 @@ const markazWorkerInfo = mongoose.Schema({
   },
 });
 
-const MarkazWorkerInfoModel = mongoose.model("MarkazWorkerInfo", markazWorkerInfo);
+const MarkazWorkerInfoModel = mongoose.model(
+  "MarkazWorkerInfo",
+  markazWorkerInfo
+);
 
 module.exports = { MarkazWorkerInfoModel };

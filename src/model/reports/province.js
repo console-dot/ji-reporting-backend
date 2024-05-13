@@ -36,10 +36,10 @@ const provinceReportModel = mongoose.Schema(
       required: true,
       ref: "MaqamTanzeem",
     },
-    wiId: {
+    provinceWorkerInfoId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: "WorkerInfo",
+      ref: "MarkazWorkerInfo",
     },
     provinceActivityId: {
       type: mongoose.Types.ObjectId,
