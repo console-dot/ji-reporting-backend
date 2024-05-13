@@ -439,6 +439,8 @@ class ProvinceReport extends Response {
         { path: "provinceDivisionLibId" },
         { path: "paighamDigestId" },
         { path: "rsdId" },
+        { path: "collegesId" },
+        { path: "jamiaatId" },
       ]);
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
@@ -512,6 +514,8 @@ class ProvinceReport extends Response {
         "provinceDivisionLibId",
         "paighamDigestId",
         "rsdId",
+        "collegesId",
+        "jamiaatId",
       ];
 
       const obj = {
