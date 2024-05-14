@@ -261,11 +261,7 @@ class DivisionReport extends Response {
           status: 400,
         });
       }
-      umeedWaran.registered = umeedWaran?.registered ? true : false;
-      rafaqa.registered = rafaqa?.registered ? true : false;
-      karkunan.registered = karkunan?.registered ? true : false;
-      shaheen.registered = shaheen?.registered ? true : false;
-      members.registered = members?.registered ? true : false;
+
       const newWI = new WorkerInfoModel({
         arkan,
         umeedWaran,
@@ -274,11 +270,7 @@ class DivisionReport extends Response {
         shaheen,
         members,
       });
-      ijtArkan.registered = ijtArkan?.registered ? true : false;
-      studyCircle.registered = studyCircle?.registered ? true : false;
-      ijtNazmeen.registered = ijtNazmeen?.registered ? true : false;
-      ijtUmeedwaran.registered = ijtUmeedwaran?.registered ? true : false;
-      sadurMeeting.registered = sadurMeeting?.registered ? true : false;
+
       const newJamiaat = new JamiaatModel({
         jamiaatA,
         jamiaatB,
@@ -310,14 +302,7 @@ class DivisionReport extends Response {
         busmRehaishUnits,
         busmTotalUnits,
       });
-      ijtRafaqa.registered = ijtRafaqa?.registered ? true : false;
-      studyCircleMentioned.registered = studyCircleMentioned?.registered
-        ? true
-        : false;
-      ijtKarkunan.registered = ijtKarkunan?.registered ? true : false;
-      darseQuran.registered = darseQuran?.registered ? true : false;
-      shaheenMeeting.registered = shaheenMeeting?.registered ? true : false;
-      paighamEvent.registered = paighamEvent?.registered ? true : false;
+
       const newMentionedActivity = new MentionedActivitiesModel({
         ijtRafaqa,
         studyCircle: studyCircleMentioned,
@@ -625,15 +610,26 @@ class DivisionReport extends Response {
           "totalBookRent",
         ],
         paighamDigestId: ["totalReceived", "totalSold"],
-        rsdId: ["umeedwaranFilled", "rafaqaFilled"],
+        rsdId: [
+          "umeedwaranFilled",
+          "manualUmeedwaran",
+          "umeedwaranFilledSum",
+          "manualRafaqaFilled",
+          "rafaqaFilled",
+          "rafaqaFilledSum",
+        ],
         tdId: [
-          "registered",
+          "rawabitDecided",
+          "current",
+          "currentManual",
+          "currentSum",
+          "meetings",
+          "meetingsManual",
+          "meetingsSum",
+          "rwabitMeetingsGoal",
+          "literatureDistribution",
           "commonLiteratureDistribution",
           "commonStudentMeetings",
-          "literatureDistribution",
-          "meetings",
-          "current",
-          "rawabitDecided",
         ],
         otherActivityId: [
           "anyOther",
