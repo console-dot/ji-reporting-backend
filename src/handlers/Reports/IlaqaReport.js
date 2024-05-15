@@ -207,7 +207,11 @@ class IlaqaReport extends Response {
         },
         userId,
       });
-      const reports = await IlaqaReportModel.findOne({ month: req.body.month });
+      const reports = await IlaqaReportModel.findOne({ month: {
+        $gte: new Date(yearExist, monthExist, 1),
+        $lt: new Date(yearExist, monthExist + 1, 1),
+      },
+      ilaqaAreaId: user?.userAreaId, });
       if (reports) {
         return this.sendResponse(req, res, {
           message: `Report already created for ${
