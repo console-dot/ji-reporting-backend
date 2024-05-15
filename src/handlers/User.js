@@ -710,12 +710,15 @@ class User extends Response {
   };
   login = async (req, res) => {
     try {
-      const { email, password } = req.body;
+      const { password } = req.body;
+      let {email}= req.body;
       if (!email) {
         return this.sendResponse(req, res, {
           message: "Email is required!",
           status: 400,
         });
+      }else{
+        email = email.toLowerCase();
       }
       if (!password) {
         return this.sendResponse(req, res, {
@@ -723,6 +726,7 @@ class User extends Response {
           status: 400,
         });
       }
+      
       const userExist = await UserModel.findOne({ email });
       // return
       if (!userExist) {
