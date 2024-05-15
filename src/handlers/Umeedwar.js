@@ -82,6 +82,7 @@ class Umeedwar extends Response {
         tafseerTotalDays,
         tafseerTotalRakoo,
       } = req.body;
+      
       if (
         !month ||
         !comments ||
@@ -237,6 +238,7 @@ class Umeedwar extends Response {
       const toseeId = await newTosee.save();
       const itatId = await newItatNazm.save();
       const studyId = await newStudies.save();
+      console.log(user.userAreaType,'asdf')
       const newKhaka = UmeedwarModel({
         comments,
         month,
@@ -312,6 +314,7 @@ class Umeedwar extends Response {
           ])
           .sort({ createdAt: -1 });
       } else {
+        console.log(userId)
         reports = await UmeedwarModel.find({ userId: user?._id })
           .populate([
             {

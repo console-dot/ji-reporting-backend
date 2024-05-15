@@ -85,12 +85,12 @@ class User extends Response {
           status: 400,
         });
       }
-      if (nazim === "province" || userAreaType === "Province") {
-        return this.sendResponse(req, res, {
-          message: "Province signup not allowed",
-          status: 400,
-        });
-      }
+      // if (nazim === "province" || userAreaType === "Province") {
+      //   return this.sendResponse(req, res, {
+      //     message: "Province signup not allowed",
+      //     status: 400,
+      //   });
+      // }
       if (password1 !== password2) {
         return this.sendResponse(req, res, {
           message: "Both passwords should match!",
