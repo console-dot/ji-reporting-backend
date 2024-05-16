@@ -82,7 +82,7 @@ class Umeedwar extends Response {
         tafseerTotalDays,
         tafseerTotalRakoo,
       } = req.body;
-      
+
       if (
         !month ||
         !comments ||
@@ -238,7 +238,7 @@ class Umeedwar extends Response {
       const toseeId = await newTosee.save();
       const itatId = await newItatNazm.save();
       const studyId = await newStudies.save();
-      console.log(user.userAreaType,'asdf')
+      console.log(user.userAreaType, "asdf");
       const newKhaka = UmeedwarModel({
         comments,
         month,
@@ -289,7 +289,8 @@ class Umeedwar extends Response {
       if (
         user?.nazim !== "halqa" &&
         user.nazimType !== "rukan" &&
-        user?.nazimType !== "umeedwar"
+        user?.nazimType !== "umeedwar" &&
+        user?.userAreaType !== "Country"
       ) {
         reports = await UmeedwarModel.find({ areaId: accessList })
           .populate([
@@ -313,8 +314,9 @@ class Umeedwar extends Response {
             },
           ])
           .sort({ createdAt: -1 });
+      } else if (user?.userAreaType === "Country") {
+        reports = await UmeedwarModel.find({});
       } else {
-        console.log(userId)
         reports = await UmeedwarModel.find({ userId: user?._id })
           .populate([
             {

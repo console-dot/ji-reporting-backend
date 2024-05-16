@@ -5,9 +5,9 @@ const router = require("express").Router();
 
 const handler = new Province();
 router.post("/", isCountry, handler.createOne);
-router.get("/",  handler.getAll);
-router.get("/:id", isCountry, handler.getOne);
-router.put("/:id", isCountry, handler.updateOne);
-router.delete("/:id", isCountry, handler.deleteOne);
+router.get("/", handler.getAll);
+router.get("/:id", handler.getOne);
+router.put("/:id", handler.updateOne);
+router.patch("/:id", handler.deleteOne);
 
 module.exports = router;
