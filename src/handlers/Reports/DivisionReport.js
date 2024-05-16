@@ -476,7 +476,7 @@ class DivisionReport extends Response {
         { path: "divisionAreaId", populate: { path: "province" } },
         { path: "maqamTanzeemId" },
         { path: "wiId" },
-        { path: "maqamActivityId" },
+        { path: "divisionActivityId" },
         { path: "mentionedActivityId" },
         { path: "otherActivityId" },
         { path: "tdId" },
