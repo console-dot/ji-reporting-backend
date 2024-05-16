@@ -112,21 +112,28 @@ class Province extends Response {
     try {
       const _id = req.params.id;
       const isExist = await ProvinceModel.findOne({ _id });
+
       if (!isExist) {
         return this.sendResponse(req, res, {
           message: "Not found!",
           status: 404,
         });
       }
-      const deleted = await ProvinceModel.deleteOne({ _id });
-      if (deleted?.deletedCount > 0) {
+
+      const updated = await ProvinceModel.updateOne(
+        { _id: _id },
+        { $set: { disabled: !isExist.disabled } }
+      );
+
+      if (updated.modifiedCount > 0) {
         return this.sendResponse(req, res, {
-          message: "Province deleted",
+          message: "Province status updated",
           status: 200,
         });
       }
+
       return this.sendResponse(req, res, {
-        message: "Can not delete",
+        message: "Can not update",
         status: 400,
       });
     } catch (err) {
