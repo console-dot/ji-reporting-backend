@@ -315,7 +315,28 @@ class Umeedwar extends Response {
           ])
           .sort({ createdAt: -1 });
       } else if (user?.userAreaType === "Country") {
-        reports = await UmeedwarModel.find({});
+        reports = await UmeedwarModel.find({})
+          .populate([
+            {
+              path: "prayersId",
+            },
+            {
+              path: "studiesId",
+            },
+            {
+              path: "toseeDawaId",
+            },
+            {
+              path: "itaatNazmId",
+            },
+            {
+              path: "userId",
+            },
+            {
+              path: "areaId",
+            },
+          ])
+          .sort({ createdAt: -1 });
       } else {
         reports = await UmeedwarModel.find({ userId: user?._id })
           .populate([
