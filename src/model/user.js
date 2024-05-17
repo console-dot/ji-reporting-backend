@@ -42,6 +42,7 @@ const users = mongoose.Schema(
         "Province",
         "Tehsil",
         "Pakistan",
+        "Ilaqa",
       ],
     },
     userRequestId: {

@@ -103,7 +103,7 @@ class HalqaReport extends Response {
         rafaqaFilled,
         rwabitMeetingsGoal,
         registeredTosee,
-        registeredLibrary
+        registeredLibrary,
       } = req.body;
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
@@ -242,18 +242,6 @@ class HalqaReport extends Response {
           },
         ])
         .sort({ createdAt: -1 });
-      // } else {
-      //   reports = await HalqaReportModel.find().populate([
-      //     { path: "userId", select: ["_id", "email", "name", "age"] },
-      //     { path: "wiId" },
-      //     { path: "halqaActivityId" },
-      //     { path: "otherActivityId" },
-      //     { path: "tdId" },
-      //     { path: "halqaLibId" },
-      //     { path: "rsdId" },
-      //     { path: "halqaAreaId" },
-      //   ]);
-      // }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
