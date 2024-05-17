@@ -177,21 +177,6 @@ class User extends Response {
         userAreaId,
         userAreaType
       );
-      const returnModel = (key) => {
-        switch (key) {
-          case "Maqam":
-            return MaqamModel;
-          case "Division":
-            return DivisionModel;
-          case "Halqa":
-            return HalqaModel;
-          case "Province":
-            return ProvinceModel;
-          default:
-            return "No valid schema found";
-        }
-      };
-
       const existingNazim = await UserModel.findOne({
         userAreaId: userAreaId,
         nazimType: { $in: ["nazim", "rukan-nazim", "umeedwaar-nazim"] },
@@ -711,13 +696,13 @@ class User extends Response {
   login = async (req, res) => {
     try {
       const { password } = req.body;
-      let {email}= req.body;
+      let { email } = req.body;
       if (!email) {
         return this.sendResponse(req, res, {
           message: "Email is required!",
           status: 400,
         });
-      }else{
+      } else {
         email = email.toLowerCase();
       }
       if (!password) {
@@ -726,7 +711,7 @@ class User extends Response {
           status: 400,
         });
       }
-      
+
       const userExist = await UserModel.findOne({ email });
       // return
       if (!userExist) {
@@ -844,7 +829,7 @@ class User extends Response {
         i?.toString()
       );
       const allRequests = await UserRequest.find({
-        immediate_user_id: allIds,
+        immediate_user_id: userFound?.userAreaId,
         status: "pending",
       });
       const request_ids = allRequests.map((i) => i?._id.toString());
@@ -1007,7 +992,6 @@ class User extends Response {
       // Code Here
       const token = req.headers.authorization;
       const { type } = req.query;
-      console.log(type);
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",

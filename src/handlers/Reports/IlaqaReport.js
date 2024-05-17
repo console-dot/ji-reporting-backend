@@ -15,7 +15,7 @@ const {
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
-const { UserModel, MaqamModel } = require("../../model");
+const { UserModel, MaqamModel, IlaqaModel } = require("../../model");
 
 const isDataComplete = (dataToUpdate) => {
   const requiredKeys = [
@@ -776,14 +776,14 @@ class IlaqaReport extends Response {
         },
         ilaqaAreaId: accessList,
       }).populate("ilaqaAreaId userId");
-      const allIlaqas = await MaqamModel.find({ _id: accessList });
-      const maqamReportsAreaIds = ilaqaReports.map((i) =>
+      const allIlaqas = await IlaqaModel.find({ _id: accessList });
+      const ilaqaReportsAreaIds = ilaqaReports.map((i) =>
         i?.ilaqaAreaId?._id?.toString()
       );
       const allIlaqaAreaIds = allIlaqas.map((i) => i?._id?.toString());
       const unfilledArr = [];
       allIlaqaAreaIds.forEach((i, index) => {
-        if (!maqamReportsAreaIds.includes(i)) {
+        if (!ilaqaReportsAreaIds.includes(i)) {
           unfilledArr.push(i);
         }
       });
@@ -793,7 +793,7 @@ class IlaqaReport extends Response {
         status: 200,
         data: {
           unfilled: unfilled,
-          totalmaqam: allIlaqaAreaIds?.length,
+          totalIlaqa: allIlaqaAreaIds?.length,
           allIlaqas: allIlaqas,
         },
       });
