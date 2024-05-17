@@ -486,7 +486,7 @@ class DivisionReport extends Response {
         { path: "collegesId" },
         { path: "jamiaatId" },
       ]);
-      console.log(reports);
+      
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
@@ -534,13 +534,16 @@ class DivisionReport extends Response {
         });
       }
       const mentionedActivity = isExist?.mentionedActivityId;
+      const td = isExist?.tdId;
       if (isExist?.userId.toString() !== userId) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
           status: 401,
         });
       }
-
+      
+     
+     
       const startDate = new Date(isExist?.createdAt);
       const currentDate = new Date();
       const difference = currentDate - startDate;
@@ -609,7 +612,7 @@ class DivisionReport extends Response {
           "totalDecrease",
           "totalBookRent",
         ],
-        paighamDigestId: ["totalReceived", "totalSold"],
+        paighamDigestId: ["totalReceived", "totalSold","monthlyReceivingGoal"],
         rsdId: [
           "umeedwaranFilled",
           "manualUmeedwaran",
@@ -701,6 +704,17 @@ class DivisionReport extends Response {
         {
           $set: {
             studyCircle: dataToUpdate?.studyCircleMentioned,
+          },
+        }
+      );
+      console.log(dataToUpdate?.litrature)
+      await ToseeDawatModel.findOneAndUpdate(
+        {
+          _id: td,
+        },
+        {
+          $set: {
+            literatureDistribution: dataToUpdate?.litrature,
           },
         }
       );
