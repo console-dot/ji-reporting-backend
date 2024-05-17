@@ -6,6 +6,7 @@ const {
   MaqamModel,
   DivisionModel,
   ProvinceModel,
+  CountryModel,
 } = require("../model");
 const { UserRequest } = require("../model/userRequest");
 const {
@@ -757,6 +758,18 @@ class User extends Response {
         const areaExist = await DivisionModel?.findOne({
           _id: userExist?.userAreaId,
         });
+
+        if (areaExist?.disabled == true) {
+          return this.sendResponse(req, res, {
+            message: "Your area exists no more.",
+            status: 404,
+          });
+        }
+      } else if (userExist.nazim.toLowerCase() === "country") {
+        const areaExist = await CountryModel?.findOne({
+          _id: userExist?.userAreaId,
+        });
+
         if (areaExist?.disabled == true) {
           return this.sendResponse(req, res, {
             message: "Your area exists no more.",
@@ -804,6 +817,8 @@ class User extends Response {
       });
     }
   };
+
+
   getAllRequests = async (req, res) => {
     try {
       const token = req.headers.authorization;
