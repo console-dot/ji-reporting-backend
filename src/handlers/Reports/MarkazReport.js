@@ -119,6 +119,7 @@ class ProvinceReport extends Response {
         rafaqa,
         karkunan,
         shaheen,
+        rwabitMeetingsGoal,
         members,
         ijtArkan,
         studyCircle,
@@ -278,6 +279,7 @@ class ProvinceReport extends Response {
         shaheenMeeting,
         paighamEvent,
       });
+      
       const newOtherActivity = new OtherActivitiesModel({
         dawatiWafud,
         rawabitParties,
@@ -297,6 +299,7 @@ class ProvinceReport extends Response {
         rawabitDecided,
         current,
         meetings,
+        rwabitMeetingsGoal,
         literatureDistribution,
         registered: registeredTosee ? true : false,
         commonStudentMeetings,
@@ -414,12 +417,12 @@ class ProvinceReport extends Response {
       const { provinceAreaId } = await MarkazReportModel.findOne({
         _id,
       }).select("provinceAreaId");
-      if (!accessList.includes(provinceAreaId.toString())) {
-        return this.sendResponse(req, res, {
-          message: "Access Denied",
-          status: 401,
-        });
-      }
+      // if (!accessList.includes(provinceAreaId?.toString())) {
+      //   return this.sendResponse(req, res, {
+      //     message: "Access Denied",
+      //     status: 401,
+      //   });
+      // }
       const reports = await MarkazReportModel.findOne({ _id }).populate([
         { path: "userId", select: ["_id", "email", "name", "age"] },
         { path: "countryAreaId" },
@@ -434,6 +437,7 @@ class ProvinceReport extends Response {
         { path: "collegesId" },
         { path: "jamiaatId" },
       ]);
+      console.log(reports)
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
@@ -558,6 +562,7 @@ class ProvinceReport extends Response {
           "commonLiteratureDistribution",
           "commonStudentMeetings",
           "literatureDistribution",
+          "rwabitMeetingsGoal",
           "meetings",
           "current",
           "rawabitDecided",
@@ -567,6 +572,7 @@ class ProvinceReport extends Response {
           "shabBedari",
           "nizamSalah",
           "hadithCircle",
+         
           "rawabitParties",
           "dawatiWafud",
           "tarbiyatGaahGoal",
@@ -574,6 +580,7 @@ class ProvinceReport extends Response {
           "tarbiyatGaahGoalSum",
           "tarbiyatGaahHeld",
           "tarbiyatGaahHeldManual",
+          "tanzeemiRound",
           "tarbiyatGaahHeldSum",
         ],
         collegesId: ["collegesA", "collegesB", "collegesC", "collegesD"],
