@@ -785,6 +785,7 @@ class MaqamReport extends Response {
         { path: "mentionedActivityId" },
         { path: "otherActivityId" },
         { path: "tdId" },
+        { path: "muntakhibTdId" },
         { path: "maqamDivisionLibId" },
         { path: "paighamDigestId" },
         { path: "rsdId" },

@@ -103,7 +103,7 @@ class HalqaReport extends Response {
         rafaqaFilled,
         rwabitMeetingsGoal,
         registeredTosee,
-        registeredLibrary
+        registeredLibrary,
       } = req.body;
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
@@ -391,12 +391,12 @@ class HalqaReport extends Response {
         rsdId: ["umeedwaranFilled", "rafaqaFilled"],
         tdId: [
           "registered",
-          "commonLiteratureDistribution",
-          "commonStudentMeetings",
-          "litratureDistribution",
-          "meetings",
-          "current",
           "rawabitDecided",
+          "current",
+          "meetings",
+          "literatureDistribution",
+          "commonStudentMeetings",
+          "commonLiteratureDistribution",
           "rwabitMeetingsGoal",
         ],
         otherActivityId: [
