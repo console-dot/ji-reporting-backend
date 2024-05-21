@@ -1,5 +1,6 @@
-const { IlaqaModel } = require("../../model");
+const { IlaqaModel, MaqamModel, UserModel } = require("../../model");
 const Response = require("../Response");
+const jwt = require("jsonwebtoken");
 
 class Ilaqa extends Response {
   createOne = async (req, res) => {
@@ -39,11 +40,40 @@ class Ilaqa extends Response {
     }
   };
   getAll = async (req, res) => {
+    const token = req.headers.authorization;
+    let data;
     try {
-      const data = await IlaqaModel.find({}).populate({
-        path: "maqam",
-        populate: { path: "province" },
-      });
+      if (token) {
+        const decoded = jwt.decode(token.split(" ")[1]);
+        const userId = decoded?.id;
+        const isUser = await UserModel.findOne({
+          _id: userId,
+        });
+        if (isUser && isUser.userAreaType === "Maqam") {
+          data = await IlaqaModel.find({ maqam: isUser.userAreaId }).populate({
+            path: "maqam",
+            populate: { path: "province" },
+          });
+        } else if (isUser && isUser.userAreaType === "Province") {
+          const maqamsList = await MaqamModel.find({
+            province: isUser.userAreaId,
+          }).select("_id");
+          data = await IlaqaModel.find({ maqam: maqamsList }).populate({
+            path: "maqam",
+            populate: { path: "province" },
+          });
+        } else if (isUser.userAreaType === "Country") {
+          data = await IlaqaModel.find({}).populate({
+            path: "maqam",
+            populate: { path: "province" },
+          });
+        }
+      } else {
+        data = await IlaqaModel.find({}).populate({
+          path: "maqam",
+          populate: { path: "province" },
+        });
+      }
       return this.sendResponse(req, res, { data, status: 200 });
     } catch (err) {
       console.log(err);

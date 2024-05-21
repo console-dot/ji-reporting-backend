@@ -1,5 +1,6 @@
-const { MaqamModel } = require("../../model");
+const { MaqamModel, DivisionModel, UserModel } = require("../../model");
 const Response = require("../Response");
+const jwt = require("jsonwebtoken");
 
 class Maqam extends Response {
   createOne = async (req, res) => {
@@ -39,8 +40,26 @@ class Maqam extends Response {
     }
   };
   getAll = async (req, res) => {
+    const token = req.headers.authorization;
+
     try {
-      const data = await MaqamModel.find({}).populate("province");
+      let data;
+      if (token) {
+        const decoded = jwt.decode(token.split(" ")[1]);
+        const userId = decoded?.id;
+        const isUser = await UserModel.findOne({
+          _id: userId,
+        });
+        if (isUser && isUser.userAreaType === "Province") {
+          data = await MaqamModel.find({
+            province: isUser.userAreaId,
+          }).populate("province");
+        } else if (isUser.userAreaType === "Country") {
+          data = await MaqamModel.find({}).populate("province");
+        }
+      } else {
+        data = await MaqamModel.find({}).populate("province");
+      }
       return this.sendResponse(req, res, { data, status: 200 });
     } catch (err) {
       console.log(err);
@@ -53,13 +72,16 @@ class Maqam extends Response {
   getOne = async (req, res) => {
     try {
       const _id = req.params.id;
-      const data = await MaqamModel.findOne({ _id }).populate("province");
+      let data;
+      data = await MaqamModel.findOne({ _id }).populate("province");
       if (!data) {
+        data = await DivisionModel.findOne({ _id }).populate("province");
+      }
+      if (!data)
         return this.sendResponse(req, res, {
           message: "Not found!",
           status: 404,
         });
-      }
       return this.sendResponse(req, res, { data, status: 200 });
     } catch (err) {
       console.log(err);

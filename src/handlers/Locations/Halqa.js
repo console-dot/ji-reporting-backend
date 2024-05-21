@@ -1,6 +1,14 @@
-const { HalqaModel } = require("../../model");
-const { getPopulateMethod } = require("../../utils");
+const {
+  HalqaModel,
+  IlaqaModel,
+  MaqamModel,
+  DivisionModel,
+  ProvinceModel,
+  UserModel,
+} = require("../../model");
+const { getPopulateMethod, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
+const jwt = require("jsonwebtoken");
 
 class Halqa extends Response {
   createOne = async (req, res) => {
@@ -91,37 +99,62 @@ class Halqa extends Response {
   };
   // Function to retrieve halqas with population
   getAll = async (req, res) => {
+    const token = req.headers.authorization;
+
+    let halqaData;
     try {
-      const halqaData = await HalqaModel.find().lean();
-      const populateOptions = {
-        Tehsil: [
-          {
-            path: "parentId",
-            populate: {
-              path: "district",
-              populate: { path: "division", populate: { path: "province" } },
-            },
-          },
-        ],
-        Maqam: [{ path: "parentId", populate: { path: "province" } }],
-        Division: [{ path: "parentId", populate: { path: "province" } }],
-        Ilaqa: [
-          {
-            path: "parentId",
-            populate: { path: "maqam", populate: { path: "province" } },
-          },
-        ],
-      };
+      if (token) {
+        const decoded = jwt.decode(token.split(" ")[1]);
+        const userId = decoded?.id;
+        const isUser = await UserModel.findOne({
+          _id: userId,
+        });
+        if (isUser && isUser.userAreaType === "Ilaqa") {
+          const halqaList = await getRoleFlow(isUser.userAreaId, "Ilaqa");
+          halqaData = await HalqaModel.find({ parentId: halqaList });
+        } else if (isUser && isUser.userAreaType === "Maqam") {
+          const halqaList = await getRoleFlow(isUser.userAreaId, "Maqam");
+          halqaData = await HalqaModel.find({ parentId: halqaList });
+        } else if (isUser && isUser.userAreaType === "Division") {
+          const halqaList = await getRoleFlow(isUser.userAreaId, "Division");
+          halqaData = await HalqaModel.find({ parentId: halqaList });
+        } else if (isUser && isUser.userAreaType === "Province") {
+          const halqaList = await getRoleFlow(isUser.userAreaId, "Province");
+          halqaData = await HalqaModel.find({ parentId: halqaList });
+        } else if (isUser && isUser.userAreaType === "Country") {
+          halqaData = await HalqaModel.find({});
+        }
+      } else {
+        halqaData = await HalqaModel.find({}).populate("parentId");
+      }
+      // const populateOptions = {
+      //   Tehsil: [
+      //     {
+      //       path: "parentId",
+      //       populate: {
+      //         path: "district",
+      //         populate: { path: "division", populate: { path: "province" } },
+      //       },
+      //     },
+      //   ],
+      //   Maqam: [{ path: "parentId", populate: { path: "province" } }],
+      //   Division: [{ path: "parentId", populate: { path: "province" } }],
+      //   Ilaqa: [
+      //     {
+      //       path: "parentId",
+      //       populate: { path: "maqam", populate: { path: "province" } },
+      //     },
+      //   ],
+      // };
 
       // Define batch size for parallel processing
-      const batchSize = 500;
+      // const batchSize = 500;
 
-      // Populate halqas in parallel in batches
-      await Promise.all(
-        this.chunkArray(halqaData, batchSize).map((batch) =>
-          this.populateHalqas(batch, populateOptions)
-        )
-      );
+      // await Promise.all(
+      //   this.chunkArray(halqaData, batchSize).map((batch) =>
+      //     this.populateHalqas(batch, populateOptions)
+      //   )
+      // );
       return this.sendResponse(req, res, { data: halqaData, status: 200 });
     } catch (err) {
       console.log(err);
@@ -142,14 +175,29 @@ class Halqa extends Response {
           status: 404,
         });
       }
-      const method = getPopulateMethod(halqaData?.parentType);
       let data = halqaData;
-      if (method) {
-        data = await halqaData.populate({
-          path: "parentId",
-          populate: method,
-        });
-      }
+      const populateOptions = {
+        Tehsil: [
+          {
+            path: "parentId",
+            populate: {
+              path: "district",
+              populate: { path: "division", populate: { path: "province" } },
+            },
+          },
+        ],
+        Maqam: [{ path: "parentId", populate: { path: "province" } }],
+        Division: [{ path: "parentId", populate: { path: "province" } }],
+        Ilaqa: [
+          {
+            path: "parentId",
+            populate: { path: "maqam", populate: { path: "province" } },
+          },
+        ],
+      };
+
+      data = await halqaData.populate(populateOptions[halqaData?.parentType]);
+
       return this.sendResponse(req, res, { data, status: 200 });
     } catch (err) {
       console.log(err);

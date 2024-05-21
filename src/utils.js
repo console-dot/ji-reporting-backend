@@ -7,13 +7,15 @@ const {
   UserModel,
   ProvinceModel,
   IlaqaModel,
+  CountryModel,
 } = require("./model");
 
 const getImmediateUser = async (userAreaId, userAreaType) => {
   let req = undefined;
   switch (userAreaType) {
     case "Province":
-      return null;
+      req = await ProvinceModel.findOne({ _id: userAreaId });
+      return req?.country;
     case "Maqam":
       req = await MaqamModel.findOne({ _id: userAreaId });
       return req?.province;
@@ -29,6 +31,9 @@ const getImmediateUser = async (userAreaId, userAreaType) => {
     case "Halqa":
       req = await HalqaModel.findOne({ _id: userAreaId });
       return req?.parentId;
+    case "Ilaqa":
+      req = await IlaqaModel.findOne({ _id: userAreaId });
+      return req?.maqam;
     default:
       return null;
   }
