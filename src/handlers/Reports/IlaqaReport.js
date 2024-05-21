@@ -207,11 +207,13 @@ class IlaqaReport extends Response {
         },
         userId,
       });
-      const reports = await IlaqaReportModel.findOne({ month: {
-        $gte: new Date(yearExist, monthExist, 1),
-        $lt: new Date(yearExist, monthExist + 1, 1),
-      },
-      ilaqaAreaId: user?.userAreaId, });
+      const reports = await IlaqaReportModel.findOne({
+        month: {
+          $gte: new Date(yearExist, monthExist, 1),
+          $lt: new Date(yearExist, monthExist + 1, 1),
+        },
+        ilaqaAreaId: user?.userAreaId,
+      });
       if (reports) {
         return this.sendResponse(req, res, {
           message: `Report already created for ${
@@ -375,24 +377,34 @@ class IlaqaReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      // if (user?.nazim !== 'province') {
       reports = await IlaqaReportModel.find({
         ilaqaAreaId: accessList,
       })
-        .populate([
-          { path: "userId", select: ["_id", "email", "name", "age"] },
-          { path: "ilaqaAreaId", populate: { path: "maqam" } },
-          { path: "maqamTanzeemId" },
-          { path: "wiId" },
-          { path: "maqamActivityId" },
-          { path: "mentionedActivityId" },
-          { path: "otherActivityId" },
-          { path: "tdId" },
-          { path: "maqamDivisionLibId" },
-          { path: "paighamDigestId" },
-          { path: "rsdId" },
-        ])
+        .select("_id")
         .sort({ createdAt: -1 });
+
+      if (reports.length > 0) {
+        reports = await IlaqaReportModel.find({
+          ilaqaAreaId: accessList,
+        })
+          .populate([
+            { path: "userId", select: ["_id", "email", "name", "age"] },
+            {
+              path: "ilaqaAreaId",
+              populate: { path: "maqam" },
+            },
+            { path: "maqamTanzeemId" },
+            { path: "wiId" },
+            { path: "maqamActivityId" },
+            { path: "mentionedActivityId" },
+            { path: "otherActivityId" },
+            { path: "tdId" },
+            { path: "maqamDivisionLibId" },
+            { path: "paighamDigestId" },
+            { path: "rsdId" },
+          ])
+          .sort({ createdAt: -1 });
+      }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);

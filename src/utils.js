@@ -29,8 +29,18 @@ const getImmediateUser = async (userAreaId, userAreaType) => {
       req = await TehsilModel.findOne({ _id: userAreaId });
       return req?.district;
     case "Halqa":
-      req = await HalqaModel.findOne({ _id: userAreaId });
-      return req?.parentId;
+      req = await HalqaModel.findOne({ _id: userAreaId }).populate("parentId");
+      if (req?.parentType === "Tehsil") {
+        req = await HalqaModel.findOne({ _id: userAreaId }).populate({
+          path: "parentId",
+          populate: {
+            path: "district",
+          },
+        });
+        return req?.parentId?.district?.division;
+      } else {
+        return req?.parentId?._id;
+      }
     case "Ilaqa":
       req = await IlaqaModel.findOne({ _id: userAreaId });
       return req?.maqam;
@@ -126,7 +136,7 @@ const getRoleFlow = async (id, key) => {
         getRoleFlow(province?._id, "province")
       );
       const countryResultsm = await Promise.all(countryPromices);
-      return [...countryResultsm.flat()];
+      return [...countryResultsm.flat(), id];
     default:
       return [];
   }
