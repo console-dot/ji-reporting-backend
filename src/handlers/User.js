@@ -820,6 +820,7 @@ class User extends Response {
         },
       });
     } catch (err) {
+      
       console.log(err);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
