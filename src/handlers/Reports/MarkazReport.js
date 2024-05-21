@@ -279,7 +279,7 @@ class ProvinceReport extends Response {
         shaheenMeeting,
         paighamEvent,
       });
-      
+
       const newOtherActivity = new OtherActivitiesModel({
         dawatiWafud,
         rawabitParties,
@@ -368,22 +368,24 @@ class ProvinceReport extends Response {
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       let reports;
-      reports = await MarkazReportModel.find({})
-        .populate([
-          { path: "userId", select: ["_id", "email", "name", "age"] },
-          { path: "countryAreaId" },
-          { path: "markazTanzeemId" },
-          { path: "markazWorkerInfoId" },
-          { path: "markazActivityId" },
-          { path: "mentionedActivityId" },
-          { path: "otherActivityId" },
-          { path: "tdId" },
-          { path: "markazDivisionLibId" },
-          { path: "rsdId" },
-          { path: "collegesId" },
-          { path: "jamiaatId" },
-        ])
-        .sort({ createdAt: -1 });
+      if (user) {
+        reports = await MarkazReportModel.find({})
+          .populate([
+            { path: "userId", select: ["_id", "email", "name", "age"] },
+            { path: "countryAreaId" },
+            { path: "markazTanzeemId" },
+            { path: "markazWorkerInfoId" },
+            { path: "markazActivityId" },
+            { path: "mentionedActivityId" },
+            { path: "otherActivityId" },
+            { path: "tdId" },
+            { path: "markazDivisionLibId" },
+            { path: "rsdId" },
+            { path: "collegesId" },
+            { path: "jamiaatId" },
+          ])
+          .sort({ createdAt: -1 });
+      }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
@@ -417,12 +419,6 @@ class ProvinceReport extends Response {
       const { provinceAreaId } = await MarkazReportModel.findOne({
         _id,
       }).select("provinceAreaId");
-      // if (!accessList.includes(provinceAreaId?.toString())) {
-      //   return this.sendResponse(req, res, {
-      //     message: "Access Denied",
-      //     status: 401,
-      //   });
-      // }
       const reports = await MarkazReportModel.findOne({ _id }).populate([
         { path: "userId", select: ["_id", "email", "name", "age"] },
         { path: "countryAreaId" },
@@ -437,7 +433,6 @@ class ProvinceReport extends Response {
         { path: "collegesId" },
         { path: "jamiaatId" },
       ]);
-      console.log(reports)
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
@@ -572,7 +567,7 @@ class ProvinceReport extends Response {
           "shabBedari",
           "nizamSalah",
           "hadithCircle",
-         
+
           "rawabitParties",
           "dawatiWafud",
           "tarbiyatGaahGoal",

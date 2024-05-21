@@ -7,6 +7,7 @@ const {
   DivisionModel,
   ProvinceModel,
   CountryModel,
+  IlaqaModel,
 } = require("../model");
 const { UserRequest } = require("../model/userRequest");
 const {
@@ -199,7 +200,7 @@ class User extends Response {
         nazimType,
       });
 
-      const UserRequestReq = await newUserRequest.save();
+      const userRequestReq = await newUserRequest.save();
       const newUser = new UserModel({
         email,
         password,
@@ -209,7 +210,7 @@ class User extends Response {
         nazim,
         userAreaId,
         userAreaType,
-        userRequestId: UserRequestReq?.id,
+        userRequestId: userRequestReq?._id,
         fatherName,
         dob,
         address,
@@ -754,6 +755,16 @@ class User extends Response {
             status: 404,
           });
         }
+      } else if (userExist.nazim.toLowerCase() === "ilaqa") {
+        const areaExist = await IlaqaModel?.findOne({
+          _id: userExist?.userAreaId,
+        });
+        if (areaExist?.disabled == true) {
+          return this.sendResponse(req, res, {
+            message: "Your area exists no more.",
+            status: 404,
+          });
+        }
       } else if (userExist.nazim.toLowerCase() === "division") {
         const areaExist = await DivisionModel?.findOne({
           _id: userExist?.userAreaId,
@@ -817,7 +828,6 @@ class User extends Response {
       });
     }
   };
-
 
   getAllRequests = async (req, res) => {
     try {

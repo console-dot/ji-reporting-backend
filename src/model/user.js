@@ -24,7 +24,7 @@ const users = mongoose.Schema(
     },
     nazim: {
       type: String, // Halqa/Maqam/Division/Province
-      enum: ["halqa", "maqam", "division", "province", "country"],
+      enum: ["halqa", "maqam", "division", "province", "country","ilaqa"],
       required: true,
     },
     userAreaId: {

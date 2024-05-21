@@ -1,5 +1,6 @@
-const { DivisionModel } = require("../../model");
+const { DivisionModel, UserModel } = require("../../model");
 const Response = require("../Response");
+const jwt = require("jsonwebtoken");
 
 class Division extends Response {
   createOne = async (req, res) => {
@@ -39,8 +40,25 @@ class Division extends Response {
     }
   };
   getAll = async (req, res) => {
+    const token = req.headers.authorization;
+    let data;
     try {
-      const data = await DivisionModel.find({}).populate("province");
+      if (token) {
+        const decoded = jwt.decode(token.split(" ")[1]);
+        const userId = decoded?.id;
+        const isUser = await UserModel.findOne({
+          _id: userId,
+        });
+        if (isUser && isUser.userAreaType === "Province") {
+          data = await DivisionModel.find({
+            province: isUser.userAreaId,
+          }).populate("province");
+        } else if (isUser?.userAreaType === "Country") {
+          data = await DivisionModel.find({}).populate("province");
+        }
+      } else {
+        data = await DivisionModel.find({}).populate("province");
+      }
       return this.sendResponse(req, res, { data, status: 200 });
     } catch (err) {
       console.log(err);
