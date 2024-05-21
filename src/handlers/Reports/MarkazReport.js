@@ -369,22 +369,30 @@ class ProvinceReport extends Response {
       const user = await UserModel.findOne({ _id: userId });
       let reports;
       if (user) {
-        reports = await MarkazReportModel.find({})
-          .populate([
-            { path: "userId", select: ["_id", "email", "name", "age"] },
-            { path: "countryAreaId" },
-            { path: "markazTanzeemId" },
-            { path: "markazWorkerInfoId" },
-            { path: "markazActivityId" },
-            { path: "mentionedActivityId" },
-            { path: "otherActivityId" },
-            { path: "tdId" },
-            { path: "markazDivisionLibId" },
-            { path: "rsdId" },
-            { path: "collegesId" },
-            { path: "jamiaatId" },
-          ])
+        const existingReports = await MarkazReportModel.find({})
+          .select("_id")
           .sort({ createdAt: -1 });
+        if (existingReports.length > 0) {
+          reports = await MarkazReportModel.find({})
+            .populate([
+              { path: "userId", select: ["_id", "email", "name", "age"] },
+              { path: "countryAreaId" },
+              { path: "markazTanzeemId" },
+              { path: "markazWorkerInfoId" },
+              { path: "markazActivityId" },
+              { path: "mentionedActivityId" },
+              { path: "otherActivityId" },
+              { path: "tdId" },
+              { path: "markazDivisionLibId" },
+              { path: "rsdId" },
+              { path: "collegesId" },
+              { path: "jamiaatId" },
+            ])
+            .sort({ createdAt: -1 });
+        } else {
+          // No reports found
+          reports = [];
+        }
       }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {

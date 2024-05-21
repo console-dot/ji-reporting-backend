@@ -412,26 +412,35 @@ class DivisionReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      // if (user?.nazim !== "province") {
       reports = await DivisionReportModel.find({
         divisionAreaId: accessList,
       })
-        .populate([
-          { path: "userId", select: ["_id", "email", "name", "age"] },
-          { path: "divisionAreaId", populate: { path: "province" } },
-          { path: "maqamTanzeemId" },
-          { path: "wiId" },
-          { path: "divisionActivityId" },
-          { path: "mentionedActivityId" },
-          { path: "otherActivityId" },
-          { path: "tdId" },
-          { path: "maqamDivisionLibId" },
-          { path: "paighamDigestId" },
-          { path: "rsdId" },
-          { path: "collegesId" },
-          { path: "jamiaatId" },
-        ])
+        .select("_id")
         .sort({ createdAt: -1 });
+
+      if (reports.length > 0) {
+      
+        reports = await DivisionReportModel.find({
+          divisionAreaId: accessList,
+        })
+          .populate([
+            { path: "userId", select: ["_id", "email", "name", "age"] },
+            { path: "divisionAreaId", populate: { path: "province" } },
+            { path: "maqamTanzeemId" },
+            { path: "wiId" },
+            { path: "divisionActivityId" },
+            { path: "mentionedActivityId" },
+            { path: "otherActivityId" },
+            { path: "tdId" },
+            { path: "maqamDivisionLibId" },
+            { path: "paighamDigestId" },
+            { path: "rsdId" },
+            { path: "collegesId" },
+            { path: "jamiaatId" },
+          ])
+          .sort({ createdAt: -1 });
+      }
+
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
@@ -486,7 +495,7 @@ class DivisionReport extends Response {
         { path: "collegesId" },
         { path: "jamiaatId" },
       ]);
-      
+
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
@@ -541,9 +550,7 @@ class DivisionReport extends Response {
           status: 401,
         });
       }
-      
-     
-     
+
       const startDate = new Date(isExist?.createdAt);
       const currentDate = new Date();
       const difference = currentDate - startDate;
@@ -612,7 +619,7 @@ class DivisionReport extends Response {
           "totalDecrease",
           "totalBookRent",
         ],
-        paighamDigestId: ["totalReceived", "totalSold","monthlyReceivingGoal"],
+        paighamDigestId: ["totalReceived", "totalSold", "monthlyReceivingGoal"],
         rsdId: [
           "umeedwaranFilled",
           "manualUmeedwaran",
@@ -707,7 +714,7 @@ class DivisionReport extends Response {
           },
         }
       );
-      console.log(dataToUpdate?.litrature)
+      console.log(dataToUpdate?.litrature);
       await ToseeDawatModel.findOneAndUpdate(
         {
           _id: td,

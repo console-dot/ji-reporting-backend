@@ -5,7 +5,6 @@ const {
   HalqaModel,
   MaqamModel,
   DivisionModel,
-  ProvinceModel,
   CountryModel,
   IlaqaModel,
 } = require("../model");
@@ -849,10 +848,6 @@ class User extends Response {
           status: 404,
         });
       }
-      const { userAreaId: immediate_user_id, userAreaType: key } = userFound;
-      const allIds = (await getRoleFlow(immediate_user_id, key)).map((i) =>
-        i?.toString()
-      );
       const allRequests = await UserRequest.find({
         immediate_user_id: userFound?.userAreaId,
         status: "pending",

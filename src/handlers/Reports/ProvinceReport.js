@@ -381,25 +381,34 @@ class ProvinceReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      reports = await ProvinceReportModel.find({
+      const existingReports = await ProvinceReportModel.find({
         provinceAreaId: accessList,
-      })
-        .populate([
-          { path: "userId", select: ["_id", "email", "name", "age"] },
-          { path: "provinceAreaId" },
-          { path: "provinceTanzeemId" },
-          { path: "provinceWorkerInfoId" },
-          { path: "provinceActivityId" },
-          { path: "mentionedActivityId" },
-          { path: "otherActivityId" },
-          { path: "tdId" },
-          { path: "provinceDivisionLibId" },
-          { path: "paighamDigestId" },
-          { path: "rsdId" },
-          { path: "collegesId" },
-          { path: "jamiaatId" },
-        ])
-        .sort({ createdAt: -1 });
+      }).sort({ createdAt: -1 });
+
+      if (existingReports.length > 0) {
+        reports = await ProvinceReportModel.find({
+          provinceAreaId: accessList,
+        })
+          .populate([
+            { path: "userId", select: ["_id", "email", "name", "age"] },
+            { path: "provinceAreaId" },
+            { path: "provinceTanzeemId" },
+            { path: "provinceWorkerInfoId" },
+            { path: "provinceActivityId" },
+            { path: "mentionedActivityId" },
+            { path: "otherActivityId" },
+            { path: "tdId" },
+            { path: "provinceDivisionLibId" },
+            { path: "paighamDigestId" },
+            { path: "rsdId" },
+            { path: "collegesId" },
+            { path: "jamiaatId" },
+          ])
+          .sort({ createdAt: -1 });
+      } else {
+        reports = [];
+      }
+
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
@@ -419,7 +428,7 @@ class ProvinceReport extends Response {
         });
       }
       const _id = req.params.id;
-      console.log(_id)
+      console.log(_id);
       if (!_id) {
         return this.sendResponse(req, res, {
           message: "Id is required",

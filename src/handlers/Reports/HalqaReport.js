@@ -222,26 +222,36 @@ class HalqaReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      // if (user?.nazim !== "province") {
+
       reports = await HalqaReportModel.find({
         halqaAreaId: accessList,
       })
-        .populate([
-          { path: "userId", select: ["_id", "email", "name", "age"] },
-          { path: "wiId" },
-          { path: "halqaActivityId" },
-          { path: "otherActivityId" },
-          { path: "tdId" },
-          { path: "halqaLibId" },
-          { path: "rsdId" },
-          {
-            path: "halqaAreaId",
-            populate: {
-              path: "parentId",
-            },
-          },
-        ])
+        .select("_id") 
         .sort({ createdAt: -1 });
+
+      if (reports.length > 0) {
+  
+        reports = await HalqaReportModel.find({
+          halqaAreaId: accessList,
+        })
+          .populate([
+            { path: "userId", select: ["_id", "email", "name", "age"] },
+            { path: "wiId" },
+            { path: "halqaActivityId" },
+            { path: "otherActivityId" },
+            { path: "tdId" },
+            { path: "halqaLibId" },
+            { path: "rsdId" },
+            {
+              path: "halqaAreaId",
+              populate: {
+                path: "parentId",
+              },
+            },
+          ])
+          .sort({ createdAt: -1 });
+      }
+
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);

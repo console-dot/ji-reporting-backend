@@ -341,14 +341,14 @@ class MaqamReport extends Response {
         totalSold,
         monthlyReceivingGoal,
       });
-     
+
       const newRsd = new RozShabBedariModel({
         umeedwaranFilled,
         manualUmeedwaran,
         umeedwaranFilledSum,
         rafaqaFilled,
         manualRafaqaFilled,
-        rafaqaFilledSum
+        rafaqaFilledSum,
       });
       const wi = await newWI.save();
       const maqamActivity = await newMaqamActivity.save();
@@ -536,7 +536,14 @@ class MaqamReport extends Response {
           "totalBookRent",
         ],
         paighamDigestId: ["totalReceived", "totalSold", "monthlyReceivingGoal"],
-        rsdId: ["umeedwaranFilled", "rafaqaFilled", "manualUmeedwaran","umeedwaranFilledSum","manualRafaqaFilled","rafaqaFilledSum"],
+        rsdId: [
+          "umeedwaranFilled",
+          "rafaqaFilled",
+          "manualUmeedwaran",
+          "umeedwaranFilledSum",
+          "manualRafaqaFilled",
+          "rafaqaFilledSum",
+        ],
         tdId: [
           "rawabitDecided",
           "literatureDistribution",
@@ -716,27 +723,38 @@ class MaqamReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      // if (user?.nazim !== 'province') {
-      reports = await MaqamReportModel.find({
+
+      const existingReports = await MaqamReportModel.find({
         maqamAreaId: accessList,
       })
-        .populate([
-          { path: "userId", select: ["_id", "email", "name", "age"] },
-          { path: "maqamAreaId", populate: { path: "province" } },
-          { path: "maqamTanzeemId" },
-          { path: "wiId" },
-          { path: "maqamActivityId" },
-          { path: "mentionedActivityId" },
-          { path: "otherActivityId" },
-          { path: "tdId" },
-          { path: "muntakhibTdId" },
-          { path: "maqamDivisionLibId" },
-          { path: "paighamDigestId" },
-          { path: "rsdId" },
-          { path: "collegesId" },
-          { path: "jamiaatId" },
-        ])
         .sort({ createdAt: -1 });
+
+      if (existingReports.length > 0) {
+        reports = await MaqamReportModel.find({
+          maqamAreaId: accessList,
+        })
+          .populate([
+            { path: "userId", select: ["_id", "email", "name", "age"] },
+            { path: "maqamAreaId", populate: { path: "province" } },
+            { path: "maqamTanzeemId" },
+            { path: "wiId" },
+            { path: "maqamActivityId" },
+            { path: "mentionedActivityId" },
+            { path: "otherActivityId" },
+            { path: "tdId" },
+            { path: "muntakhibTdId" },
+            { path: "maqamDivisionLibId" },
+            { path: "paighamDigestId" },
+            { path: "rsdId" },
+            { path: "collegesId" },
+            { path: "jamiaatId" },
+          ])
+          .sort({ createdAt: -1 });
+      } else {
+
+        reports = [];
+      }
+
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
