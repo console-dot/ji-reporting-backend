@@ -86,7 +86,10 @@ class Ilaqa extends Response {
   getOne = async (req, res) => {
     try {
       const _id = req.params.id;
-      const data = await IlaqaModel.findOne({ _id }).populate("maqam");
+      const data = await IlaqaModel.findOne({ _id }).populate({
+        path: "maqam",
+        populate: { path: "province" },
+      });
       if (!data) {
         return this.sendResponse(req, res, {
           message: "Not found!",
