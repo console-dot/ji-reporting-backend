@@ -24,7 +24,7 @@ const users = mongoose.Schema(
     },
     nazim: {
       type: String, // Halqa/Maqam/Division/Province
-      enum: ["halqa", "maqam", "division", "province", "country","ilaqa"],
+      enum: ["halqa", "maqam", "division", "province", "country", "ilaqa"],
       required: true,
     },
     userAreaId: {
@@ -103,8 +103,8 @@ const users = mongoose.Schema(
       required: true,
     },
     joiningDate: {
-      title: { type: String },
-      date: { type: Date },
+      title: { type: String, required: true },
+      date: { type: Date, required: false },
     },
     phoneNumber: {
       type: String,
