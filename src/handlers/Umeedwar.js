@@ -238,7 +238,6 @@ class Umeedwar extends Response {
       const toseeId = await newTosee.save();
       const itatId = await newItatNazm.save();
       const studyId = await newStudies.save();
-      console.log(user.userAreaType, "asdf");
       const newKhaka = UmeedwarModel({
         comments,
         month,
