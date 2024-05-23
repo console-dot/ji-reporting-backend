@@ -8,7 +8,7 @@ const notifications = mongoose.Schema(
     },
     created_for: {
       type: String,
-      enum: ["halqa", "maqam", "division"],
+      enum: ["halqa", "maqam", "division", "ilaqa", "province"],
     },
     parentId: {
       type: mongoose.Types.ObjectId,
@@ -18,7 +18,7 @@ const notifications = mongoose.Schema(
     parentType: {
       type: String,
       required: true,
-      enum: ["division", "maqam", "province"],
+      enum: ["division", "maqam", "province", "ilaqa", "country"],
     },
   },
   { timestamps: true }
