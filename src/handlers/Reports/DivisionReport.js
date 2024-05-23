@@ -703,7 +703,7 @@ class DivisionReport extends Response {
         { _id },
         { $set: dataToUpdate }
       );
-      // update studyCircle of division
+      // update studyCircle of sssssdivision
       await MentionedActivitiesModel.findOneAndUpdate(
         {
           _id: mentionedActivity,
@@ -714,7 +714,7 @@ class DivisionReport extends Response {
           },
         }
       );
-      console.log(dataToUpdate?.litrature);
+     
       await ToseeDawatModel.findOneAndUpdate(
         {
           _id: td,

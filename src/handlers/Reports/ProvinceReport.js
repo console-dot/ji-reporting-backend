@@ -428,7 +428,7 @@ class ProvinceReport extends Response {
         });
       }
       const _id = req.params.id;
-      console.log(_id);
+   
       if (!_id) {
         return this.sendResponse(req, res, {
           message: "Id is required",

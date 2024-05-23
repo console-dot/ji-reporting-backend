@@ -222,15 +222,17 @@ class HalqaReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-
+      const isId = accessList?.filter(
+        (f) => f.toString() === "662a37e51f96e92d76fae58f"
+      );
       reports = await HalqaReportModel.find({
         halqaAreaId: accessList,
       })
-        .select("_id") 
+        .select("_id")
         .sort({ createdAt: -1 });
 
       if (reports.length > 0) {
-  
+       
         reports = await HalqaReportModel.find({
           halqaAreaId: accessList,
         })
