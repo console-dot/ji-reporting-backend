@@ -288,26 +288,10 @@ class Umeedwar extends Response {
       if (
         user?.nazim !== "halqa" &&
         user.nazimType !== "rukan" &&
-        user?.nazimType !== "umeedwar" &&
-        user?.userAreaType !== "Country"
+        user?.nazimType !== "umeedwar"
       ) {
         reports = await UmeedwarModel.find({ areaId: accessList })
           .populate([
-            {
-              path: "prayersId",
-            },
-            {
-              path: "studiesId",
-            },
-            {
-              path: "toseeDawaId",
-            },
-            {
-              path: "itaatNazmId",
-            },
-            {
-              path: "userId",
-            },
             {
               path: "areaId",
             },
@@ -317,21 +301,6 @@ class Umeedwar extends Response {
         reports = await UmeedwarModel.find({})
           .populate([
             {
-              path: "prayersId",
-            },
-            {
-              path: "studiesId",
-            },
-            {
-              path: "toseeDawaId",
-            },
-            {
-              path: "itaatNazmId",
-            },
-            {
-              path: "userId",
-            },
-            {
               path: "areaId",
             },
           ])
@@ -339,21 +308,6 @@ class Umeedwar extends Response {
       } else {
         reports = await UmeedwarModel.find({ userId: user?._id })
           .populate([
-            {
-              path: "prayersId",
-            },
-            {
-              path: "studiesId",
-            },
-            {
-              path: "toseeDawaId",
-            },
-            {
-              path: "itaatNazmId",
-            },
-            {
-              path: "userId",
-            },
             {
               path: "areaId",
             },

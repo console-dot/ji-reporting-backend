@@ -726,8 +726,7 @@ class MaqamReport extends Response {
 
       const existingReports = await MaqamReportModel.find({
         maqamAreaId: accessList,
-      })
-        .sort({ createdAt: -1 });
+      }).sort({ createdAt: -1 });
 
       if (existingReports.length > 0) {
         reports = await MaqamReportModel.find({
@@ -751,7 +750,6 @@ class MaqamReport extends Response {
           ])
           .sort({ createdAt: -1 });
       } else {
-
         reports = [];
       }
 
@@ -767,6 +765,7 @@ class MaqamReport extends Response {
   getSingleReport = async (req, res) => {
     try {
       const token = req.headers.authorization;
+      const { date } = req?.query;
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
@@ -774,43 +773,62 @@ class MaqamReport extends Response {
         });
       }
       const _id = req.params.id;
+      const decoded = decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const user = await UserModel.findOne({ _id: userId });
+      const { userAreaId: id, nazim: key } = user;
       if (!_id) {
         return this.sendResponse(req, res, {
           message: "Id is required",
           status: 404,
         });
       }
-      const decoded = decode(token.split(" ")[1]);
-      const userId = decoded?.id;
-      const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
-      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      const { maqamAreaId } = await MaqamReportModel.findOne({ _id }).select(
-        "maqamAreaId"
-      );
-      if (!accessList.includes(maqamAreaId.toString())) {
-        return this.sendResponse(req, res, {
-          message: "Access Denied",
-          status: 401,
-        });
+      let report;
+      if (date) {
+        report = await MaqamReportModel.findOne({
+          maqamAreaId: _id,
+          month: date,
+        }).populate({ path: "maqamAreaId" });
+        if (!report) {
+          return this.sendResponse(req, res, {
+            message: "Report not found",
+            status: 400,
+          });
+        }
+      } else {
+        const accessList = (await getRoleFlow(id, key)).map((i) =>
+          i.toString()
+        );
+        const { maqamAreaId } = await MaqamReportModel.findOne({ _id }).select(
+          "maqamAreaId"
+        );
+        if (!accessList.includes(maqamAreaId.toString())) {
+          return this.sendResponse(req, res, {
+            message: "Access Denied",
+            status: 401,
+          });
+        }
+        report = await MaqamReportModel.findOne({ _id }).populate([
+          { path: "userId", select: ["_id", "email", "name", "age"] },
+          { path: "maqamAreaId", populate: { path: "province" } },
+          { path: "maqamTanzeemId" },
+          { path: "wiId" },
+          { path: "maqamActivityId" },
+          { path: "mentionedActivityId" },
+          { path: "otherActivityId" },
+          { path: "tdId" },
+          { path: "muntakhibTdId" },
+          { path: "maqamDivisionLibId" },
+          { path: "paighamDigestId" },
+          { path: "rsdId" },
+          { path: "collegesId" },
+          { path: "jamiaatId" },
+        ]);
       }
-      const reports = await MaqamReportModel.findOne({ _id }).populate([
-        { path: "userId", select: ["_id", "email", "name", "age"] },
-        { path: "maqamAreaId", populate: { path: "province" } },
-        { path: "maqamTanzeemId" },
-        { path: "wiId" },
-        { path: "maqamActivityId" },
-        { path: "mentionedActivityId" },
-        { path: "otherActivityId" },
-        { path: "tdId" },
-        { path: "muntakhibTdId" },
-        { path: "maqamDivisionLibId" },
-        { path: "paighamDigestId" },
-        { path: "rsdId" },
-        { path: "collegesId" },
-        { path: "jamiaatId" },
-      ]);
-      return this.sendResponse(req, res, { data: reports });
+      return this.sendResponse(req, res, {
+        data: report,
+        message: "Report Fetched Successfully",
+      });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
