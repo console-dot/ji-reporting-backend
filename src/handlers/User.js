@@ -712,19 +712,18 @@ class User extends Response {
           status: 400,
         });
       }
-
       const userExist = await UserModel.findOne({ email });
       // return
       if (!userExist) {
         return this.sendResponse(req, res, {
-          message: "Invalid username/password",
+          message: "User does not exist",
           status: 400,
         });
       }
       const isValid = await bcrypt.compare(password, userExist?.password);
       if (!isValid) {
         return this.sendResponse(req, res, {
-          message: "Invalid username/password",
+          message: "Invalid password",
           status: 400,
         });
       }
@@ -820,7 +819,6 @@ class User extends Response {
         },
       });
     } catch (err) {
-      
       console.log(err);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
