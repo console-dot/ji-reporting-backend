@@ -56,6 +56,9 @@ class User extends Response {
           status: 400,
         });
       }
+      else {
+        email = email.toLowerCase();
+      }
       if (!password1) {
         return this.sendResponse(req, res, {
           message: "Password is requied!",
@@ -440,6 +443,7 @@ class User extends Response {
           status: 404,
         });
       }
+
       const {
         name,
         email,
@@ -479,6 +483,9 @@ class User extends Response {
           message: "Email is required",
           status: 400,
         });
+      }
+      else {
+        email = email.toLowerCase();
       }
       const emailExist = await UserModel.findOne({ email, _id: { $ne: _id } });
       if (emailExist) {
@@ -706,6 +713,7 @@ class User extends Response {
       } else {
         email = email.toLowerCase();
       }
+      console.log(email)
       if (!password) {
         return this.sendResponse(req, res, {
           message: "Password is required!",
