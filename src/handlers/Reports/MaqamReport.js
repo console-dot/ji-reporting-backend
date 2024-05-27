@@ -14,6 +14,7 @@ const {
   CollegesModel,
   MuntakhibTdModel,
   HalqaReportModel,
+  IlaqaReportModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -75,7 +76,6 @@ const isDataComplete = (dataToUpdate) => {
 
   const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));
   if (missingKeys.length > 0) {
-    console.log("Missing keys:", missingKeys.join(", "));
     return false;
   }
   return true;
@@ -711,7 +711,7 @@ class MaqamReport extends Response {
   };
   getReports = async (req, res) => {
     try {
-      const areaId = req?.query;
+      const { areaId } = req?.query;
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
@@ -725,58 +725,95 @@ class MaqamReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      if (Object.keys(areaId).length > 0) {
-        const now = new Date();
-        const startOfPreviousMonth = new Date(
-          now.getFullYear(),
-          now.getMonth() - 1,
-          1
-        );
-        const endOfPreviousMonth = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          0
-        );
-        reports = await HalqaReportModel.find({
-          halqaAreaId: accessList,
-          month: { $gt: startOfPreviousMonth, $lte: endOfPreviousMonth },
-        })
-          .populate([
-            { path: "userId", select: ["_id", "email", "name", "age"] },
-            { path: "wiId" },
-            { path: "halqaActivityId" },
-            { path: "otherActivityId" },
-            { path: "tdId" },
-            { path: "halqaLibId" },
-            { path: "rsdId" },
-            {
-              path: "halqaAreaId",
-              populate: {
-                path: "parentId",
-                populate: { path: "province" },
-              },
-            },
-          ])
-          .sort({ createdAt: -1 });
-      } else {
-        reports = await MaqamReportModel.find({
-          maqamAreaId: accessList,
-        })
-          .select("_id")
-          .sort({ createdAt: -1 });
-        console.log(reports);
-        if (reports.length > 0) {
-          reports = await MaqamReportModel.find({
-            maqamAreaId: accessList,
+      const isIlaqa = await IlaqaModel.find({ maqam: areaId });
+      if (isIlaqa && areaId) {
+        if (Object.keys(areaId).length > 0) {
+          const now = new Date();
+          const startOfPreviousMonth = new Date(
+            now.getFullYear(),
+            now.getMonth() - 1,
+            1
+          );
+          const endOfPreviousMonth = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            0
+          );
+          reports = await IlaqaReportModel.find({
+            ilaqaAreaId: accessList,
+            month: { $gt: startOfPreviousMonth, $lte: endOfPreviousMonth },
           })
             .populate([
               { path: "userId", select: ["_id", "email", "name", "age"] },
-              {
-                path: "maqamAreaId",
-              },
+
+              { path: "maqamTanzeemId" },
+              { path: "wiId" },
+              { path: "maqamActivityId" },
+              { path: "mentionedActivityId" },
+              { path: "otherActivityId" },
+              { path: "tdId" },
+              { path: "maqamDivisionLibId" },
+              { path: "paighamDigestId" },
+              { path: "rsdId" },
+              { path: "ilaqaAreaId", populate: { path: "maqam" } },
             ])
             .sort({ createdAt: -1 });
         }
+      } else if (areaId && !isIlaqa) {
+        if (Object.keys(areaId).length > 0) {
+          const now = new Date();
+          const startOfPreviousMonth = new Date(
+            now.getFullYear(),
+            now.getMonth() - 1,
+            1
+          );
+          const endOfPreviousMonth = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            0
+          );
+          reports = await HalqaReportModel.find({
+            halqaAreaId: accessList,
+            month: { $gt: startOfPreviousMonth, $lte: endOfPreviousMonth },
+          })
+            .populate([
+              { path: "userId", select: ["_id", "email", "name", "age"] },
+              { path: "wiId" },
+              { path: "halqaActivityId" },
+              { path: "otherActivityId" },
+              { path: "tdId" },
+              { path: "halqaLibId" },
+              { path: "rsdId" },
+              {
+                path: "halqaAreaId",
+                populate: {
+                  path: "parentId",
+                  populate: { path: "province" },
+                },
+              },
+            ])
+            .sort({ createdAt: -1 });
+        }} else {
+          console.log('first')
+          reports = await MaqamReportModel.find({
+            maqamAreaId: accessList,
+          })
+            .select("_id")
+            .sort({ createdAt: -1 });
+
+          if (reports.length > 0) {
+            reports = await MaqamReportModel.find({
+              maqamAreaId: accessList,
+            })
+              .populate([
+                { path: "userId", select: ["_id", "email", "name", "age"] },
+                {
+                  path: "maqamAreaId",
+                },
+              ])
+              .sort({ createdAt: -1 });
+          }
+        
       }
 
       return this.sendResponse(req, res, { data: reports });
