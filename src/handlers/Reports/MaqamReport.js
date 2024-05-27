@@ -725,6 +725,8 @@ class MaqamReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
+      // RETURNING THE POPILATED HALQA REPORTS OF THE SPECIFIC Maqam
+
       if (Object.keys(areaId).length > 0) {
         const now = new Date();
         const startOfPreviousMonth = new Date(
