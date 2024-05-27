@@ -94,7 +94,7 @@ const isDataComplete = (dataToUpdate) => {
   const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));
 
   if (missingKeys.length > 0) {
-    console.log("Missing keys:", missingKeys.join(", "));
+   
     return false;
   }
   return true;
@@ -190,6 +190,12 @@ class IlaqaReport extends Response {
         totalDecrease,
         totalBookRent,
       } = req.body;
+      console.log(uploadedUmeedwaran,
+        manualUmeedwaran,
+        umeedwaranFilledSum,
+        manualRafaqaFilled,
+        uploadedRafaqa,
+        rafaqaFilledSum)
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
@@ -311,11 +317,11 @@ class IlaqaReport extends Response {
         monthlyReceivingGoalSum,
       });
       const newRsd = new RozShabBedariModel({
-        uploadedUmeedwaran,
+        umeedwaranFilled: uploadedUmeedwaran,
         manualUmeedwaran,
         umeedwaranFilledSum,
         manualRafaqaFilled,
-        uploadedRafaqa,
+        rafaqaFilled: uploadedRafaqa,
         rafaqaFilledSum,
       });
       const wi = await newWI.save();
@@ -371,7 +377,6 @@ class IlaqaReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      console.log(areaId);
       if (Object.keys(areaId).length > 0) {
         const now = new Date();
         const startOfPreviousMonth = new Date(
@@ -405,7 +410,6 @@ class IlaqaReport extends Response {
           ])
           .sort({ createdAt: -1 });
       } else {
-        console.log("first");
         reports = await IlaqaReportModel.find({
           ilaqaAreaId: accessList,
         })
