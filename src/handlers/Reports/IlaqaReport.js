@@ -371,7 +371,6 @@ class IlaqaReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      console.log(areaId);
       if (Object.keys(areaId).length > 0) {
         const now = new Date();
         const startOfPreviousMonth = new Date(
@@ -405,7 +404,6 @@ class IlaqaReport extends Response {
           ])
           .sort({ createdAt: -1 });
       } else {
-        console.log("first");
         reports = await IlaqaReportModel.find({
           ilaqaAreaId: accessList,
         })
