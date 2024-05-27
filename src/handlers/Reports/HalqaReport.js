@@ -232,18 +232,11 @@ class HalqaReport extends Response {
         .sort({ createdAt: -1 });
 
       if (reports.length > 0) {
-       
         reports = await HalqaReportModel.find({
           halqaAreaId: accessList,
         })
           .populate([
             { path: "userId", select: ["_id", "email", "name", "age"] },
-            { path: "wiId" },
-            { path: "halqaActivityId" },
-            { path: "otherActivityId" },
-            { path: "tdId" },
-            { path: "halqaLibId" },
-            { path: "rsdId" },
             {
               path: "halqaAreaId",
               populate: {
@@ -292,7 +285,8 @@ class HalqaReport extends Response {
           status: 401,
         });
       }
-      const reports = await HalqaReportModel.findOne({ _id }).populate([
+      let report;
+      report = await HalqaReportModel.findOne({ _id }).populate([
         { path: "userId", select: ["_id", "email", "name", "age"] },
         { path: "wiId" },
         { path: "halqaActivityId" },
@@ -302,7 +296,7 @@ class HalqaReport extends Response {
         { path: "rsdId" },
         { path: "halqaAreaId" },
       ]);
-      return this.sendResponse(req, res, { data: reports });
+      return this.sendResponse(req, res, { data: report });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
