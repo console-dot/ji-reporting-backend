@@ -393,15 +393,6 @@ class IlaqaReport extends Response {
               path: "ilaqaAreaId",
               populate: { path: "maqam" },
             },
-            { path: "maqamTanzeemId" },
-            { path: "wiId" },
-            { path: "maqamActivityId" },
-            { path: "mentionedActivityId" },
-            { path: "otherActivityId" },
-            { path: "tdId" },
-            { path: "maqamDivisionLibId" },
-            { path: "paighamDigestId" },
-            { path: "rsdId" },
           ])
           .sort({ createdAt: -1 });
       }
@@ -417,6 +408,7 @@ class IlaqaReport extends Response {
   getSingleReport = async (req, res) => {
     try {
       const token = req.headers.authorization;
+      const { date } = req?.query;
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
@@ -424,40 +416,59 @@ class IlaqaReport extends Response {
         });
       }
       const _id = req.params.id;
+      const decoded = decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const user = await UserModel.findOne({ _id: userId });
+      const { userAreaId: id, nazim: key } = user;
       if (!_id) {
         return this.sendResponse(req, res, {
           message: "Id is required",
           status: 404,
         });
       }
-      const decoded = decode(token.split(" ")[1]);
-      const userId = decoded?.id;
-      const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
-      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      const { ilaqaAreaId } = await IlaqaReportModel.findOne({ _id }).select(
-        "ilaqaAreaId"
-      );
-      if (!accessList.includes(ilaqaAreaId.toString())) {
-        return this.sendResponse(req, res, {
-          message: "Access Denied",
-          status: 401,
-        });
+      let report;
+      if (date) {
+        report = await IlaqaReportModel.findOne({
+          ilaqaAreaId: _id,
+          month: date,
+        }).populate({ path: "ilaqaAreaId" });
+        if (!report) {
+          return this.sendResponse(req, res, {
+            message: "Report not found",
+            status: 400,
+          });
+        }
+      } else {
+        const accessList = (await getRoleFlow(id, key)).map((i) =>
+          i.toString()
+        );
+        const { ilaqaAreaId } = await IlaqaReportModel.findOne({ _id }).select(
+          "ilaqaAreaId"
+        );
+        if (!accessList.includes(ilaqaAreaId.toString())) {
+          return this.sendResponse(req, res, {
+            message: "Access Denied",
+            status: 401,
+          });
+        }
+        report = await IlaqaReportModel.findOne({ _id }).populate([
+          { path: "userId", select: ["_id", "email", "name", "age"] },
+          { path: "ilaqaAreaId", populate: { path: "maqam" } },
+          { path: "maqamTanzeemId" },
+          { path: "wiId" },
+          { path: "maqamActivityId" },
+          { path: "mentionedActivityId" },
+          { path: "otherActivityId" },
+          { path: "tdId" },
+          { path: "maqamDivisionLibId" },
+          { path: "paighamDigestId" },
+          { path: "rsdId" },
+        ]);
       }
-      const reports = await IlaqaReportModel.findOne({ _id }).populate([
-        { path: "userId", select: ["_id", "email", "name", "age"] },
-        { path: "ilaqaAreaId", populate: { path: "maqam" } },
-        { path: "maqamTanzeemId" },
-        { path: "wiId" },
-        { path: "maqamActivityId" },
-        { path: "mentionedActivityId" },
-        { path: "otherActivityId" },
-        { path: "tdId" },
-        { path: "maqamDivisionLibId" },
-        { path: "paighamDigestId" },
-        { path: "rsdId" },
-      ]);
-      return this.sendResponse(req, res, { data: reports });
+      return this.sendResponse(req, res, {
+        data: report,
+        message: "Report Fetched Successfully",
+      });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
