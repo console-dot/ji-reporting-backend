@@ -13,6 +13,7 @@ const {
   JamiaatModel,
   CollegesModel,
   MaqamActivitiesModel,
+  HalqaReportModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -400,6 +401,7 @@ class DivisionReport extends Response {
   getReports = async (req, res) => {
     try {
       const token = req.headers.authorization;
+      const areaId = req?.query;
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
@@ -412,21 +414,56 @@ class DivisionReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      reports = await DivisionReportModel.find({
-        divisionAreaId: accessList,
-      })
-        .select("_id")
-        .sort({ createdAt: -1 });
-
-      if (reports.length > 0) {
-        reports = await DivisionReportModel.find({
-          divisionAreaId: accessList,
+      // RETURNING THE POPILATED HALQA REPORTS OF THE SPECIFIC DIVISION
+      if (Object.keys(areaId).length > 0) {
+        const now = new Date();
+        const startOfPreviousMonth = new Date(
+          now.getFullYear(),
+          now.getMonth() - 1,
+          1
+        );
+        const endOfPreviousMonth = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          0
+        );
+        reports = await HalqaReportModel.find({
+          halqaAreaId: accessList,
+          month: { $gt: startOfPreviousMonth, $lte: endOfPreviousMonth },
         })
           .populate([
             { path: "userId", select: ["_id", "email", "name", "age"] },
-            { path: "divisionAreaId", populate: { path: "province" } },
+            { path: "wiId" },
+            { path: "halqaActivityId" },
+            { path: "otherActivityId" },
+            { path: "tdId" },
+            { path: "halqaLibId" },
+            { path: "rsdId" },
+            {
+              path: "halqaAreaId",
+              populate: {
+                path: "parentId",
+              },
+            },
           ])
           .sort({ createdAt: -1 });
+      } else {
+        reports = await DivisionReportModel.find({
+          divisionAreaId: accessList,
+        })
+          .select("_id")
+          .sort({ createdAt: -1 });
+
+        if (reports.length > 0) {
+          reports = await DivisionReportModel.find({
+            divisionAreaId: accessList,
+          })
+            .populate([
+              { path: "userId", select: ["_id", "email", "name", "age"] },
+              { path: "divisionAreaId", populate: { path: "province" } },
+            ])
+            .sort({ createdAt: -1 });
+        }
       }
 
       return this.sendResponse(req, res, { data: reports });
@@ -722,7 +759,7 @@ class DivisionReport extends Response {
           },
         }
       );
-     
+
       await ToseeDawatModel.findOneAndUpdate(
         {
           _id: td,
