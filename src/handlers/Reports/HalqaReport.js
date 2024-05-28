@@ -225,28 +225,32 @@ class HalqaReport extends Response {
       const isId = accessList?.filter(
         (f) => f.toString() === "662a37e51f96e92d76fae58f"
       );
+
+      const inset = parseInt(req.query.inset) || 0;
+      const offset = parseInt(req.query.offset) || 10; 
+      let total = await HalqaReportModel.find({
+        halqaAreaId: accessList,
+      })
+      console.log(total.length)
       reports = await HalqaReportModel.find({
         halqaAreaId: accessList,
       })
-        .select("_id")
-        .sort({ createdAt: -1 });
-
-      if (reports.length > 0) {
-        reports = await HalqaReportModel.find({
-          halqaAreaId: accessList,
-        })
-          .populate([
-            { path: "userId", select: ["_id", "email", "name", "age"] },
-            {
-              path: "halqaAreaId",
-              populate: {
-                path: "parentId",
-              },
+        .populate([
+          { path: "userId", select: ["_id", "email", "name", "age"] },
+          {
+            path: "halqaAreaId",
+            populate: {
+              path: "parentId",
             },
-          ])
-          .sort({ createdAt: -1 });
-      }
-
+          },
+        ])
+        .sort({ createdAt: -1 })
+        .skip(inset) 
+        .limit(offset); 
+        const totalReport = {total: total.length};
+        if(!inset){
+          reports = [totalReport, ...reports]
+        }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
@@ -256,6 +260,8 @@ class HalqaReport extends Response {
       });
     }
   };
+
+  
   getSingleReport = async (req, res) => {
     try {
       const token = req.headers.authorization;
