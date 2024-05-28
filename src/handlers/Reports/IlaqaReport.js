@@ -94,7 +94,6 @@ const isDataComplete = (dataToUpdate) => {
   const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));
 
   if (missingKeys.length > 0) {
-   
     return false;
   }
   return true;
@@ -190,12 +189,14 @@ class IlaqaReport extends Response {
         totalDecrease,
         totalBookRent,
       } = req.body;
-      console.log(uploadedUmeedwaran,
+      console.log(
+        uploadedUmeedwaran,
         manualUmeedwaran,
         umeedwaranFilledSum,
         manualRafaqaFilled,
         uploadedRafaqa,
-        rafaqaFilledSum)
+        rafaqaFilledSum
+      );
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
@@ -362,7 +363,7 @@ class IlaqaReport extends Response {
     }
   };
   getReports = async (req, res) => {
-    const areaId = req?.query;
+    const {areaId} = req?.query;
     try {
       const token = req.headers.authorization;
       if (!token) {
@@ -377,7 +378,10 @@ class IlaqaReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      if (Object.keys(areaId).length > 0) {
+      const inset = parseInt(req.query.inset) || 0;
+      const offset = parseInt(req.query.offset) || 10;
+      console.log(inset, offset)
+      if (areaId) {
         const now = new Date();
         const startOfPreviousMonth = new Date(
           now.getFullYear(),
@@ -415,8 +419,9 @@ class IlaqaReport extends Response {
         })
           .select("_id")
           .sort({ createdAt: -1 });
-
+  
         if (reports.length > 0) {
+          const totalReport = { total: reports.length }; // Calculate total length before pagination
           reports = await IlaqaReportModel.find({
             ilaqaAreaId: accessList,
           })
@@ -427,7 +432,12 @@ class IlaqaReport extends Response {
                 populate: { path: "maqam" },
               },
             ])
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .skip(inset)
+            .limit(offset);
+          // if (!inset) {
+          //   reports = [totalReport, ...reports];
+          // }
         }
       }
       return this.sendResponse(req, res, { data: reports });
@@ -439,6 +449,7 @@ class IlaqaReport extends Response {
       });
     }
   };
+  
   getSingleReport = async (req, res) => {
     try {
       const token = req.headers.authorization;
