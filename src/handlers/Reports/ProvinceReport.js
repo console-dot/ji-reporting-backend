@@ -13,6 +13,8 @@ const {
   JamiaatModel,
   CollegesModel,
   MarkazWorkerInfoModel,
+  DivisionReportModel,
+  MaqamReportModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -368,6 +370,7 @@ class ProvinceReport extends Response {
   };
   getReports = async (req, res) => {
     try {
+      const areaId = req?.query;
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
@@ -381,24 +384,97 @@ class ProvinceReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      const existingReports = await ProvinceReportModel.find({
-        provinceAreaId: accessList,
-      }).sort({ createdAt: -1 });
-
-      if (existingReports.length > 0) {
-        reports = await ProvinceReportModel.find({
-          provinceAreaId: accessList,
+      let maqamReports;
+      let divisionReports;
+      // RETURNING THE POPILATED HALQA REPORTS OF THE SPECIFIC DIVISION
+      if (Object.keys(areaId).length > 0) {
+        const now = new Date();
+        const startOfPreviousMonth = new Date(
+          now.getFullYear(),
+          now.getMonth() - 1,
+          1
+        );
+        const endOfPreviousMonth = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          0
+        );
+        divisionReports = await DivisionReportModel.find({
+          divisionAreaId: accessList,
+          month: { $gt: startOfPreviousMonth, $lte: endOfPreviousMonth },
         })
           .populate([
             { path: "userId", select: ["_id", "email", "name", "age"] },
-            { path: "provinceAreaId" },
+            { path: "divisionAreaId", populate: { path: "province" } },
+            { path: "maqamTanzeemId" },
+            { path: "wiId" },
+            { path: "divisionActivityId" },
+            { path: "mentionedActivityId" },
+            { path: "otherActivityId" },
+            { path: "tdId" },
+            { path: "maqamDivisionLibId" },
+            { path: "paighamDigestId" },
+            { path: "rsdId" },
+            { path: "collegesId" },
+            { path: "jamiaatId" },
+          ])
+          .sort({ createdAt: -1 });
+        maqamReports = await MaqamReportModel.find({
+          maqamAreaId: accessList,
+          month: { $gt: startOfPreviousMonth, $lte: endOfPreviousMonth },
+        })
+          .populate([
+            { path: "userId", select: ["_id", "email", "name", "age"] },
+            { path: "maqamAreaId", populate: { path: "province" } },
+            { path: "maqamTanzeemId" },
+            { path: "wiId" },
+            { path: "maqamActivityId" },
+            { path: "mentionedActivityId" },
+            { path: "otherActivityId" },
+            { path: "tdId" },
+            { path: "muntakhibTdId" },
+            { path: "maqamDivisionLibId" },
+            { path: "paighamDigestId" },
+            { path: "rsdId" },
+            { path: "collegesId" },
+            { path: "jamiaatId" },
           ])
           .sort({ createdAt: -1 });
       } else {
-        reports = [];
+        const existingReports = await ProvinceReportModel.find({
+          provinceAreaId: accessList,
+        });
+        if (existingReports.length > 0) {
+          reports = await ProvinceReportModel.find({
+            provinceAreaId: accessList,
+          })
+            .populate([
+              { path: "userId", select: ["_id", "email", "name", "age"] },
+              { path: "provinceAreaId" },
+              { path: "provinceTanzeemId" },
+              { path: "provinceWorkerInfoId" },
+              { path: "provinceActivityId" },
+              { path: "mentionedActivityId" },
+              { path: "otherActivityId" },
+              { path: "tdId" },
+              { path: "provinceDivisionLibId" },
+              { path: "paighamDigestId" },
+              { path: "rsdId" },
+              { path: "collegesId" },
+              { path: "jamiaatId" },
+            ])
+            .sort({ createdAt: -1 });
+        } else {
+          reports = [];
+        }
       }
-
-      return this.sendResponse(req, res, { data: reports });
+      if (reports?.length > 0) {
+        return this.sendResponse(req, res, { data: reports });
+      } else {
+        return this.sendResponse(req, res, {
+          data: { maqamReports, divisionReports },
+        });
+      }
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {

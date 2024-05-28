@@ -1,14 +1,14 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const maqamActivitiesModel = mongoose.Schema({
-  divMushawarat:{
+  divMushawarat: {
     type: {
       decided: { type: Number, required: true },
       done: { type: Number, required: true },
       averageAttendance: { type: Number, required: true },
       registered: {
         type: Boolean,
-        default: false
+        default: false,
       },
     },
   },
@@ -19,9 +19,9 @@ const maqamActivitiesModel = mongoose.Schema({
       averageAttendance: { type: Number, required: true },
       registered: {
         type: Boolean,
-        default: false
+        default: false,
       },
-    }
+    },
   },
   studyCircle: {
     type: {
@@ -30,7 +30,7 @@ const maqamActivitiesModel = mongoose.Schema({
       averageAttendance: { type: Number, required: true },
       registered: {
         type: Boolean,
-        default: false
+        default: false,
       },
     },
     required: true,
@@ -42,7 +42,7 @@ const maqamActivitiesModel = mongoose.Schema({
       averageAttendance: { type: Number, required: true },
       registered: {
         type: Boolean,
-        default: false
+        default: false,
       },
     },
     required: true,
@@ -54,7 +54,7 @@ const maqamActivitiesModel = mongoose.Schema({
       averageAttendance: { type: Number, required: true },
       registered: {
         type: Boolean,
-        default: false
+        default: false,
       },
     },
     required: true,
@@ -66,7 +66,7 @@ const maqamActivitiesModel = mongoose.Schema({
       averageAttendance: { type: Number, required: true },
       registered: {
         type: Boolean,
-        default: false
+        default: false,
       },
     },
     required: true,
@@ -74,7 +74,7 @@ const maqamActivitiesModel = mongoose.Schema({
 });
 
 const MaqamActivitiesModel = mongoose.model(
-  'MaqamActivities',
+  "MaqamActivities",
   maqamActivitiesModel
 );
 
