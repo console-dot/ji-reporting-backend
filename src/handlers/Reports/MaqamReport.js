@@ -793,27 +793,26 @@ class MaqamReport extends Response {
               },
             ])
             .sort({ createdAt: -1 });
-        }} else {
-          console.log('first')
+        }
+      } else {
+        reports = await MaqamReportModel.find({
+          maqamAreaId: accessList,
+        })
+          .select("_id")
+          .sort({ createdAt: -1 });
+
+        if (reports.length > 0) {
           reports = await MaqamReportModel.find({
             maqamAreaId: accessList,
           })
-            .select("_id")
+            .populate([
+              { path: "userId", select: ["_id", "email", "name", "age"] },
+              {
+                path: "maqamAreaId",
+              },
+            ])
             .sort({ createdAt: -1 });
-
-          if (reports.length > 0) {
-            reports = await MaqamReportModel.find({
-              maqamAreaId: accessList,
-            })
-              .populate([
-                { path: "userId", select: ["_id", "email", "name", "age"] },
-                {
-                  path: "maqamAreaId",
-                },
-              ])
-              .sort({ createdAt: -1 });
-          }
-        
+        }
       }
 
       return this.sendResponse(req, res, { data: reports });

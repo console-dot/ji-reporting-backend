@@ -55,8 +55,7 @@ class User extends Response {
           message: "Email is requied!",
           status: 400,
         });
-      }
-      else {
+      } else {
         email = email.toLowerCase();
       }
       if (!password1) {
@@ -235,6 +234,138 @@ class User extends Response {
       return this.sendResponse(req, res, {
         message: "User request sent for approval",
         status: 201,
+      });
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: "Internal Server Error",
+        status: 500,
+      });
+    }
+  };
+  login = async (req, res) => {
+    try {
+      const { password } = req.body;
+      let { email } = req.body;
+      if (!email) {
+        return this.sendResponse(req, res, {
+          message: "Email is required!",
+          status: 400,
+        });
+      } else {
+        email = email.toLowerCase();
+      }
+      if (!password) {
+        return this.sendResponse(req, res, {
+          message: "Password is required!",
+          status: 400,
+        });
+      }
+      const userExist = await UserModel.findOne({ email });
+      // return
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User does not exist",
+          status: 400,
+        });
+      }
+      const isValid = await bcrypt.compare(password, userExist?.password);
+      if (!isValid) {
+        return this.sendResponse(req, res, {
+          message: "Invalid password",
+          status: 400,
+        });
+      }
+      if (userExist?.isDeleted) {
+        return this.sendResponse(req, res, {
+          message: "Your access is revoked by the Admin.",
+          status: 400,
+        });
+      }
+      if (userExist.nazim.toLowerCase() === "halqa") {
+        const areaExist = await HalqaModel?.findOne({
+          _id: userExist?.userAreaId,
+        });
+        if (areaExist?.disabled == true) {
+          return this.sendResponse(req, res, {
+            message: "Your area exists no more.",
+            status: 404,
+          });
+        }
+      } else if (userExist.nazim.toLowerCase() === "maqam") {
+        const areaExist = await MaqamModel?.findOne({
+          _id: userExist?.userAreaId,
+        });
+        if (areaExist?.disabled == true) {
+          return this.sendResponse(req, res, {
+            message: "Your area exists no more.",
+            status: 404,
+          });
+        }
+      } else if (userExist.nazim.toLowerCase() === "ilaqa") {
+        const areaExist = await IlaqaModel?.findOne({
+          _id: userExist?.userAreaId,
+        });
+        if (areaExist?.disabled == true) {
+          return this.sendResponse(req, res, {
+            message: "Your area exists no more.",
+            status: 404,
+          });
+        }
+      } else if (userExist.nazim.toLowerCase() === "division") {
+        const areaExist = await DivisionModel?.findOne({
+          _id: userExist?.userAreaId,
+        });
+
+        if (areaExist?.disabled == true) {
+          return this.sendResponse(req, res, {
+            message: "Your area exists no more.",
+            status: 404,
+          });
+        }
+      } else if (userExist.nazim.toLowerCase() === "country") {
+        const areaExist = await CountryModel?.findOne({
+          _id: userExist?.userAreaId,
+        });
+
+        if (areaExist?.disabled == true) {
+          return this.sendResponse(req, res, {
+            message: "Your area exists no more.",
+            status: 404,
+          });
+        }
+      }
+
+      const userRequest = await UserRequest.findOne({
+        _id: userExist?.userRequestId,
+      });
+      if (userRequest?.status === "pending") {
+        return this.sendResponse(req, res, {
+          message: "Account not verified yet.",
+          status: 400,
+        });
+      }
+      if (userRequest?.status === "rejected") {
+        return this.sendResponse(req, res, {
+          message: "Account request declined.",
+          status: 400,
+        });
+      }
+      const token = jwt.sign(
+        { email, id: userExist?._id },
+        process.env.JWT_SECRET,
+        {
+          expiresIn: "1h",
+        }
+      );
+      return this.sendResponse(req, res, {
+        data: {
+          token,
+          email,
+          id: userExist?._id,
+          type: userExist?.nazim,
+          nazimType: userExist?.nazimType,
+        },
       });
     } catch (err) {
       console.log(err);
@@ -483,8 +614,7 @@ class User extends Response {
           message: "Email is required",
           status: 400,
         });
-      }
-      else {
+      } else {
         email = email.toLowerCase();
       }
       const emailExist = await UserModel.findOne({ email, _id: { $ne: _id } });
@@ -701,140 +831,6 @@ class User extends Response {
       });
     }
   };
-  login = async (req, res) => {
-    try {
-      const { password } = req.body;
-      let { email } = req.body;
-      if (!email) {
-        return this.sendResponse(req, res, {
-          message: "Email is required!",
-          status: 400,
-        });
-      } else {
-        email = email.toLowerCase();
-      }
-      console.log(email)
-      if (!password) {
-        return this.sendResponse(req, res, {
-          message: "Password is required!",
-          status: 400,
-        });
-      }
-      const userExist = await UserModel.findOne({ email });
-      // return
-      if (!userExist) {
-        return this.sendResponse(req, res, {
-          message: "User does not exist",
-          status: 400,
-        });
-      }
-      const isValid = await bcrypt.compare(password, userExist?.password);
-      if (!isValid) {
-        return this.sendResponse(req, res, {
-          message: "Invalid password",
-          status: 400,
-        });
-      }
-      if (userExist?.isDeleted) {
-        return this.sendResponse(req, res, {
-          message: "Your access is revoked by the Admin.",
-          status: 400,
-        });
-      }
-      if (userExist.nazim.toLowerCase() === "halqa") {
-        const areaExist = await HalqaModel?.findOne({
-          _id: userExist?.userAreaId,
-        });
-        if (areaExist?.disabled == true) {
-          return this.sendResponse(req, res, {
-            message: "Your area exists no more.",
-            status: 404,
-          });
-        }
-      } else if (userExist.nazim.toLowerCase() === "maqam") {
-        const areaExist = await MaqamModel?.findOne({
-          _id: userExist?.userAreaId,
-        });
-        if (areaExist?.disabled == true) {
-          return this.sendResponse(req, res, {
-            message: "Your area exists no more.",
-            status: 404,
-          });
-        }
-      } else if (userExist.nazim.toLowerCase() === "ilaqa") {
-        const areaExist = await IlaqaModel?.findOne({
-          _id: userExist?.userAreaId,
-        });
-        if (areaExist?.disabled == true) {
-          return this.sendResponse(req, res, {
-            message: "Your area exists no more.",
-            status: 404,
-          });
-        }
-      } else if (userExist.nazim.toLowerCase() === "division") {
-        const areaExist = await DivisionModel?.findOne({
-          _id: userExist?.userAreaId,
-        });
-
-        if (areaExist?.disabled == true) {
-          return this.sendResponse(req, res, {
-            message: "Your area exists no more.",
-            status: 404,
-          });
-        }
-      } else if (userExist.nazim.toLowerCase() === "country") {
-        const areaExist = await CountryModel?.findOne({
-          _id: userExist?.userAreaId,
-        });
-
-        if (areaExist?.disabled == true) {
-          return this.sendResponse(req, res, {
-            message: "Your area exists no more.",
-            status: 404,
-          });
-        }
-      }
-
-      const userRequest = await UserRequest.findOne({
-        _id: userExist?.userRequestId,
-      });
-      if (userRequest?.status === "pending") {
-        return this.sendResponse(req, res, {
-          message: "Account not verified yet.",
-          status: 400,
-        });
-      }
-      if (userRequest?.status === "rejected") {
-        return this.sendResponse(req, res, {
-          message: "Account request declined.",
-          status: 400,
-        });
-      }
-      const token = jwt.sign(
-        { email, id: userExist?._id },
-        process.env.JWT_SECRET,
-        {
-          expiresIn: "1h",
-        }
-      );
-      return this.sendResponse(req, res, {
-        data: {
-          token,
-          email,
-          id: userExist?._id,
-          type: userExist?.nazim,
-          nazimType: userExist?.nazimType,
-        },
-      });
-    } catch (err) {
-      console.log(err);
-      return this.sendResponse(req, res, {
-        message: "Internal Server Error",
-        status: 500,
-      });
-    }
-  };
-
   getAllRequests = async (req, res) => {
     try {
       const token = req.headers.authorization;
