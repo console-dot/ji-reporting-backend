@@ -12,6 +12,7 @@ const {
   CollegesModel,
   MarkazWorkerInfoModel,
   MarkazReportModel,
+  ProvinceReportModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -344,7 +345,7 @@ class ProvinceReport extends Response {
       });
       await newMarkazReport.save();
       return this.sendResponse(req, res, {
-        message: "Province Report Added",
+        message: "Markaz Report Added",
         status: 201,
       });
     } catch (err) {
@@ -357,6 +358,7 @@ class ProvinceReport extends Response {
   };
   getReports = async (req, res) => {
     try {
+      const { areaId } = req?.query;
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
@@ -367,8 +369,44 @@ class ProvinceReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
+      const { userAreaId: id, nazim: key } = user;
+      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      if (user) {
+      if (areaId){
+        const now = new Date();
+        const startOfPreviousMonth = new Date(
+          now.getFullYear(),
+          now.getMonth() - 1,
+          1
+        );
+        const endOfPreviousMonth = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          0
+        );
+        reports = await ProvinceReportModel.find({
+          provinceAreaId: accessList,
+          month: { $gt: startOfPreviousMonth, $lte: endOfPreviousMonth },
+        })
+          .populate([
+            { path: "userId", select: ["_id", "email", "name", "age"] },
+            { path: "provinceAreaId" },
+            { path: "provinceTanzeemId" },
+            { path: "provinceWorkerInfoId" },
+            { path: "provinceActivityId" },
+            { path: "mentionedActivityId" },
+            { path: "otherActivityId" },
+            { path: "tdId" },
+            { path: "provinceDivisionLibId" },
+            { path: "paighamDigestId" },
+            { path: "rsdId" },
+            { path: "collegesId" },
+            { path: "jamiaatId" },
+          ])
+          .sort({ createdAt: -1 });
+      
+      }
+     else {
         const existingReports = await MarkazReportModel.find({})
           .select("_id")
           .sort({ createdAt: -1 });
@@ -377,16 +415,7 @@ class ProvinceReport extends Response {
             .populate([
               { path: "userId", select: ["_id", "email", "name", "age"] },
               { path: "countryAreaId" },
-              { path: "markazTanzeemId" },
-              { path: "markazWorkerInfoId" },
-              { path: "markazActivityId" },
-              { path: "mentionedActivityId" },
-              { path: "otherActivityId" },
-              { path: "tdId" },
-              { path: "markazDivisionLibId" },
-              { path: "rsdId" },
-              { path: "collegesId" },
-              { path: "jamiaatId" },
+              
             ])
             .sort({ createdAt: -1 });
         } else {
