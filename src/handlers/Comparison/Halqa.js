@@ -118,6 +118,7 @@ class HalqaCompare extends Response {
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
+      return { labels, datasets };
       res.status(200).json(response);
     } catch (error) {
       console.log(error);
@@ -172,7 +173,7 @@ class HalqaCompare extends Response {
           eod = new Date(`12-31-${i}`);
         } else {
           return this.sendResponse(req, res, {
-            message: "Dates are invalid",
+            message: "Invalid duration type",
             status: 403,
           });
         }
@@ -209,6 +210,7 @@ class HalqaCompare extends Response {
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
+      return { labels, datasets };
       res.status(200).json(response);
     } catch (error) {
       console.log(error);
@@ -263,7 +265,7 @@ class HalqaCompare extends Response {
           eod = new Date(`12-31-${i}`);
         } else {
           return this.sendResponse(req, res, {
-            message: "Dates are invalid",
+            message: "Invalid duration type",
             status: 403,
           });
         }
@@ -301,6 +303,7 @@ class HalqaCompare extends Response {
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
+      return { labels, datasets };
       res.status(200).json(response);
     } catch (error) {
       console.log(error);
@@ -355,7 +358,7 @@ class HalqaCompare extends Response {
           eod = new Date(`12-31-${i}`);
         } else {
           return this.sendResponse(req, res, {
-            message: "Dates are invalid",
+            message: "Invalid duration type",
             status: 403,
           });
         }
@@ -389,6 +392,8 @@ class HalqaCompare extends Response {
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
+      return { labels, datasets };
+
       res.status(200).json(response);
     } catch (error) {
       console.log(error);
@@ -443,7 +448,7 @@ class HalqaCompare extends Response {
           eod = new Date(`12-31-${i}`);
         } else {
           return this.sendResponse(req, res, {
-            message: "Dates are invalid",
+            message: "Invalid duration type",
             status: 403,
           });
         }
@@ -479,6 +484,8 @@ class HalqaCompare extends Response {
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
+      return { labels, datasets };
+
       res.status(200).json(response);
     } catch (error) {
       console.log(error);
@@ -533,7 +540,7 @@ class HalqaCompare extends Response {
           eod = new Date(`12-31-${i}`);
         } else {
           return this.sendResponse(req, res, {
-            message: "Dates are invalid",
+            message: "Invalid duration type",
             status: 403,
           });
         }
@@ -567,6 +574,87 @@ class HalqaCompare extends Response {
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
+      return { labels, datasets };
+
+      res.status(200).json(response);
+    } catch (error) {
+      console.log(error);
+      return this.sendResponse(req, res, {
+        message: "Internal Server Error",
+        status: 500,
+      });
+    }
+  };
+  halqaComparison = async (req, res) => {
+    try {
+      const token = req?.headers?.authorization;
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 400,
+        });
+      }
+
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      if (!userId) {
+        return this.sendResponse(req, res, {
+          message: "ID is required",
+          status: 403,
+        });
+      }
+
+      const { dates, areaId, duration_type } = req.body;
+      if (dates.length < 2) {
+        return this.sendResponse(req, res, {
+          message: "Atleast 2 dates required",
+          status: 400,
+        });
+      }
+
+      const labels = [];
+      const datasets = [];
+
+      const reportFunctions = [
+        this.createIfradiQuawatReport,
+        this.createActivitiesReport,
+        this.otherActivityReport,
+        this.toseeDawatReport,
+        this.libraryReport,
+        this.rozShabBedari,
+      ];
+
+      // Utility function to find a dataset with a specific label
+      const findDatasetByLabel = (label) =>
+        datasets.find((dataset) => dataset.label === label);
+
+      for (const reportFunction of reportFunctions) {
+        const { labels: reportLabels, datasets: reportDatasets } =
+          await reportFunction.call(this, req);
+
+        // Update labels
+        reportLabels.forEach((label) => {
+          if (!labels.includes(label)) {
+            labels.push(label);
+          }
+        });
+
+        // Update datasets
+        reportDatasets.forEach((reportDataset) => {
+          const existingDataset = findDatasetByLabel(reportDataset.label);
+          if (existingDataset) {
+            // If dataset with the same label exists, merge its data
+            existingDataset.data.push(...reportDataset.data);
+          } else {
+            // Otherwise, add the new dataset
+            datasets.push(reportDataset);
+          }
+        });
+      }
+
+      // Update response
+      response.data.labels = labels;
+      response.data.datasets = datasets;
       res.status(200).json(response);
     } catch (error) {
       console.log(error);
@@ -596,6 +684,9 @@ class HalqaCompare extends Response {
         break;
       case "rozShabBedari":
         this.rozShabBedari(req, res);
+        break;
+      case "compareAll":
+        this.halqaComparison(req, res);
         break;
       default:
         return this.sendResponse(req, res, {
