@@ -231,7 +231,7 @@ class HalqaReport extends Response {
       let total = await HalqaReportModel.find({
         halqaAreaId: accessList,
       })
-      console.log(total.length)
+      
       reports = await HalqaReportModel.find({
         halqaAreaId: accessList,
       })
