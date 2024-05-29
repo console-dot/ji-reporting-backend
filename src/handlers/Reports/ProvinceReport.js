@@ -15,6 +15,7 @@ const {
   MarkazWorkerInfoModel,
   DivisionReportModel,
   MaqamReportModel,
+  BaitulmalModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -75,6 +76,10 @@ const isDataComplete = (dataToUpdate) => {
     "totalSoldTanzeemi",
     "umeedwaranFilled",
     "rafaqaFilled",
+    "monthlyIncome",
+    "monthlyExpenditure",
+    "savings",
+    "loss",
   ];
 
   const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));
@@ -181,6 +186,10 @@ class ProvinceReport extends Response {
         collegesB,
         collegesC,
         collegesD,
+        monthlyIncome,
+        monthlyExpenditure,
+        savings,
+        loss,
       } = req.body;
 
       if (!isDataComplete(req.body)) {
@@ -327,6 +336,12 @@ class ProvinceReport extends Response {
         umeedwaranFilled,
         rafaqaFilled,
       });
+      const newBaitulmal = new BaitulmalModel({
+        monthlyIncome,
+        monthlyExpenditure,
+        savings,
+        loss,
+      });
       const clg = await newColleges.save();
       const jami = await newJamiaat.save();
       const wi = await newWI.save();
@@ -338,6 +353,7 @@ class ProvinceReport extends Response {
       const provinceDivisionLib = await newMaqamDivisionLib.save();
       const paighamDigest = await newPaighamDigest.save();
       const rsd = await newRsd.save();
+      const baitId = await newBaitulmal.save();
       const newProvinceReport = new ProvinceReportModel({
         month,
         comments,
@@ -354,6 +370,7 @@ class ProvinceReport extends Response {
         rsdId: rsd._id,
         jamiaatId: jami?._id,
         collegesId: clg?._id,
+        baitulmalId: baitId?._id,
       });
       await newProvinceReport.save();
       return this.sendResponse(req, res, {
@@ -451,17 +468,6 @@ class ProvinceReport extends Response {
             .populate([
               { path: "userId", select: ["_id", "email", "name", "age"] },
               { path: "provinceAreaId" },
-              { path: "provinceTanzeemId" },
-              { path: "provinceWorkerInfoId" },
-              { path: "provinceActivityId" },
-              { path: "mentionedActivityId" },
-              { path: "otherActivityId" },
-              { path: "tdId" },
-              { path: "provinceDivisionLibId" },
-              { path: "paighamDigestId" },
-              { path: "rsdId" },
-              { path: "collegesId" },
-              { path: "jamiaatId" },
             ])
             .sort({ createdAt: -1 });
         } else {
@@ -543,6 +549,7 @@ class ProvinceReport extends Response {
           { path: "rsdId" },
           { path: "collegesId" },
           { path: "jamiaatId" },
+          { path: "baitulmalId" },
         ]);
       }
 
@@ -623,6 +630,7 @@ class ProvinceReport extends Response {
         "rsdId",
         "collegesId",
         "jamiaatId",
+        "baitulmalId",
       ];
 
       const obj = {
@@ -700,6 +708,7 @@ class ProvinceReport extends Response {
           "tarbiyatGaahGoal",
           "tarbiyatGaahHeld",
         ],
+        baitulmalId: ["monthlyIncome", "monthlyExpenditure", "savings", "loss"],
         collegesId: ["collegesA", "collegesB", "collegesC", "collegesD"],
         jamiaatId: ["jamiaatA", "jamiaatB", "jamiaatC", "jamiaatD", "jamiaatE"],
       };
@@ -745,6 +754,8 @@ class ProvinceReport extends Response {
             return JamiaatModel;
           case "collegesId":
             return CollegesModel;
+          case "baitulmalId":
+            return BaitulmalModel;
           default:
             return null;
         }

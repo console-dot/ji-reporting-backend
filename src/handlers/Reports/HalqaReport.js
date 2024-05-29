@@ -7,6 +7,7 @@ const {
   HalqaLibraryModel,
   RozShabBedariModel,
   HalqaReportModel,
+  BaitulmalModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -104,6 +105,10 @@ class HalqaReport extends Response {
         rwabitMeetingsGoal,
         registeredTosee,
         registeredLibrary,
+        monthlyIncome,
+        monthlyExpenditure,
+        savings,
+        loss,
       } = req.body;
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
@@ -176,12 +181,19 @@ class HalqaReport extends Response {
         umeedwaranFilled,
         rafaqaFilled,
       });
+      const newBaitulmal = new BaitulmalModel({
+        monthlyIncome,
+        monthlyExpenditure,
+        savings,
+        loss,
+      });
       const wi = await newWI.save();
       const halqaActivity = await newHalqaActivity.save();
       const otherActivity = await newOtherActivity.save();
       const td = await newTD.save();
       const halqaLib = await newHalqaLib.save();
       const rsd = await newRSD.save();
+      const baitId = await newBaitulmal.save();
       const newHalqaReport = new HalqaReportModel({
         comments,
         month,
@@ -192,6 +204,7 @@ class HalqaReport extends Response {
         otherActivityId: otherActivity._id,
         tdId: td._id,
         halqaLibId: halqaLib._id,
+        baitulmalId: baitId?._id,
         rsdId: rsd._id,
       });
       await newHalqaReport.save();
@@ -227,11 +240,11 @@ class HalqaReport extends Response {
       );
 
       const inset = parseInt(req.query.inset) || 0;
-      const offset = parseInt(req.query.offset) || 10; 
+      const offset = parseInt(req.query.offset) || 10;
       let total = await HalqaReportModel.find({
         halqaAreaId: accessList,
-      })
-      
+      });
+
       reports = await HalqaReportModel.find({
         halqaAreaId: accessList,
       })
@@ -245,12 +258,12 @@ class HalqaReport extends Response {
           },
         ])
         .sort({ createdAt: -1 })
-        .skip(inset) 
-        .limit(offset); 
-        const totalReport = {total: total.length};
-        if(!inset){
-          reports = [totalReport, ...reports]
-        }
+        .skip(inset)
+        .limit(offset);
+      const totalReport = { total: total.length };
+      if (!inset) {
+        reports = [totalReport, ...reports];
+      }
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
@@ -261,17 +274,16 @@ class HalqaReport extends Response {
     }
   };
 
-  
   getSingleReport = async (req, res) => {
+    const token = req.headers.authorization;
+    const _id = req?.params?.id;
     try {
-      const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
           status: 401,
         });
       }
-      const _id = req.params.id;
       if (!_id) {
         return this.sendResponse(req, res, {
           message: "Id is required",
@@ -301,8 +313,12 @@ class HalqaReport extends Response {
         { path: "halqaLibId" },
         { path: "rsdId" },
         { path: "halqaAreaId" },
+        { path: "baitulmalId" },
       ]);
-      return this.sendResponse(req, res, { data: report });
+      return this.sendResponse(req, res, {
+        data: report,
+        message: "Halqa Report fetched",
+      });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
@@ -369,6 +385,7 @@ class HalqaReport extends Response {
         "rsdId",
         "tdId",
         "otherActivityId",
+        "baitulmalId",
       ];
 
       const obj = {
@@ -389,6 +406,7 @@ class HalqaReport extends Response {
         ],
         halqaLibId: ["books", "increase", "decrease", "bookRent", "registered"],
         rsdId: ["umeedwaranFilled", "rafaqaFilled"],
+        baitulmalId: ["monthlyIncome", "monthlyExpenditure", "savings", "loss"],
         tdId: [
           "registered",
           "rawabitDecided",
@@ -457,6 +475,8 @@ class HalqaReport extends Response {
             return ToseeDawatModel;
           case "otherActivityId":
             return OtherActivitiesModel;
+          case "baitulmalId":
+            return BaitulmalModel;
           default:
             return null;
         }

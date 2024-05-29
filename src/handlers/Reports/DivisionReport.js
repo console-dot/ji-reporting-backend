@@ -14,6 +14,7 @@ const {
   CollegesModel,
   MaqamActivitiesModel,
   HalqaReportModel,
+  BaitulmalModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -223,6 +224,10 @@ class DivisionReport extends Response {
         manualMeetings,
         uploadedLitrature,
         manualLitrature,
+        monthlyIncome,
+        monthlyExpenditure,
+        savings,
+        loss,
       } = req.body;
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
@@ -347,6 +352,12 @@ class DivisionReport extends Response {
         totalSold,
         monthlyReceivingGoal,
       });
+      const newBaitulmal = new BaitulmalModel({
+        monthlyIncome,
+        monthlyExpenditure,
+        savings,
+        loss,
+      });
       const newRsd = new RozShabBedariModel({
         umeedwaranFilled,
         manualUmeedwaran,
@@ -364,6 +375,7 @@ class DivisionReport extends Response {
       const maqamDivisionLib = await newMaqamDivisionLib.save();
       const paighamDigest = await newPaighamDigest.save();
       const rsd = await newRsd.save();
+      const baitId = await newBaitulmal.save();
       const clg = await newColleges.save();
       const jami = await newJamiaat.save();
 
@@ -383,6 +395,7 @@ class DivisionReport extends Response {
         rsdId: rsd._id,
         jamiaatId: jami?._id,
         collegesId: clg?._id,
+        baitulmalId: baitId?._id,
       });
 
       await newDivisionReport.save();
@@ -532,6 +545,7 @@ class DivisionReport extends Response {
           { path: "tdId" },
           { path: "maqamDivisionLibId" },
           { path: "paighamDigestId" },
+          { path: "baitulmalId" },
           { path: "rsdId" },
           { path: "collegesId" },
           { path: "jamiaatId" },
@@ -617,6 +631,7 @@ class DivisionReport extends Response {
         "mentionedActivityId",
         "maqamDivisionLibId",
         "paighamDigestId",
+        "baitulmalId",
         "rsdId",
         "tdId",
         "otherActivityId",
@@ -673,6 +688,7 @@ class DivisionReport extends Response {
           "rafaqaFilled",
           "rafaqaFilledSum",
         ],
+        baitulmalId: ["monthlyIncome", "monthlyExpenditure", "savings", "loss"],
         tdId: [
           "rawabitDecided",
           "current",
@@ -724,6 +740,8 @@ class DivisionReport extends Response {
             return PaighamDigestModel;
           case "rsdId":
             return RozShabBedariModel;
+          case "baitulmalId":
+            return BaitulmalModel;
           case "tdId":
             return ToseeDawatModel;
           case "otherActivityId":

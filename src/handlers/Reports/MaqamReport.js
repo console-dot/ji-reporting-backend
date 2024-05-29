@@ -15,6 +15,7 @@ const {
   MuntakhibTdModel,
   HalqaReportModel,
   IlaqaReportModel,
+  BaitulmalModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -193,6 +194,10 @@ class MaqamReport extends Response {
         manualMeetings,
         uploadedLitrature,
         manualLitrature,
+        monthlyIncome,
+        monthlyExpenditure,
+        savings,
+        loss,
       } = req.body;
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
@@ -292,6 +297,12 @@ class MaqamReport extends Response {
         shabBedari,
         anyOther,
       });
+      const newBaitulmal = new BaitulmalModel({
+        monthlyIncome,
+        monthlyExpenditure,
+        savings,
+        loss,
+      });
       let newTd;
 
       if (await isMuntakhib(userId)) {
@@ -360,6 +371,7 @@ class MaqamReport extends Response {
       const maqamDivisionLib = await newMaqamDivisionLib.save();
       const paighamDigest = await newPaighamDigest.save();
       const rsd = await newRsd.save();
+      const baitId = await newBaitulmal.save();
       const clg = await newColleges.save();
       const jami = await newJamiaat.save();
       let newMaqamReport;
@@ -380,6 +392,7 @@ class MaqamReport extends Response {
           rsdId: rsd._id,
           jamiaatId: jami?._id,
           collegesId: clg?._id,
+          baitulmalId: baitId?._id,
         });
       } else {
         newMaqamReport = new MaqamReportModel({
@@ -398,6 +411,7 @@ class MaqamReport extends Response {
           rsdId: rsd._id,
           jamiaatId: jami?._id,
           collegesId: clg?._id,
+          baitulmalId: baitId?._id,
         });
       }
       await newMaqamReport.save();
@@ -481,6 +495,7 @@ class MaqamReport extends Response {
             "rsdId",
             "collegesId",
             "jamiaatId",
+            "baitulmalId",
           ])
         : (refsToUpdate = [
             "maqamTanzeemId",
@@ -494,6 +509,7 @@ class MaqamReport extends Response {
             "rsdId",
             "collegesId",
             "jamiaatId",
+            "baitulmalId",
           ]);
       const obj = {
         maqamTanzeemId: [
@@ -585,6 +601,7 @@ class MaqamReport extends Response {
           "rawabitParties",
           "dawatiWafud",
         ],
+        baitulmalId: ["monthlyIncome", "monthlyExpenditure", "savings", "loss"],
         collegesId: ["collegesA", "collegesB", "collegesC", "collegesD"],
         jamiaatId: ["jamiaatA", "jamiaatB", "jamiaatC", "jamiaatD", "jamiaatE"],
       };
@@ -659,6 +676,8 @@ class MaqamReport extends Response {
             return JamiaatModel;
           case "collegesId":
             return CollegesModel;
+          case "baitulmalId":
+            return BaitulmalModel;
           default:
             return null;
         }
@@ -726,7 +745,8 @@ class MaqamReport extends Response {
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
       const isIlaqa = await IlaqaModel.find({ maqam: areaId });
-      if (isIlaqa && areaId) {
+      if (isIlaqa.length > 0 && areaId) {
+        console.log("first");
         if (Object.keys(areaId).length > 0) {
           const now = new Date();
           const startOfPreviousMonth = new Date(
@@ -759,7 +779,7 @@ class MaqamReport extends Response {
             ])
             .sort({ createdAt: -1 });
         }
-      } else if (areaId && !isIlaqa) {
+      } else if (areaId && isIlaqa.length === 0) {
         if (Object.keys(areaId).length > 0) {
           const now = new Date();
           const startOfPreviousMonth = new Date(
@@ -814,8 +834,10 @@ class MaqamReport extends Response {
             .sort({ createdAt: -1 });
         }
       }
-
-      return this.sendResponse(req, res, { data: reports });
+      return this.sendResponse(req, res, {
+        data: reports,
+        message: "Report Fetched Successfully",
+      });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
@@ -883,6 +905,7 @@ class MaqamReport extends Response {
           { path: "maqamDivisionLibId" },
           { path: "paighamDigestId" },
           { path: "rsdId" },
+          { path: "baitulmalId" },
           { path: "collegesId" },
           { path: "jamiaatId" },
         ]);

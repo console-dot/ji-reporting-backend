@@ -60,6 +60,11 @@ const ilaqaReportModel = mongoose.Schema(
       required: true,
       ref: "IlaqaDigest",
     },
+    baitulmalId: {
+      type: mongoose.Types.ObjectId,
+      required: true,
+      ref: "BaitulMal",
+    },
     rsdId: {
       type: mongoose.Types.ObjectId,
       required: true,
