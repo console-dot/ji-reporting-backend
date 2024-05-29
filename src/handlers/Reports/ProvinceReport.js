@@ -208,19 +208,8 @@ class ProvinceReport extends Response {
           $gte: new Date(yearExist, monthExist, 1),
           $lt: new Date(yearExist, monthExist + 1, 1),
         },
-        userId,
+        provinceAreaId: user?.userAreaId,
       });
-      const reports = await ProvinceReportModel.findOne({
-        month: req.body.month,
-      });
-      if (reports) {
-        return this.sendResponse(req, res, {
-          message: `Report already created for ${
-            months[monthDate.getMonth()]
-          }.`,
-          status: 400,
-        });
-      }
       if (reportExist) {
         return this.sendResponse(req, res, {
           message: `Report already created for ${

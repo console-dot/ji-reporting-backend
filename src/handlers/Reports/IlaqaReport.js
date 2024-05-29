@@ -206,13 +206,6 @@ class IlaqaReport extends Response {
         yearExist: monthDate.getFullYear(),
         monthExist: monthDate.getMonth(),
       };
-      const reportExist = await IlaqaReportModel.findOne({
-        month: {
-          $gte: new Date(yearExist, monthExist, 1),
-          $lt: new Date(yearExist, monthExist + 1, 1),
-        },
-        userId,
-      });
       const reports = await IlaqaReportModel.findOne({
         month: {
           $gte: new Date(yearExist, monthExist, 1),
@@ -221,14 +214,6 @@ class IlaqaReport extends Response {
         ilaqaAreaId: user?.userAreaId,
       });
       if (reports) {
-        return this.sendResponse(req, res, {
-          message: `Report already created for ${
-            months[monthDate.getMonth()]
-          }.`,
-          status: 400,
-        });
-      }
-      if (reportExist) {
         return this.sendResponse(req, res, {
           message: `Report already created for ${
             months[monthDate.getMonth()]
