@@ -245,7 +245,7 @@ class DivisionReport extends Response {
           $gte: new Date(yearExist, monthExist, 1),
           $lt: new Date(yearExist, monthExist + 1, 1),
         },
-        userId,
+        divisionAreaId: user?.userAreaId,
       });
       if (reportExist) {
         return this.sendResponse(req, res, {
