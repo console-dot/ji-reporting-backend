@@ -376,7 +376,7 @@ class ProvinceReport extends Response {
   };
   getReports = async (req, res) => {
     try {
-      const areaId = req?.query;
+      const { areaId } = req?.query;
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
@@ -390,10 +390,12 @@ class ProvinceReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
+      const inset = parseInt(req.query.inset) || 0;
+      const offset = parseInt(req.query.offset) || 10;
       let maqamReports;
       let divisionReports;
       // RETURNING THE POPILATED HALQA REPORTS OF THE SPECIFIC DIVISION
-      if (Object.keys(areaId).length > 0) {
+      if (areaId) {
         const now = new Date();
         const startOfPreviousMonth = new Date(
           now.getFullYear(),
@@ -458,11 +460,18 @@ class ProvinceReport extends Response {
               { path: "userId", select: ["_id", "email", "name", "age"] },
               { path: "provinceAreaId" },
             ])
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .skip(inset)
+            .limit(offset);
         } else {
           reports = [];
         }
       }
+      let total = await ProvinceReportModel.find({
+        provinceAreaId: accessList,
+      });
+      const totalReport = total.length;
+      reports = { data: reports, length: totalReport };
       if (reports?.length > 0) {
         return this.sendResponse(req, res, { data: reports });
       } else {

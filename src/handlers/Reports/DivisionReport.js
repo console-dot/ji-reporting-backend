@@ -402,7 +402,7 @@ class DivisionReport extends Response {
   getReports = async (req, res) => {
     try {
       const token = req.headers.authorization;
-      const areaId = req?.query;
+      const {areaId} = req?.query;
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
@@ -415,8 +415,11 @@ class DivisionReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
+      const inset = parseInt(req.query.inset) || 0;
+      const offset = parseInt(req.query.offset) || 10;
+     
       // RETURNING THE POPILATED HALQA REPORTS OF THE SPECIFIC DIVISION
-      if (Object.keys(areaId).length > 0) {
+      if (areaId) {
         const now = new Date();
         const startOfPreviousMonth = new Date(
           now.getFullYear(),
@@ -463,10 +466,16 @@ class DivisionReport extends Response {
               { path: "userId", select: ["_id", "email", "name", "age"] },
               { path: "divisionAreaId", populate: { path: "province" } },
             ])
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .skip(inset)
+            .limit(offset);
         }
       }
-
+      let total = await DivisionReportModel.find({
+        divisionAreaId: accessList,
+      });
+      const totalReport = total.length;
+      reports = { data: reports, length: totalReport };
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);

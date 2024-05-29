@@ -235,16 +235,47 @@ class HalqaReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
+      let total;
       const isId = accessList?.filter(
         (f) => f.toString() === "662a37e51f96e92d76fae58f"
       );
 
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
-      let total = await HalqaReportModel.find({
+      console.log(inset, offset)
+      const tab = req.query.tab;
+      let allReports =await HalqaReportModel.find({
         halqaAreaId: accessList,
-      });
-
+      }).populate([
+        { path: "userId", select: ["_id", "email", "name", "age"] },
+        {
+          path: "halqaAreaId",
+          populate: {
+            path: "parentId",
+          },
+        },
+      ])
+      .sort({ createdAt: -1 })
+      
+      if(tab && tab==='division'){
+        const divHalqa = allReports.filter((i)=>i?.halqaAreaId?.parentType === "Tehsil" )
+        reports = divHalqa.slice(inset, inset + offset);
+        total =divHalqa;
+        console.log(divHalqa)
+      }
+      else if(tab && tab==='maqam'){
+        const divHalqa = allReports.filter((i)=>i?.halqaAreaId?.parentType === "Maqam" )
+        reports = divHalqa.slice(inset, inset + offset);
+        total =divHalqa;
+        console.log(divHalqa)
+      }
+      else if(tab && tab==='ilaqa'){
+        const divHalqa = allReports.filter((i)=>i?.halqaAreaId?.parentType === "Ilaqa" )
+        reports = divHalqa.slice(inset, inset + offset);
+        total =divHalqa;
+        console.log(divHalqa)
+      }
+      else{
       reports = await HalqaReportModel.find({
         halqaAreaId: accessList,
       })
@@ -258,12 +289,16 @@ class HalqaReport extends Response {
           },
         ])
         .sort({ createdAt: -1 })
-        .skip(inset)
-        .limit(offset);
-      const totalReport = { total: total.length };
-      if (!inset) {
-        reports = [totalReport, ...reports];
+        .skip(inset) 
+        .limit(offset); 
+        
+         total = await HalqaReportModel.find({
+          halqaAreaId: accessList,
+        })
+      
       }
+      const totalReport  =total.length;
+      reports = {data : reports, length:totalReport}
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);

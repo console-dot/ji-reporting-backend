@@ -744,6 +744,9 @@ class MaqamReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
+      const inset = parseInt(req.query.inset) || 0;
+      const offset = parseInt(req.query.offset) || 10;
+   
       const isIlaqa = await IlaqaModel.find({ maqam: areaId });
       if (isIlaqa.length > 0 && areaId) {
         console.log("first");
@@ -821,23 +824,28 @@ class MaqamReport extends Response {
           .select("_id")
           .sort({ createdAt: -1 });
 
-        if (reports.length > 0) {
-          reports = await MaqamReportModel.find({
-            maqamAreaId: accessList,
-          })
-            .populate([
-              { path: "userId", select: ["_id", "email", "name", "age"] },
-              {
-                path: "maqamAreaId",
-              },
-            ])
-            .sort({ createdAt: -1 });
-        }
+          if (reports.length > 0) {
+            reports = await MaqamReportModel.find({
+              maqamAreaId: accessList,
+            })
+              .populate([
+                { path: "userId", select: ["_id", "email", "name", "age"] },
+                {
+                  path: "maqamAreaId",
+                },
+              ])
+              .sort({ createdAt: -1 })
+              .skip(inset)
+              .limit(offset);
+          }
+        
       }
-      return this.sendResponse(req, res, {
-        data: reports,
-        message: "Report Fetched Successfully",
+      let total = await MaqamReportModel.find({
+        maqamAreaId: accessList,
       });
+      const totalReport = total.length;
+      reports = { data: reports, length: totalReport };
+      return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {

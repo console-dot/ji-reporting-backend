@@ -425,15 +425,14 @@ class IlaqaReport extends Response {
             .sort({ createdAt: -1 })
             .skip(inset)
             .limit(offset);
-          // if (!inset) {
-          //   reports = [totalReport, ...reports];
-          // }
         }
       }
-      return this.sendResponse(req, res, {
-        data: reports,
-        message: "Reports Fetched",
+      let total = await IlaqaReportModel.find({
+        ilaqaAreaId: accessList,
       });
+      const totalReport = total.length;
+      reports = { data: reports, length: totalReport };
+      return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
