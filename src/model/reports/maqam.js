@@ -75,6 +75,11 @@ const maqamReportModel = mongoose.Schema(
       required: true,
       ref: "PaighamDigest",
     },
+    baitulmalId: {
+      type: mongoose.Types.ObjectId,
+      required: true,
+      ref: "BaitulMal",
+    },
     rsdId: {
       type: mongoose.Types.ObjectId,
       required: true,

@@ -23,7 +23,7 @@ const jwt = require("jsonwebtoken");
 class User extends Response {
   signup = async (req, res) => {
     try {
-      const {
+      let {
         email,
         password1,
         password2,

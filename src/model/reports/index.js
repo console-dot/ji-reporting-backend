@@ -21,6 +21,7 @@ const { IlaqaDigestModel } = require("./ilaqaDigest");
 const { MuntakhibTdModel } = require("./muntakhibMaqamTd");
 const { MarkazReportModel } = require("./markaz");
 const { MarkazWorkerInfoModel } = require("./markazWorkerInfo");
+const { BaitulmalModel } = require("./baitulmal");
 module.exports = {
   HalqaActivityModel,
   HalqaLibraryModel,
@@ -44,5 +45,6 @@ module.exports = {
   IlaqaDigestModel,
   MuntakhibTdModel,
   MarkazReportModel,
-  MarkazWorkerInfoModel
+  MarkazWorkerInfoModel,
+  BaitulmalModel,
 };
