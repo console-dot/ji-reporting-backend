@@ -725,6 +725,9 @@ class MaqamReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
+      const inset = parseInt(req.query.inset) || 0;
+      const offset = parseInt(req.query.offset) || 10;
+   
       const isIlaqa = await IlaqaModel.find({ maqam: areaId });
       if (isIlaqa && areaId) {
         if (Object.keys(areaId).length > 0) {
@@ -811,11 +814,17 @@ class MaqamReport extends Response {
                   path: "maqamAreaId",
                 },
               ])
-              .sort({ createdAt: -1 });
+              .sort({ createdAt: -1 })
+              .skip(inset)
+              .limit(offset);
           }
         
       }
-
+      let total = await MaqamReportModel.find({
+        maqamAreaId: accessList,
+      });
+      const totalReport = total.length;
+      reports = { data: reports, length: totalReport };
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);

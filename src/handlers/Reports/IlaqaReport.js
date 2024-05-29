@@ -363,7 +363,7 @@ class IlaqaReport extends Response {
     }
   };
   getReports = async (req, res) => {
-    const {areaId} = req?.query;
+    const { areaId } = req?.query;
     try {
       const token = req.headers.authorization;
       if (!token) {
@@ -380,7 +380,7 @@ class IlaqaReport extends Response {
       let reports;
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
-      console.log(inset, offset)
+      console.log(inset, offset);
       if (areaId) {
         const now = new Date();
         const startOfPreviousMonth = new Date(
@@ -419,7 +419,7 @@ class IlaqaReport extends Response {
         })
           .select("_id")
           .sort({ createdAt: -1 });
-  
+
         if (reports.length > 0) {
           const totalReport = { total: reports.length }; // Calculate total length before pagination
           reports = await IlaqaReportModel.find({
@@ -435,11 +435,13 @@ class IlaqaReport extends Response {
             .sort({ createdAt: -1 })
             .skip(inset)
             .limit(offset);
-          // if (!inset) {
-          //   reports = [totalReport, ...reports];
-          // }
         }
       }
+      let total = await IlaqaReportModel.find({
+        ilaqaAreaId: accessList,
+      });
+      const totalReport = total.length;
+      reports = { data: reports, length: totalReport };
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
@@ -449,7 +451,7 @@ class IlaqaReport extends Response {
       });
     }
   };
-  
+
   getSingleReport = async (req, res) => {
     try {
       const token = req.headers.authorization;

@@ -372,7 +372,9 @@ class ProvinceReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       let reports;
-      if (areaId){
+      const inset = parseInt(req.query.inset) || 0;
+      const offset = parseInt(req.query.offset) || 10;
+      if (areaId) {
         const now = new Date();
         const startOfPreviousMonth = new Date(
           now.getFullYear(),
@@ -404,9 +406,7 @@ class ProvinceReport extends Response {
             { path: "jamiaatId" },
           ])
           .sort({ createdAt: -1 });
-      
-      }
-     else {
+      } else {
         const existingReports = await MarkazReportModel.find({})
           .select("_id")
           .sort({ createdAt: -1 });
@@ -415,14 +415,20 @@ class ProvinceReport extends Response {
             .populate([
               { path: "userId", select: ["_id", "email", "name", "age"] },
               { path: "countryAreaId" },
-              
             ])
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .skip(inset)
+            .limit(offset);
         } else {
           // No reports found
           reports = [];
         }
       }
+      let total = await MarkazReportModel.find({
+        countryAreaId: accessList,
+      });
+      const totalReport = total.length;
+      reports = { data: reports, length: totalReport };
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
