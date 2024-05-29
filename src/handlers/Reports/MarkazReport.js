@@ -13,6 +13,7 @@ const {
   MarkazWorkerInfoModel,
   MarkazReportModel,
   ProvinceReportModel,
+  BaitulmalModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -74,6 +75,10 @@ const isDataComplete = (dataToUpdate) => {
     "tarbiyatGaahHeld",
     "tarbiyatGaahHeldManual",
     "tarbiyatGaahHeldSum",
+    "monthlyIncome",
+    "monthlyExpenditure",
+    "savings",
+    "loss",
   ];
 
   const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));
@@ -176,6 +181,10 @@ class ProvinceReport extends Response {
         collegesB,
         collegesC,
         collegesD,
+        monthlyIncome,
+        monthlyExpenditure,
+        savings,
+        loss,
       } = req.body;
 
       if (!isDataComplete(req.body)) {
@@ -194,19 +203,9 @@ class ProvinceReport extends Response {
           $gte: new Date(yearExist, monthExist, 1),
           $lt: new Date(yearExist, monthExist + 1, 1),
         },
-        userId,
+        countryAreaId: user?.userAreaId,
       });
-      const reports = await MarkazReportModel.findOne({
-        month: req.body.month,
-      });
-      if (reports) {
-        return this.sendResponse(req, res, {
-          message: `Report already created for ${
-            months[monthDate.getMonth()]
-          }.`,
-          status: 400,
-        });
-      }
+
       if (reportExist) {
         return this.sendResponse(req, res, {
           message: `Report already created for ${
@@ -317,6 +316,12 @@ class ProvinceReport extends Response {
         umeedwaranFilled,
         rafaqaFilled,
       });
+      const newBaitulmal = new BaitulmalModel({
+        monthlyIncome,
+        monthlyExpenditure,
+        savings,
+        loss,
+      });
       const clg = await newColleges.save();
       const jami = await newJamiaat.save();
       const wi = await newWI.save();
@@ -327,6 +332,7 @@ class ProvinceReport extends Response {
       const td = await newTd.save();
       const markazDivisionLib = await newMaqamDivisionLib.save();
       const rsd = await newRsd.save();
+      const baitId = await newBaitulmal.save();
       const newMarkazReport = new MarkazReportModel({
         month,
         comments,
@@ -342,6 +348,7 @@ class ProvinceReport extends Response {
         rsdId: rsd._id,
         jamiaatId: jami?._id,
         collegesId: clg?._id,
+        baitulmalId: baitId?._id,
       });
       await newMarkazReport.save();
       return this.sendResponse(req, res, {
@@ -475,6 +482,7 @@ class ProvinceReport extends Response {
         { path: "rsdId" },
         { path: "collegesId" },
         { path: "jamiaatId" },
+        { path: "baitulmalId" },
       ]);
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
@@ -549,6 +557,7 @@ class ProvinceReport extends Response {
         "rsdId",
         "collegesId",
         "jamiaatId",
+        "baitulmalId",
       ];
 
       const obj = {
@@ -621,6 +630,7 @@ class ProvinceReport extends Response {
           "tanzeemiRound",
           "tarbiyatGaahHeldSum",
         ],
+        baitulmalId: ["monthlyIncome", "monthlyExpenditure", "savings", "loss"],
         collegesId: ["collegesA", "collegesB", "collegesC", "collegesD"],
         jamiaatId: ["jamiaatA", "jamiaatB", "jamiaatC", "jamiaatD", "jamiaatE"],
       };
@@ -664,6 +674,8 @@ class ProvinceReport extends Response {
             return JamiaatModel;
           case "collegesId":
             return CollegesModel;
+          case "baitulmalId":
+            return BaitulmalModel;
           default:
             return null;
         }

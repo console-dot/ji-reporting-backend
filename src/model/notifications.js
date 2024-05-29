@@ -20,6 +20,10 @@ const notifications = mongoose.Schema(
       required: true,
       enum: ["division", "maqam", "province", "ilaqa", "country"],
     },
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

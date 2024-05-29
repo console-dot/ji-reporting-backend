@@ -13,6 +13,7 @@ const {
   IlaqaDigestModel,
   MuntakhibTdModel,
   HalqaReportModel,
+  BaitulmalModel,
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
@@ -188,15 +189,12 @@ class IlaqaReport extends Response {
         totalIncrease,
         totalDecrease,
         totalBookRent,
+        monthlyIncome,
+        monthlyExpenditure,
+        savings,
+        loss,
       } = req.body;
-      console.log(
-        uploadedUmeedwaran,
-        manualUmeedwaran,
-        umeedwaranFilledSum,
-        manualRafaqaFilled,
-        uploadedRafaqa,
-        rafaqaFilledSum
-      );
+
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
@@ -208,13 +206,6 @@ class IlaqaReport extends Response {
         yearExist: monthDate.getFullYear(),
         monthExist: monthDate.getMonth(),
       };
-      const reportExist = await IlaqaReportModel.findOne({
-        month: {
-          $gte: new Date(yearExist, monthExist, 1),
-          $lt: new Date(yearExist, monthExist + 1, 1),
-        },
-        userId,
-      });
       const reports = await IlaqaReportModel.findOne({
         month: {
           $gte: new Date(yearExist, monthExist, 1),
@@ -223,14 +214,6 @@ class IlaqaReport extends Response {
         ilaqaAreaId: user?.userAreaId,
       });
       if (reports) {
-        return this.sendResponse(req, res, {
-          message: `Report already created for ${
-            months[monthDate.getMonth()]
-          }.`,
-          status: 400,
-        });
-      }
-      if (reportExist) {
         return this.sendResponse(req, res, {
           message: `Report already created for ${
             months[monthDate.getMonth()]
@@ -325,6 +308,12 @@ class IlaqaReport extends Response {
         rafaqaFilled: uploadedRafaqa,
         rafaqaFilledSum,
       });
+      const newBaitulmal = new BaitulmalModel({
+        monthlyIncome,
+        monthlyExpenditure,
+        savings,
+        loss,
+      });
       const wi = await newWI.save();
       const maqamActivity = await newMaqamActivity.save();
       const maqamTanzeem = await newMaqamTanzeem.save();
@@ -334,7 +323,8 @@ class IlaqaReport extends Response {
       const maqamDivisionLib = await newMaqamDivisionLib.save();
       const paighamDigest = await newPaighamDigest.save();
       const rsd = await newRsd.save();
-      const newMaqamReport = new IlaqaReportModel({
+      const baitId = await newBaitulmal.save();
+      const newIlaqaReport = new IlaqaReportModel({
         month,
         comments,
         userId,
@@ -348,8 +338,9 @@ class IlaqaReport extends Response {
         maqamDivisionLibId: maqamDivisionLib?._id,
         paighamDigestId: paighamDigest?._id,
         rsdId: rsd._id,
+        baitulmalId: baitId?._id,
       });
-      await newMaqamReport.save();
+      await newIlaqaReport.save();
       return this.sendResponse(req, res, {
         message: "Ilaqa Report Added",
         status: 201,
@@ -380,7 +371,6 @@ class IlaqaReport extends Response {
       let reports;
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
-      console.log(inset, offset);
       if (areaId) {
         const now = new Date();
         const startOfPreviousMonth = new Date(
@@ -486,18 +476,6 @@ class IlaqaReport extends Response {
           });
         }
       } else {
-        // const accessList = (await getRoleFlow(id, key)).map((i) =>
-        //   i.toString()
-        // );
-        // const { ilaqaAreaId } = await IlaqaReportModel.findOne({ _id }).select(
-        //   "ilaqaAreaId"
-        // );
-        // if (!accessList.includes(ilaqaAreaId.toString())) {
-        //   return this.sendResponse(req, res, {
-        //     message: "Access Denied",
-        //     status: 401,
-        //   });
-        // }
         report = await IlaqaReportModel.findOne({ _id }).populate([
           { path: "userId", select: ["_id", "email", "name", "age"] },
           { path: "ilaqaAreaId", populate: { path: "maqam" } },
@@ -509,6 +487,7 @@ class IlaqaReport extends Response {
           { path: "tdId" },
           { path: "maqamDivisionLibId" },
           { path: "paighamDigestId" },
+          { path: "baitulmalId" },
           { path: "rsdId" },
         ]);
       }
@@ -595,6 +574,7 @@ class IlaqaReport extends Response {
         "tdId",
         "maqamDivisionLibId",
         "paighamDigestId",
+        "baitulmalId",
       ];
 
       const obj = {
@@ -677,6 +657,7 @@ class IlaqaReport extends Response {
           "rawabitParties",
           "dawatiWafud",
         ],
+        baitulmalId: ["monthlyIncome", "monthlyExpenditure", "savings", "loss"],
       };
 
       const returnData = (arr, key) => {
@@ -741,6 +722,8 @@ class IlaqaReport extends Response {
             return MuntakhibTdModel;
           case "otherActivityId":
             return OtherActivitiesModel;
+          case "baitulmalId":
+            return BaitulmalModel;
           default:
             return null;
         }

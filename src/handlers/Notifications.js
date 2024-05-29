@@ -1,4 +1,5 @@
 const { NotificationsModal, UserModel } = require("../model");
+const { getImmediateUser } = require("../utils");
 const Response = require("./Response");
 const jwt = require("jsonwebtoken");
 
@@ -73,7 +74,7 @@ class Notifications extends Response {
         // Find if a notification already exists for the current month
         const notificationExist = await NotificationsModal.findOne({
           created_for,
-          parentId: _id,
+          parentId: isExist?.userAreaId,
           parentType: isExist.nazim,
           createdAt: { $gte: startOfMonth, $lte: endOfMonth },
         });
@@ -86,7 +87,7 @@ class Notifications extends Response {
         const notification = new NotificationsModal({
           content,
           created_for,
-          parentId: _id,
+          parentId: isExist?.userAreaId,
           parentType: isExist.nazim,
         });
         await notification.save();
@@ -123,8 +124,14 @@ class Notifications extends Response {
             status: 404,
           });
         } else {
+          const from = await getImmediateUser(
+            isExist?.userAreaId,
+            isExist?.userAreaType
+          );
           const notification = await NotificationsModal.find({
             created_for: forWhome,
+            parentId: from,
+            isRead: false,
           });
           if (notification) {
             return this.sendResponse(req, res, {
@@ -138,6 +145,42 @@ class Notifications extends Response {
             });
           }
         }
+      }
+    } catch (error) {
+      console.log(error);
+      return this.sendResponse(req, res, {
+        message: "Internal server error",
+        status: 500,
+      });
+    }
+  };
+  updateNotifications = async (req, res) => {
+    try {
+      const { id } = req.params;
+      const notification = await NotificationsModal.findById({
+        _id: id,
+      });
+      if (notification) {
+        const updateResult = await NotificationsModal.updateOne(
+          { _id: id },
+          { $set: { isRead: true } }
+        );
+        if (updateResult.modifiedCount > 0) {
+          return this.sendResponse(req, res, {
+            message: "Notification Marked Read",
+            status: 200,
+          });
+        } else {
+          return this.sendResponse(req, res, {
+            message: "Nothing to update",
+            status: 400,
+          });
+        }
+      } else {
+        return this.sendResponse(req, res, {
+          message: "No notifications found!",
+          status: 404,
+        });
       }
     } catch (error) {
       console.log(error);

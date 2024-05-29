@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const halqaReportModel = mongoose.Schema(
   {
@@ -13,47 +13,52 @@ const halqaReportModel = mongoose.Schema(
     userId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'User',
+      ref: "User",
     },
     halqaAreaId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'Halqa',
+      ref: "Halqa",
     },
     wiId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'WorkerInfo',
+      ref: "WorkerInfo",
     },
     halqaActivityId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'HalqaActivity',
+      ref: "HalqaActivity",
     },
     otherActivityId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'OtherActivities',
+      ref: "OtherActivities",
     },
     tdId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'ToseeDawat',
+      ref: "ToseeDawat",
     },
     halqaLibId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'HalqaLibrary',
+      ref: "HalqaLibrary",
+    },
+    baitulmalId: {
+      type: mongoose.Types.ObjectId,
+      required: true,
+      ref: "BaitulMal",
     },
     rsdId: {
       type: mongoose.Types.ObjectId,
       required: true,
-      ref: 'RozShabBedari',
+      ref: "RozShabBedari",
     },
   },
   { timestamps: true }
 );
 
-const HalqaReportModel = mongoose.model('HalqaReport', halqaReportModel);
+const HalqaReportModel = mongoose.model("HalqaReport", halqaReportModel);
 
 module.exports = { HalqaReportModel };

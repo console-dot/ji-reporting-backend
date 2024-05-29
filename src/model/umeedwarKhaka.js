@@ -22,7 +22,7 @@ const umeedwarKhaka = mongoose.Schema(
     areaRef: {
       type: String,
       required: true,
-      enum: ["Province", "Division", "Maqam", "Halqa","Country"],
+      enum: ["Province", "Division", "Maqam", "Halqa", "Country", "Ilaqa"],
     },
     disturbingRoutine: {
       type: String,

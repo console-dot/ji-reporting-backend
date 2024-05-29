@@ -66,6 +66,11 @@ const markazReport = mongoose.Schema(
       required: true,
       ref: "MaqamDivisionLibrary",
     },
+    baitulmalId: {
+      type: mongoose.Types.ObjectId,
+      required: true,
+      ref: "BaitulMal",
+    },
     rsdId: {
       type: mongoose.Types.ObjectId,
       required: true,
