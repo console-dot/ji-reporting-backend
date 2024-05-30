@@ -749,7 +749,6 @@ class MaqamReport extends Response {
    
       const isIlaqa = await IlaqaModel.find({ maqam: areaId });
       if (isIlaqa.length > 0 && areaId) {
-        console.log("first");
         if (Object.keys(areaId).length > 0) {
           const now = new Date();
           const startOfPreviousMonth = new Date(
