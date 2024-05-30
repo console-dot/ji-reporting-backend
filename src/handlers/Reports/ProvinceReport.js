@@ -448,6 +448,10 @@ class ProvinceReport extends Response {
             { path: "jamiaatId" },
           ])
           .sort({ createdAt: -1 });
+        reports = {
+          maqamReports: maqamReports,
+          divisionReports: divisionReports,
+        };
       } else {
         const existingReports = await ProvinceReportModel.find({
           provinceAreaId: accessList,
