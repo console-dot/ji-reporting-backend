@@ -575,7 +575,7 @@ class User extends Response {
         });
       }
 
-      const {
+      let {
         name,
         email,
         age,
