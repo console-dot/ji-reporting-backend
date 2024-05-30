@@ -218,7 +218,19 @@ class Halqa extends Response {
           status: 404,
         });
       }
-      const updatedData = await HalqaModel.updateOne({ _id }, { $set: data });
+      if (isExist) {
+        const updatedData = await HalqaModel.updateOne({ _id }, { $set: data });
+        if (updatedData?.modifiedCount > 0) {
+          return this.sendResponse(req, res, {
+            message: "Halqa updated",
+            status: 200,
+          });
+        }
+        return this.sendResponse(req, res, {
+          message: "Nothing to update",
+          status: 400,
+        });
+      }
 
       if (updatedData?.modifiedCount > 0) {
         return this.sendResponse(req, res, {
