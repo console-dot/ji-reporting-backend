@@ -295,6 +295,9 @@ class Umeedwar extends Response {
             {
               path: "areaId",
             },
+            {
+              path: "userId",
+            },
           ])
           .sort({ createdAt: -1 });
       } else if (user?.userAreaType === "Country") {
@@ -303,6 +306,9 @@ class Umeedwar extends Response {
             {
               path: "areaId",
             },
+            {
+              path: "userId",
+            },
           ])
           .sort({ createdAt: -1 });
       } else {
@@ -310,6 +316,9 @@ class Umeedwar extends Response {
           .populate([
             {
               path: "areaId",
+            },
+            {
+              path: "userId",
             },
           ])
           .sort({ createdAt: -1 });
