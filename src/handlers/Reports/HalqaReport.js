@@ -261,7 +261,6 @@ class HalqaReport extends Response {
         .sort({ createdAt: -1 });
 
       let startDate = new Date(Date.UTC(year, month - 1, 1)); // Start of the month (month is 0-indexed in JavaScript Date)
-      let endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
 
       if (tab && tab === "division") {
         if (year && month) {

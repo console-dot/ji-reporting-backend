@@ -746,7 +746,9 @@ class MaqamReport extends Response {
       let reports;
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
-   
+      const year = req.query.year;
+      const month = req.query.month;
+      let startDate = new Date(Date.UTC(year, month - 1, 1));
       const isIlaqa = await IlaqaModel.find({ maqam: areaId });
       if (isIlaqa.length > 0 && areaId) {
         if (Object.keys(areaId).length > 0) {
@@ -817,8 +819,13 @@ class MaqamReport extends Response {
             .sort({ createdAt: -1 });
         }
       } else {
-        console.log(accessList.length)
-        reports = await MaqamReportModel.find({
+        if(year && month){
+          reports = await MaqamReportModel.find({
+            maqamAreaId: accessList,
+            month: startDate,
+          }).populate({ path: "maqamAreaId" });;
+        }
+       else{ reports = await MaqamReportModel.find({
           maqamAreaId: accessList,
         })
           .select("_id")
@@ -838,7 +845,7 @@ class MaqamReport extends Response {
               .skip(inset)
               .limit(offset);
           }
-        
+        }
       }
       let total = await MaqamReportModel.find({
         maqamAreaId: accessList,
