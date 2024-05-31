@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const halqaActivityModel = mongoose.Schema({
   ijtRafaqa: {
@@ -89,8 +89,50 @@ const halqaActivityModel = mongoose.Schema({
     },
     required: false,
   },
+  shaheenMeeting: {
+    type: {
+      decided: {
+        type: Number,
+        required: true,
+      },
+      completed: {
+        type: Number,
+        required: true,
+      },
+      attendance: {
+        type: Number,
+        required: true,
+      },
+      title: {
+        type: String,
+        required: true,
+      },
+    },
+    required: false,
+  },
+  paighamEvent: {
+    type: {
+      decided: {
+        type: Number,
+        required: true,
+      },
+      completed: {
+        type: Number,
+        required: true,
+      },
+      attendance: {
+        type: Number,
+        required: true,
+      },
+      title: {
+        type: String,
+        required: true,
+      },
+    },
+    required: false,
+  },
 });
 
-const HalqaActivityModel = mongoose.model('HalqaActivity', halqaActivityModel);
+const HalqaActivityModel = mongoose.model("HalqaActivity", halqaActivityModel);
 
 module.exports = { HalqaActivityModel };
