@@ -242,6 +242,9 @@ class HalqaReport extends Response {
 
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
+      const year = req.query.year;
+      const month = req.query.month;
+      console.log(year, month);
       const tab = req.query.tab;
       let allReports = await HalqaReportModel.find({
         halqaAreaId: accessList,
@@ -257,24 +260,54 @@ class HalqaReport extends Response {
         ])
         .sort({ createdAt: -1 });
 
+      let startDate = new Date(Date.UTC(year, month - 1, 1)); // Start of the month (month is 0-indexed in JavaScript Date)
+      let endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999));
+
       if (tab && tab === "division") {
-        const divHalqa = allReports.filter(
-          (i) => i?.halqaAreaId?.parentType === "Tehsil"
-        );
-        reports = divHalqa.slice(inset, inset + offset);
-        total = divHalqa;
+        if (year && month) {
+          let g = await HalqaReportModel.find({
+            halqaAreaId: accessList,
+            month: startDate,
+          }).populate({ path: "halqaAreaId" });
+          reports = g.filter((i) => i?.halqaAreaId?.parentType === "Tehsil");
+          total = reports;
+        } else {
+          const divHalqa = allReports.filter(
+            (i) => i?.halqaAreaId?.parentType === "Tehsil"
+          );
+          reports = divHalqa.slice(inset, inset + offset);
+          total = divHalqa;
+        }
       } else if (tab && tab === "maqam") {
-        const divHalqa = allReports.filter(
-          (i) => i?.halqaAreaId?.parentType === "Maqam"
-        );
-        reports = divHalqa.slice(inset, inset + offset);
-        total = divHalqa;
+        if (year && month) {
+          let g = await HalqaReportModel.find({
+            halqaAreaId: accessList,
+            month: startDate,
+          }).populate({ path: "halqaAreaId" });
+          reports = g.filter((i) => i?.halqaAreaId?.parentType === "Maqam");
+          total = reports;
+        } else {
+          const divHalqa = allReports.filter(
+            (i) => i?.halqaAreaId?.parentType === "Maqam"
+          );
+          reports = divHalqa.slice(inset, inset + offset);
+          total = divHalqa;
+        }
       } else if (tab && tab === "ilaqa") {
-        const divHalqa = allReports.filter(
-          (i) => i?.halqaAreaId?.parentType === "Ilaqa"
-        );
-        reports = divHalqa.slice(inset, inset + offset);
-        total = divHalqa;
+        if (year && month) {
+          let g = await HalqaReportModel.find({
+            halqaAreaId: accessList,
+            month: startDate,
+          }).populate({ path: "halqaAreaId" });
+          reports = g.filter((i) => i?.halqaAreaId?.parentType === "Ilaqa");
+          total = reports;
+        } else {
+          const divHalqa = allReports.filter(
+            (i) => i?.halqaAreaId?.parentType === "Ilaqa"
+          );
+          reports = divHalqa.slice(inset, inset + offset);
+          total = divHalqa;
+        }
       } else {
         reports = await HalqaReportModel.find({
           halqaAreaId: accessList,

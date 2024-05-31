@@ -817,6 +817,7 @@ class MaqamReport extends Response {
             .sort({ createdAt: -1 });
         }
       } else {
+        console.log(accessList.length)
         reports = await MaqamReportModel.find({
           maqamAreaId: accessList,
         })
@@ -960,7 +961,7 @@ class MaqamReport extends Response {
       }
       const startDate = new Date(desiredYear, desiredMonth, 0);
       const endDate = new Date(desiredYear, desiredMonth + 1, 1);
-
+      
       const maqamReports = await MaqamReportModel.find({
         month: {
           $gte: startDate,
