@@ -485,12 +485,23 @@ class ProvinceReport extends Response {
         provinceAreaId: accessList,
       });
       const totalReport = total.length;
-      reports = { data: reports, length: totalReport };
+      reports = {
+        data: reports,
+        length: totalReport,
+        message: "Reports fetched successfully",
+      };
       if (reports?.length > 0) {
-        return this.sendResponse(req, res, { data: reports });
+        return this.sendResponse(req, res, {
+          data: reports,
+          message: "Reports fetched successfully",
+        });
       } else {
         return this.sendResponse(req, res, {
-          data: { maqamReports, divisionReports },
+          data: {
+            maqamReports,
+            divisionReports,
+            message: "Reports fetched successfully",
+          },
         });
       }
     } catch (err) {

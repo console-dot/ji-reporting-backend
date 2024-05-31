@@ -441,7 +441,10 @@ class IlaqaReport extends Response {
       });
       const totalReport = total.length;
       reports = { data: reports, length: totalReport };
-      return this.sendResponse(req, res, { data: reports });
+      return this.sendResponse(req, res, {
+        data: reports,
+        message: "Reports fetched successfully",
+      });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
