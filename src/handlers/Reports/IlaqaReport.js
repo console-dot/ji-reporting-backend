@@ -420,7 +420,6 @@ class IlaqaReport extends Response {
           .sort({ createdAt: -1 });
 
         if (reports.length > 0) {
-          const totalReport = { total: reports.length }; // Calculate total length before pagination
           reports = await IlaqaReportModel.find({
             ilaqaAreaId: accessList,
           })
