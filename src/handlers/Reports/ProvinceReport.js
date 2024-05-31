@@ -392,6 +392,8 @@ class ProvinceReport extends Response {
       let reports;
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
+      const year = req.query.year;
+      const month = req.query.month;
       let maqamReports;
       let divisionReports;
       // RETURNING THE POPILATED HALQA REPORTS OF THE SPECIFIC DIVISION
@@ -448,23 +450,35 @@ class ProvinceReport extends Response {
             { path: "jamiaatId" },
           ])
           .sort({ createdAt: -1 });
+        reports = {
+          maqamReports: maqamReports,
+          divisionReports: divisionReports,
+        };
       } else {
-        const existingReports = await ProvinceReportModel.find({
-          provinceAreaId: accessList,
-        });
-        if (existingReports.length > 0) {
+        if (year && month) {
+          let startDate = new Date(Date.UTC(year, month - 1, 1));
           reports = await ProvinceReportModel.find({
             provinceAreaId: accessList,
-          })
-            .populate([
-              { path: "userId", select: ["_id", "email", "name", "age"] },
-              { path: "provinceAreaId" },
-            ])
-            .sort({ createdAt: -1 })
-            .skip(inset)
-            .limit(offset);
+            month: startDate,
+          }).populate({ path: "provinceAreaId" });;
         } else {
-          reports = [];
+          const existingReports = await ProvinceReportModel.find({
+            provinceAreaId: accessList,
+          });
+          if (existingReports.length > 0) {
+            reports = await ProvinceReportModel.find({
+              provinceAreaId: accessList,
+            })
+              .populate([
+                { path: "userId", select: ["_id", "email", "name", "age"] },
+                { path: "provinceAreaId" },
+              ])
+              .sort({ createdAt: -1 })
+              .skip(inset)
+              .limit(offset);
+          } else {
+            reports = [];
+          }
         }
       }
       let total = await ProvinceReportModel.find({

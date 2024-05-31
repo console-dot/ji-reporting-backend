@@ -417,7 +417,9 @@ class DivisionReport extends Response {
       let reports;
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
-
+      const year = req.query.year;
+      const month = req.query.month;
+      let startDate = new Date(Date.UTC(year, month - 1, 1));
       // RETURNING THE POPILATED HALQA REPORTS OF THE SPECIFIC DIVISION
       if (areaId) {
         const now = new Date();
@@ -452,7 +454,13 @@ class DivisionReport extends Response {
           ])
           .sort({ createdAt: -1 });
       } else {
-        reports = await DivisionReportModel.find({
+        if(year && month){
+          reports = await DivisionReportModel.find({
+            divisionAreaId: accessList,
+            month: startDate,
+          }).populate({ path: "divisionAreaId" });;
+        }
+        else{reports = await DivisionReportModel.find({
           divisionAreaId: accessList,
         })
           .select("_id")
@@ -469,7 +477,7 @@ class DivisionReport extends Response {
             .sort({ createdAt: -1 })
             .skip(inset)
             .limit(offset);
-        }
+        }}
       }
       let total = await DivisionReportModel.find({
         divisionAreaId: accessList,
