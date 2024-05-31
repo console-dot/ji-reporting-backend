@@ -421,23 +421,21 @@ class IlaqaReport extends Response {
             .select("_id")
             .sort({ createdAt: -1 });
 
-          if (reports.length > 0) {
-            const totalReport = { total: reports.length }; // Calculate total length before pagination
-            reports = await IlaqaReportModel.find({
-              ilaqaAreaId: accessList,
-            })
-              .populate([
-                { path: "userId", select: ["_id", "email", "name", "age"] },
-                {
-                  path: "ilaqaAreaId",
-                  populate: { path: "maqam" },
-                },
-              ])
-              .sort({ createdAt: -1 })
-              .skip(inset)
-              .limit(offset);
-          }
-        }
+        if (reports.length > 0) {
+          reports = await IlaqaReportModel.find({
+            ilaqaAreaId: accessList,
+          })
+            .populate([
+              { path: "userId", select: ["_id", "email", "name", "age"] },
+              {
+                path: "ilaqaAreaId",
+                populate: { path: "maqam" },
+              },
+            ])
+            .sort({ createdAt: -1 })
+            .skip(inset)
+            .limit(offset);
+        }}
       }
       let total = await IlaqaReportModel.find({
         ilaqaAreaId: accessList,

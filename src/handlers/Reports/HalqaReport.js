@@ -251,6 +251,7 @@ class HalqaReport extends Response {
       const offset = parseInt(req.query.offset) || 10;
       const year = req.query.year;
       const month = req.query.month;
+
       const tab = req.query.tab;
       let allReports = await HalqaReportModel.find({
         halqaAreaId: accessList,
