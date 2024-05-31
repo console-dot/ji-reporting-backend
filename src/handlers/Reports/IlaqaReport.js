@@ -371,6 +371,9 @@ class IlaqaReport extends Response {
       let reports;
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
+      const year = req.query.year;
+      const month = req.query.month;
+      let startDate = new Date(Date.UTC(year, month - 1, 1));
       if (areaId) {
         const now = new Date();
         const startOfPreviousMonth = new Date(
@@ -404,7 +407,13 @@ class IlaqaReport extends Response {
           ])
           .sort({ createdAt: -1 });
       } else {
-        reports = await IlaqaReportModel.find({
+        if(year && month){
+          reports = await IlaqaReportModel.find({
+            ilaqaAreaId: accessList,
+            month: startDate,
+          }).populate({ path: "ilaqaAreaId" });;
+        }
+        else{reports = await IlaqaReportModel.find({
           ilaqaAreaId: accessList,
         })
           .select("_id")
@@ -425,7 +434,7 @@ class IlaqaReport extends Response {
             .sort({ createdAt: -1 })
             .skip(inset)
             .limit(offset);
-        }
+        }}
       }
       let total = await IlaqaReportModel.find({
         ilaqaAreaId: accessList,
