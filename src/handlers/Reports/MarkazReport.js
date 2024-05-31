@@ -436,7 +436,7 @@ class ProvinceReport extends Response {
       });
       const totalReport = total.length;
       reports = { data: reports, length: totalReport };
-      return this.sendResponse(req, res, { data: reports });
+      return this.sendResponse(req, res, { data: reports,        message: "Reports fetched successfully", });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
@@ -484,7 +484,7 @@ class ProvinceReport extends Response {
         { path: "jamiaatId" },
         { path: "baitulmalId" },
       ]);
-      return this.sendResponse(req, res, { data: reports });
+      return this.sendResponse(req, res, { data: reports,        message: "Report fetched successfully", });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {

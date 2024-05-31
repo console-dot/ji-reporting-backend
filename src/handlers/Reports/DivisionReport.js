@@ -402,7 +402,7 @@ class DivisionReport extends Response {
   getReports = async (req, res) => {
     try {
       const token = req.headers.authorization;
-      const {areaId} = req?.query;
+      const { areaId } = req?.query;
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
@@ -484,7 +484,10 @@ class DivisionReport extends Response {
       });
       const totalReport = total.length;
       reports = { data: reports, length: totalReport };
-      return this.sendResponse(req, res, { data: reports });
+      return this.sendResponse(req, res, {
+        data: reports,
+        message: "Reports fetched successfully",
+      });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
