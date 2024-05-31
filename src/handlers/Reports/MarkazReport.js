@@ -383,20 +383,22 @@ class ProvinceReport extends Response {
       const offset = parseInt(req.query.offset) || 10;
       if (areaId) {
         const now = new Date();
-        const startOfPreviousMonth = new Date(
-          now.getFullYear(),
-          now.getMonth() - 1,
-          1
-        );
-        const endOfPreviousMonth = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          0
-        );
-        reports = await ProvinceReportModel.find({
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+        const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+        const formattedFirstDay =
+          firstDayOfMonth.toISOString().split("T")[0] + "T00:00:00.000Z";
+        const formattedLastDay =
+          lastDayOfMonth.toISOString().split("T")[0] + "T23:59:59.999Z";
+        const reportsQuery = {
           provinceAreaId: accessList,
-          month: { $gt: startOfPreviousMonth, $lte: endOfPreviousMonth },
-        })
+          month: {
+            $gte: formattedFirstDay,
+            $lte: formattedLastDay,
+          },
+        };
+        reports = await ProvinceModel.find(reportsQuery)
           .populate([
             { path: "userId", select: ["_id", "email", "name", "age"] },
             { path: "provinceAreaId" },
@@ -436,7 +438,10 @@ class ProvinceReport extends Response {
       });
       const totalReport = total.length;
       reports = { data: reports, length: totalReport };
-      return this.sendResponse(req, res, { data: reports,        message: "Reports fetched successfully", });
+      return this.sendResponse(req, res, {
+        data: reports,
+        message: "Reports fetched successfully",
+      });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
@@ -484,7 +489,10 @@ class ProvinceReport extends Response {
         { path: "jamiaatId" },
         { path: "baitulmalId" },
       ]);
-      return this.sendResponse(req, res, { data: reports,        message: "Report fetched successfully", });
+      return this.sendResponse(req, res, {
+        data: reports,
+        message: "Report fetched successfully",
+      });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {

@@ -753,20 +753,22 @@ class MaqamReport extends Response {
       if (isIlaqa.length > 0 && areaId) {
         if (Object.keys(areaId).length > 0) {
           const now = new Date();
-          const startOfPreviousMonth = new Date(
-            now.getFullYear(),
-            now.getMonth() - 1,
-            1
-          );
-          const endOfPreviousMonth = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            0
-          );
-          reports = await IlaqaReportModel.find({
+          const currentYear = now.getFullYear();
+          const currentMonth = now.getMonth();
+          const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+          const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+          const formattedFirstDay =
+            firstDayOfMonth.toISOString().split("T")[0] + "T00:00:00.000Z";
+          const formattedLastDay =
+            lastDayOfMonth.toISOString().split("T")[0] + "T23:59:59.999Z";
+          const ilaqaQuery = {
             ilaqaAreaId: accessList,
-            month: { $gt: startOfPreviousMonth, $lte: endOfPreviousMonth },
-          })
+            month: {
+              $gte: formattedFirstDay,
+              $lte: formattedLastDay,
+            },
+          };
+          reports = await IlaqaReportModel.find(ilaqaQuery)
             .populate([
               { path: "userId", select: ["_id", "email", "name", "age"] },
 
@@ -786,20 +788,23 @@ class MaqamReport extends Response {
       } else if (areaId && isIlaqa.length === 0) {
         if (Object.keys(areaId).length > 0) {
           const now = new Date();
-          const startOfPreviousMonth = new Date(
-            now.getFullYear(),
-            now.getMonth() - 1,
-            1
-          );
-          const endOfPreviousMonth = new Date(
-            now.getFullYear(),
-            now.getMonth(),
-            0
-          );
-          reports = await HalqaReportModel.find({
+          const currentYear = now.getFullYear();
+          const currentMonth = now.getMonth();
+          const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+          const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+          const formattedFirstDay =
+            firstDayOfMonth.toISOString().split("T")[0] + "T00:00:00.000Z";
+          const formattedLastDay =
+            lastDayOfMonth.toISOString().split("T")[0] + "T23:59:59.999Z";
+          const halqaQuery = {
             halqaAreaId: accessList,
-            month: { $gt: startOfPreviousMonth, $lte: endOfPreviousMonth },
-          })
+            month: {
+              $gt: formattedFirstDay,
+              $lt: formattedLastDay,
+            },
+          };
+
+          reports = await HalqaReportModel.find(halqaQuery)
             .populate([
               { path: "userId", select: ["_id", "email", "name", "age"] },
               { path: "wiId" },
@@ -819,17 +824,17 @@ class MaqamReport extends Response {
             .sort({ createdAt: -1 });
         }
       } else {
-        if(year && month){
+        if (year && month) {
           reports = await MaqamReportModel.find({
             maqamAreaId: accessList,
             month: startDate,
-          }).populate({ path: "maqamAreaId" });;
-        }
-       else{ reports = await MaqamReportModel.find({
-          maqamAreaId: accessList,
-        })
-          .select("_id")
-          .sort({ createdAt: -1 });
+          }).populate({ path: "maqamAreaId" });
+        } else {
+          reports = await MaqamReportModel.find({
+            maqamAreaId: accessList,
+          })
+            .select("_id")
+            .sort({ createdAt: -1 });
 
           if (reports.length > 0) {
             reports = await MaqamReportModel.find({
@@ -968,7 +973,7 @@ class MaqamReport extends Response {
       }
       const startDate = new Date(desiredYear, desiredMonth, 0);
       const endDate = new Date(desiredYear, desiredMonth + 1, 1);
-      
+
       const maqamReports = await MaqamReportModel.find({
         month: {
           $gte: startDate,
