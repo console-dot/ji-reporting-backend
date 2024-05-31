@@ -88,12 +88,6 @@ class User extends Response {
           status: 400,
         });
       }
-      // if (nazim === "province" || userAreaType === "Province") {
-      //   return this.sendResponse(req, res, {
-      //     message: "Province signup not allowed",
-      //     status: 400,
-      //   });
-      // }
       if (password1 !== password2) {
         return this.sendResponse(req, res, {
           message: "Both passwords should match!",
@@ -196,11 +190,22 @@ class User extends Response {
           status: 404,
         });
       }
-      const newUserRequest = new UserRequest({
-        immediate_user_id,
-        nazimType,
-      });
-
+      let newUserRequest;
+      if (
+        (nazimType === "rukan" || nazimType === "umeedwar") &&
+        userAreaType !== "Halqa" &&
+        userAreaType !== "Ilaqa"
+      ) {
+        newUserRequest = new UserRequest({
+          immediate_user_id: userAreaId,
+          nazimType,
+        });
+      } else {
+        newUserRequest = new UserRequest({
+          immediate_user_id,
+          nazimType,
+        });
+      }
       const userRequestReq = await newUserRequest.save();
       const newUser = new UserModel({
         email,

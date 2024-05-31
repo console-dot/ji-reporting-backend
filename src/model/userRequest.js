@@ -12,6 +12,10 @@ const userRequest = mongoose.Schema(
       required: false,
       ref: "User",
     },
+    nazimType: {
+      type: String,
+      enum: ["nazim", "umeedwar", "rukan", "umeedwaar-nazim", "rukan-nazim"],
+    },
   },
   {
     timestamps: true,
