@@ -399,20 +399,29 @@ class ProvinceReport extends Response {
       // RETURNING THE POPILATED HALQA REPORTS OF THE SPECIFIC DIVISION
       if (areaId) {
         const now = new Date();
-        const startOfPreviousMonth = new Date(
-          now.getFullYear(),
-          now.getMonth() - 1,
-          1
-        );
-        const endOfPreviousMonth = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          0
-        );
-        divisionReports = await DivisionReportModel.find({
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+        const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+        const formattedFirstDay =
+          firstDayOfMonth.toISOString().split("T")[0] + "T00:00:00.000Z";
+        const formattedLastDay =
+          lastDayOfMonth.toISOString().split("T")[0] + "T23:59:59.999Z";
+        const divisionQuery = {
           divisionAreaId: accessList,
-          month: { $gt: startOfPreviousMonth, $lte: endOfPreviousMonth },
-        })
+          month: {
+            $gte: formattedFirstDay,
+            $lte: formattedLastDay,
+          },
+        };
+        const maqamQuery = {
+          maqamAreaId: accessList,
+          month: {
+            $gte: formattedFirstDay,
+            $lte: formattedLastDay,
+          },
+        };
+        reports = await DivisionReportModel.find(divisionQuery)
           .populate([
             { path: "userId", select: ["_id", "email", "name", "age"] },
             { path: "divisionAreaId", populate: { path: "province" } },
@@ -429,10 +438,7 @@ class ProvinceReport extends Response {
             { path: "jamiaatId" },
           ])
           .sort({ createdAt: -1 });
-        maqamReports = await MaqamReportModel.find({
-          maqamAreaId: accessList,
-          month: { $gt: startOfPreviousMonth, $lte: endOfPreviousMonth },
-        })
+        maqamReports = await MaqamReportModel.find(maqamQuery)
           .populate([
             { path: "userId", select: ["_id", "email", "name", "age"] },
             { path: "maqamAreaId", populate: { path: "province" } },
@@ -460,7 +466,7 @@ class ProvinceReport extends Response {
           reports = await ProvinceReportModel.find({
             provinceAreaId: accessList,
             month: startDate,
-          }).populate({ path: "provinceAreaId" });;
+          }).populate({ path: "provinceAreaId" });
         } else {
           const existingReports = await ProvinceReportModel.find({
             provinceAreaId: accessList,
