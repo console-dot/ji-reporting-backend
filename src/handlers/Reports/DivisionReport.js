@@ -423,20 +423,22 @@ class DivisionReport extends Response {
       // RETURNING THE POPILATED HALQA REPORTS OF THE SPECIFIC DIVISION
       if (areaId) {
         const now = new Date();
-        const startOfPreviousMonth = new Date(
-          now.getFullYear(),
-          now.getMonth() - 1,
-          1
-        );
-        const endOfPreviousMonth = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          0
-        );
-        reports = await HalqaReportModel.find({
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+        const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+        const formattedFirstDay =
+          firstDayOfMonth.toISOString().split("T")[0] + "T00:00:00.000Z";
+        const formattedLastDay =
+          lastDayOfMonth.toISOString().split("T")[0] + "T23:59:59.999Z";
+        const reportsQuery = {
           halqaAreaId: accessList,
-          month: { $gt: startOfPreviousMonth, $lte: endOfPreviousMonth },
-        })
+          month: {
+            $gt: formattedFirstDay,
+            $lt: formattedLastDay,
+          },
+        };
+        reports = await HalqaReportModel.find(reportsQuery)
           .populate([
             { path: "userId", select: ["_id", "email", "name", "age"] },
             { path: "wiId" },
@@ -454,30 +456,31 @@ class DivisionReport extends Response {
           ])
           .sort({ createdAt: -1 });
       } else {
-        if(year && month){
+        if (year && month) {
           reports = await DivisionReportModel.find({
             divisionAreaId: accessList,
             month: startDate,
-          }).populate({ path: "divisionAreaId" });;
-        }
-        else{reports = await DivisionReportModel.find({
-          divisionAreaId: accessList,
-        })
-          .select("_id")
-          .sort({ createdAt: -1 });
-
-        if (reports.length > 0) {
+          }).populate({ path: "divisionAreaId" });
+        } else {
           reports = await DivisionReportModel.find({
             divisionAreaId: accessList,
           })
-            .populate([
-              { path: "userId", select: ["_id", "email", "name", "age"] },
-              { path: "divisionAreaId", populate: { path: "province" } },
-            ])
-            .sort({ createdAt: -1 })
-            .skip(inset)
-            .limit(offset);
-        }}
+            .select("_id")
+            .sort({ createdAt: -1 });
+
+          if (reports.length > 0) {
+            reports = await DivisionReportModel.find({
+              divisionAreaId: accessList,
+            })
+              .populate([
+                { path: "userId", select: ["_id", "email", "name", "age"] },
+                { path: "divisionAreaId", populate: { path: "province" } },
+              ])
+              .sort({ createdAt: -1 })
+              .skip(inset)
+              .limit(offset);
+          }
+        }
       }
       let total = await DivisionReportModel.find({
         divisionAreaId: accessList,

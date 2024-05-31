@@ -376,20 +376,22 @@ class IlaqaReport extends Response {
       let startDate = new Date(Date.UTC(year, month - 1, 1));
       if (areaId) {
         const now = new Date();
-        const startOfPreviousMonth = new Date(
-          now.getFullYear(),
-          now.getMonth() - 1,
-          1
-        );
-        const endOfPreviousMonth = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          0
-        );
-        reports = await HalqaReportModel.find({
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth();
+        const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+        const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+        const formattedFirstDay =
+          firstDayOfMonth.toISOString().split("T")[0] + "T00:00:00.000Z";
+        const formattedLastDay =
+          lastDayOfMonth.toISOString().split("T")[0] + "T23:59:59.999Z";
+        const ilaqaQuery = {
           halqaAreaId: accessList,
-          month: { $gt: startOfPreviousMonth, $lte: endOfPreviousMonth },
-        })
+          month: {
+            $gte: formattedFirstDay,
+            $lte: formattedLastDay,
+          },
+        };
+        reports = await HalqaReportModel.find(ilaqaQuery)
           .populate([
             { path: "userId", select: ["_id", "email", "name", "age"] },
             { path: "wiId" },
@@ -407,34 +409,35 @@ class IlaqaReport extends Response {
           ])
           .sort({ createdAt: -1 });
       } else {
-        if(year && month){
+        if (year && month) {
           reports = await IlaqaReportModel.find({
             ilaqaAreaId: accessList,
             month: startDate,
-          }).populate({ path: "ilaqaAreaId" });;
-        }
-        else{reports = await IlaqaReportModel.find({
-          ilaqaAreaId: accessList,
-        })
-          .select("_id")
-          .sort({ createdAt: -1 });
-
-        if (reports.length > 0) {
-          const totalReport = { total: reports.length }; // Calculate total length before pagination
+          }).populate({ path: "ilaqaAreaId" });
+        } else {
           reports = await IlaqaReportModel.find({
             ilaqaAreaId: accessList,
           })
-            .populate([
-              { path: "userId", select: ["_id", "email", "name", "age"] },
-              {
-                path: "ilaqaAreaId",
-                populate: { path: "maqam" },
-              },
-            ])
-            .sort({ createdAt: -1 })
-            .skip(inset)
-            .limit(offset);
-        }}
+            .select("_id")
+            .sort({ createdAt: -1 });
+
+          if (reports.length > 0) {
+            const totalReport = { total: reports.length }; // Calculate total length before pagination
+            reports = await IlaqaReportModel.find({
+              ilaqaAreaId: accessList,
+            })
+              .populate([
+                { path: "userId", select: ["_id", "email", "name", "age"] },
+                {
+                  path: "ilaqaAreaId",
+                  populate: { path: "maqam" },
+                },
+              ])
+              .sort({ createdAt: -1 })
+              .skip(inset)
+              .limit(offset);
+          }
+        }
       }
       let total = await IlaqaReportModel.find({
         ilaqaAreaId: accessList,
