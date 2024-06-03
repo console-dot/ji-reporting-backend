@@ -16,5 +16,5 @@ jobs:
         uses: SamKirkland/FTP-Deploy-Action@4.0.0
         with:
           server: ftp.jamiatreporting.com
-          ftp-username: ${{ secrets.TEST_JIR_FTP_USERNAME }}
-          ftp-password: ${{ secrets.TEST_JIR_FTP_PASSWORD }}
+          username: ${{ secrets.TEST_JIR_FTP_USERNAME }}
+          password: ${{ secrets.TEST_JIR_FTP_PASSWORD }}
