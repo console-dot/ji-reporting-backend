@@ -1,27 +1,30 @@
-const { decode, sign } = require('jsonwebtoken');
+const { decode, sign } = require("jsonwebtoken");
 
 class Response {
   sendResponse = (req, res, { data, message, status }) => {
     try {
+      console.log(data, "response data");
+      console.log(message, "response message");
+      console.log(status, "response Status");
       const obj = { data, message, status };
       if (!status) {
         obj.status = 200;
       }
       if (!message && !data) {
-        return res.status(500).json({ message: 'Data/Message is required' });
+        return res.status(500).json({ message: "Data/Message is required" });
       }
       let token = null;
       if (
         req &&
         req?.headers.authorization &&
-        req?.headers.authorization !== 'undefined'
+        req?.headers.authorization !== "undefined"
       ) {
-        const t = req?.headers.authorization.split(' ')[1];
+        const t = req?.headers.authorization.split(" ")[1];
         const decoded = decode(t);
         delete decoded?.iat;
         delete decoded?.exp;
         if (decoded)
-          token = sign(decoded, process.env.JWT_SECRET, { expiresIn: '10m' });
+          token = sign(decoded, process.env.JWT_SECRET, { expiresIn: "10m" });
         return res.status(obj.status).json({ ...obj, token });
       }
       return res.status(obj.status).json({ ...obj });
@@ -29,7 +32,7 @@ class Response {
       console.log(err);
       return res
         .status(500)
-        .json({ message: 'Internal Server Error', status: 500 });
+        .json({ message: "Internal Server Error", status: 500 });
     }
   };
 }

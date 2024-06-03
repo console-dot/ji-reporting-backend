@@ -342,10 +342,13 @@ class HalqaReport extends Response {
         });
       }
       const totalReport = total.length;
-      // reports = { data: reports, length: totalReport };
+      console.log(totalReport, "report length");
+      console.log(reports, "reports");
+      reports = { data: reports, length: totalReport };
       return this.sendResponse(req, res, {
         data: { data: reports, length: totalReport },
         message: "Reports fetched successfully",
+        status: 200,
       });
     } catch (err) {
       console.log(err);
