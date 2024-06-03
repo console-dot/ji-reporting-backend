@@ -314,7 +314,16 @@ class HalqaReport extends Response {
           reports = divHalqa.slice(inset, inset + offset);
           total = divHalqa;
         }
-      } else {
+      }
+      else if (!tab && year && month) {
+        
+           reports = await HalqaReportModel.find({
+            halqaAreaId: accessList,
+            month: startDate,
+          }).populate({ path: "halqaAreaId" });
+          total = reports.length;
+       
+      }  else {
         reports = await HalqaReportModel.find({
           halqaAreaId: accessList,
         })

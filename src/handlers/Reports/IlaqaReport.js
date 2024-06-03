@@ -377,7 +377,7 @@ class IlaqaReport extends Response {
       if (areaId) {
         const now = new Date();
         const currentYear = now.getFullYear();
-        const currentMonth = now.getMonth();
+        const currentMonth = now.getMonth() - 1;
 
         // Get the first day of the current month at 00:00:00.000Z
         const firstDayOfMonth = new Date(
@@ -388,7 +388,6 @@ class IlaqaReport extends Response {
         const lastDayOfMonth = new Date(
           Date.UTC(currentYear, currentMonth + 1, 0, 23, 59, 59, 999)
         );
-
         // Format the dates to ISO strings
         const formattedFirstDay = firstDayOfMonth.toISOString();
         const formattedLastDay = lastDayOfMonth.toISOString();

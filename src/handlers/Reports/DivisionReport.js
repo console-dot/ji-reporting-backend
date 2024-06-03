@@ -424,7 +424,7 @@ class DivisionReport extends Response {
       if (areaId) {
         const now = new Date();
         const currentYear = now.getFullYear();
-        const currentMonth = now.getMonth();
+        const currentMonth = now.getMonth() - 1;
 
         // Get the first day of the current month at 00:00:00.000Z
         const firstDayOfMonth = new Date(
@@ -442,8 +442,8 @@ class DivisionReport extends Response {
         const reportsQuery = {
           halqaAreaId: accessList,
           month: {
-            $gt: formattedFirstDay,
-            $lt: formattedLastDay,
+            $gte: formattedFirstDay,
+            $lte: formattedLastDay,
           },
         };
         reports = await HalqaReportModel.find(reportsQuery)
