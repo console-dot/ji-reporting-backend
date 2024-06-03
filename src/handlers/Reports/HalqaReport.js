@@ -314,16 +314,13 @@ class HalqaReport extends Response {
           reports = divHalqa.slice(inset, inset + offset);
           total = divHalqa;
         }
-      }
-      else if (!tab && year && month) {
-        
-           reports = await HalqaReportModel.find({
-            halqaAreaId: accessList,
-            month: startDate,
-          }).populate({ path: "halqaAreaId" });
-          total = reports.length;
-       
-      }  else {
+      } else if (!tab && year && month) {
+        reports = await HalqaReportModel.find({
+          halqaAreaId: accessList,
+          month: startDate,
+        }).populate({ path: "halqaAreaId" });
+        total = reports.length;
+      } else {
         reports = await HalqaReportModel.find({
           halqaAreaId: accessList,
         })
@@ -345,9 +342,9 @@ class HalqaReport extends Response {
         });
       }
       const totalReport = total.length;
-      reports = { data: reports, length: totalReport };
+      // reports = { data: reports, length: totalReport };
       return this.sendResponse(req, res, {
-        data: reports,
+        data: { data: reports, length: totalReport },
         message: "Reports fetched successfully",
       });
     } catch (err) {
