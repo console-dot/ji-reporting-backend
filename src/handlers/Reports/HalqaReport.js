@@ -341,13 +341,13 @@ class HalqaReport extends Response {
           halqaAreaId: accessList,
         });
       }
-      const totalReport = total.length;
-      console.log(totalReport, "report length");
-      console.log(reports, "reports");
-      reports = { data: reports, length: totalReport };
+      const totalReports = total.length;
       return this.sendResponse(req, res, {
-        data: { data: reports, length: totalReport },
-        message: "Reports fetched successfully",
+        data: {
+          reports,
+          totalReports,
+          message: "Reports fetched successfully",
+        },
         status: 200,
       });
     } catch (err) {

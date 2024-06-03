@@ -3,9 +3,6 @@ const { decode, sign } = require("jsonwebtoken");
 class Response {
   sendResponse = (req, res, { data, message, status }) => {
     try {
-      console.log(data, "response data");
-      console.log(message, "response message");
-      console.log(status, "response Status");
       const obj = { data, message, status };
       if (!status) {
         obj.status = 200;
