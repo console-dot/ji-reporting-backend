@@ -1,1 +1,20 @@
-# Dev deploy
+name: Deploy to cPanel
+on:
+  push:
+    branches:
+      - dev
+jobs:
+  FTP-Deploy-Action:
+    name: FTP-Deploy-Action-Dev
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        #with:
+        #  fetch-depth: 2
+      # Deploy to cPanel
+      - name: FTP-Deploy-Action
+        uses: SamKirkland/FTP-Deploy-Action@3.1.1
+        with:
+          ftp-server: ${{ secrets.TEST_JIR_FTP_SERVER }}
+          ftp-username: ${{ secrets.TEST_JIR_FTP_USERNAME }}
+          ftp-password: ${{ secrets.TEST_JIR_FTP_PASSWORD }}
