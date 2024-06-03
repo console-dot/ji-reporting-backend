@@ -425,12 +425,20 @@ class DivisionReport extends Response {
         const now = new Date();
         const currentYear = now.getFullYear();
         const currentMonth = now.getMonth();
-        const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-        const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
-        const formattedFirstDay =
-          firstDayOfMonth.toISOString().split("T")[0] + "T00:00:00.000Z";
-        const formattedLastDay =
-          lastDayOfMonth.toISOString().split("T")[0] + "T23:59:59.999Z";
+
+        // Get the first day of the current month at 00:00:00.000Z
+        const firstDayOfMonth = new Date(
+          Date.UTC(currentYear, currentMonth, 1)
+        );
+
+        // Get the last day of the current month at 23:59:59.999Z
+        const lastDayOfMonth = new Date(
+          Date.UTC(currentYear, currentMonth + 1, 0, 23, 59, 59, 999)
+        );
+
+        // Format the dates to ISO strings
+        const formattedFirstDay = firstDayOfMonth.toISOString();
+        const formattedLastDay = lastDayOfMonth.toISOString();
         const reportsQuery = {
           halqaAreaId: accessList,
           month: {
