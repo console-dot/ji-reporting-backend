@@ -381,6 +381,8 @@ class ProvinceReport extends Response {
       let reports;
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
+      const year = req.query.year;
+      const month = req.query.month;
       if (areaId) {
         const now = new Date();
         const currentYear = now.getFullYear();
@@ -426,7 +428,14 @@ class ProvinceReport extends Response {
           ])
           .sort({ createdAt: -1 });
       } else {
-        const existingReports = await MarkazReportModel.find({})
+        if (year && month) {
+          let startDate = new Date(Date.UTC(year, month - 1, 1));
+          reports = await MarkazReportModel.find({
+            countryAreaId: accessList,
+            month: startDate,
+          }).populate({ path: "countryAreaId" });
+        }
+        else {const existingReports = await MarkazReportModel.find({})
           .select("_id")
           .sort({ createdAt: -1 });
         if (existingReports.length > 0) {
@@ -441,7 +450,7 @@ class ProvinceReport extends Response {
         } else {
           // No reports found
           reports = [];
-        }
+        }}
       }
       let total = await MarkazReportModel.find({
         countryAreaId: accessList,
