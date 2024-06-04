@@ -231,7 +231,7 @@ class HalqaReport extends Response {
       });
     }
   };
-  getReports = async (req, res) => {
+   getReports = async (req, res) => {
     try {
       const token = req.headers.authorization;
       if (!token) {
@@ -240,124 +240,75 @@ class HalqaReport extends Response {
           status: 401,
         });
       }
+  
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      let reports;
-      let total;
+  
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
       const year = req.query.year;
       const month = req.query.month;
-
       const tab = req.query.tab;
-      let allReports = await HalqaReportModel.find({
+  
+      const startDate = year && month ? new Date(Date.UTC(year, month - 1, 1)) : null;
+  
+      const baseQuery = {
         halqaAreaId: accessList,
-      })
-        .populate([
-          { path: "userId", select: ["_id", "email", "name", "age"] },
-          {
-            path: "halqaAreaId",
-            populate: {
-              path: "parentId",
-            },
+        ...(startDate && { month: startDate }),
+      };
+  
+      const populateOptions = [
+        { path: "userId", select: ["_id", "email", "name", "age"] },
+        {
+          path: "halqaAreaId",
+          populate: {
+            path: "parentId",
           },
-        ])
+        },
+      ];
+  
+      const allReports = await HalqaReportModel.find(baseQuery)
+        .populate(populateOptions)
         .sort({ createdAt: -1 });
-
-      let startDate = new Date(Date.UTC(year, month - 1, 1));
-
-      if (tab && tab === "division") {
+  
+      const filterByParentType = (type) => 
+        allReports.filter((i) => i?.halqaAreaId?.parentType === type);
+  
+      let reports, totalReports;
+  
+      if (tab) {
+        const parentType = tab.charAt(0).toUpperCase() + tab.slice(1); // Capitalize first letter
         if (year && month) {
-          let g = await HalqaReportModel.find({
-            halqaAreaId: accessList,
-            month: startDate,
-          }).populate({ path: "halqaAreaId" });
-          reports = g.filter((i) => i?.halqaAreaId?.parentType === "Tehsil");
-          total = reports;
+          reports = filterByParentType(parentType);
+          totalReports = reports.length;
         } else {
-          const divHalqa = allReports.filter(
-            (i) => i?.halqaAreaId?.parentType === "Tehsil"
-          );
-          reports = divHalqa.slice(inset, inset + offset);
-          total = divHalqa;
+          reports = filterByParentType(parentType).slice(inset, inset + offset);
+          totalReports = filterByParentType(parentType).length;
         }
-      } else if (tab && tab === "maqam") {
-        if (year && month) {
-          let g = await HalqaReportModel.find({
-            halqaAreaId: accessList,
-            month: startDate,
-          }).populate({ path: "halqaAreaId" });
-          reports = g.filter((i) => i?.halqaAreaId?.parentType === "Maqam");
-          total = reports;
-        } else {
-          const divHalqa = allReports.filter(
-            (i) => i?.halqaAreaId?.parentType === "Maqam"
-          );
-          reports = divHalqa.slice(inset, inset + offset);
-          total = divHalqa;
-        }
-      } else if (tab && tab === "ilaqa") {
-        if (year && month) {
-          let g = await HalqaReportModel.find({
-            halqaAreaId: accessList,
-            month: startDate,
-          }).populate({ path: "halqaAreaId" });
-          reports = g.filter((i) => i?.halqaAreaId?.parentType === "Ilaqa");
-          total = reports;
-        } else {
-          const divHalqa = allReports.filter(
-            (i) => i?.halqaAreaId?.parentType === "Ilaqa"
-          );
-          reports = divHalqa.slice(inset, inset + offset);
-          total = divHalqa;
-        }
+      } else if (year && month) {
+        reports = allReports;
+        totalReports = allReports.length;
+      } else {
+        reports = allReports.slice(inset, inset + offset);
+        totalReports = allReports.length;
       }
-      else if (!tab && year && month) {
-        
-           reports = await HalqaReportModel.find({
-            halqaAreaId: accessList,
-            month: startDate,
-          }).populate({ path: "halqaAreaId" });
-          total = reports.length;
-       
-      }  else {
-        reports = await HalqaReportModel.find({
-          halqaAreaId: accessList,
-        })
-          .populate([
-            { path: "userId", select: ["_id", "email", "name", "age"] },
-            {
-              path: "halqaAreaId",
-              populate: {
-                path: "parentId",
-              },
-            },
-          ])
-          .sort({ createdAt: -1 })
-          .skip(inset)
-          .limit(offset);
-
-        total = await HalqaReportModel.find({
-          halqaAreaId: accessList,
-        });
-      }
-      const totalReport = total.length;
-      reports = { data: reports, length: totalReport };
+  
       return this.sendResponse(req, res, {
-        data: reports,
+        data: { data: reports, length: totalReports },
         message: "Reports fetched successfully",
       });
     } catch (err) {
-      console.log(err);
+      console.error(err);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
         status: 500,
       });
     }
   };
+  
 
   getSingleReport = async (req, res) => {
     const token = req.headers.authorization;
