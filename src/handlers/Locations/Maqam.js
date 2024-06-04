@@ -74,14 +74,32 @@ class Maqam extends Response {
       const _id = req.params.id;
       let data;
       data = await MaqamModel.findOne({ _id }).populate("province");
-      if (!data) {
+      if (data) {
+        const keys = Object.keys(data._doc);
+        keys.push("areaType");
+        keys?.forEach((doc) => {
+          if (doc === "areaType") {
+            data._doc[doc] = "Maqam";
+          }
+        });
+      } else {
         data = await DivisionModel.findOne({ _id }).populate("province");
+        if (data) {
+          const keys = Object.keys(data._doc);
+          keys.push("areaType");
+          keys?.forEach((doc) => {
+            if (doc === "areaType") {
+              data._doc[doc] = "Division";
+            }
+          });
+        }
       }
-      if (!data)
+      if (!data) {
         return this.sendResponse(req, res, {
           message: "Not found!",
           status: 404,
         });
+      }
       return this.sendResponse(req, res, { data, status: 200 });
     } catch (err) {
       console.log(err);

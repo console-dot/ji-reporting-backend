@@ -78,6 +78,7 @@ class Division extends Response {
           status: 404,
         });
       }
+      data.areaType = "Division";
       return this.sendResponse(req, res, { data, status: 200 });
     } catch (err) {
       console.log(err);
