@@ -381,6 +381,8 @@ class ProvinceReport extends Response {
       let reports;
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
+      const year = req.query.year;
+      const month = req.query.month;
       if (areaId) {
         const now = new Date();
         const currentYear = now.getFullYear();
@@ -426,7 +428,14 @@ class ProvinceReport extends Response {
           ])
           .sort({ createdAt: -1 });
       } else {
-        const existingReports = await MarkazReportModel.find({})
+        if (year && month) {
+          let startDate = new Date(Date.UTC(year, month - 1, 1));
+          reports = await MarkazReportModel.find({
+            countryAreaId: accessList,
+            month: startDate,
+          }).populate({ path: "countryAreaId" });
+        }
+        else {const existingReports = await MarkazReportModel.find({})
           .select("_id")
           .sort({ createdAt: -1 });
         if (existingReports.length > 0) {
@@ -441,7 +450,7 @@ class ProvinceReport extends Response {
         } else {
           // No reports found
           reports = [];
-        }
+        }}
       }
       let total = await MarkazReportModel.find({
         countryAreaId: accessList,
@@ -463,6 +472,7 @@ class ProvinceReport extends Response {
   getSingleReport = async (req, res) => {
     try {
       const token = req.headers.authorization;
+      const { date } = req?.query;
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
@@ -470,21 +480,38 @@ class ProvinceReport extends Response {
         });
       }
       const _id = req.params.id;
+      const decoded = decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const user = await UserModel.findOne({ _id: userId });
+      const { userAreaId: id, nazim: key } = user;
       if (!_id) {
         return this.sendResponse(req, res, {
           message: "Id is required",
           status: 404,
         });
       }
-      const decoded = decode(token.split(" ")[1]);
-      const userId = decoded?.id;
-      const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
+      
+      let report;
+    
+      if (date) {
+        report = await MarkazReportModel.findOne({
+          countryAreaId: _id,
+          month: date,
+        }).populate({ path: "countryAreaId" });
+        console.log(_id)
+        if (!report) {
+          return this.sendResponse(req, res, {
+            message: "Report not found",
+            status: 400,
+          });
+        }
+      }
+      else{
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       const { provinceAreaId } = await MarkazReportModel.findOne({
         _id,
       }).select("provinceAreaId");
-      const reports = await MarkazReportModel.findOne({ _id }).populate([
+     report = await MarkazReportModel.findOne({ _id }).populate([
         { path: "userId", select: ["_id", "email", "name", "age"] },
         { path: "countryAreaId" },
         { path: "markazTanzeemId" },
@@ -499,8 +526,9 @@ class ProvinceReport extends Response {
         { path: "jamiaatId" },
         { path: "baitulmalId" },
       ]);
+    }
       return this.sendResponse(req, res, {
-        data: reports,
+        data: report,
         message: "Report fetched successfully",
       });
     } catch (err) {
