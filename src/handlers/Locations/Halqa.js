@@ -111,18 +111,26 @@ class Halqa extends Response {
         });
         if (isUser && isUser.userAreaType === "Ilaqa") {
           const halqaList = await getRoleFlow(isUser.userAreaId, "Ilaqa");
-          halqaData = await HalqaModel.find({ parentId: halqaList });
+          halqaData = await HalqaModel.find({ parentId: halqaList }).populate(
+            "parentId"
+          );
         } else if (isUser && isUser.userAreaType === "Maqam") {
           const halqaList = await getRoleFlow(isUser.userAreaId, "Maqam");
-          halqaData = await HalqaModel.find({ parentId: halqaList });
+          halqaData = await HalqaModel.find({ parentId: halqaList }).populate(
+            "parentId"
+          );
         } else if (isUser && isUser.userAreaType === "Division") {
           const halqaList = await getRoleFlow(isUser.userAreaId, "Division");
-          halqaData = await HalqaModel.find({ parentId: halqaList });
+          halqaData = await HalqaModel.find({ parentId: halqaList }).populate(
+            "parentId"
+          );
         } else if (isUser && isUser.userAreaType === "Province") {
           const halqaList = await getRoleFlow(isUser.userAreaId, "Province");
-          halqaData = await HalqaModel.find({ parentId: halqaList });
+          halqaData = await HalqaModel.find({ parentId: halqaList }).populate(
+            "parentId"
+          );
         } else if (isUser && isUser.userAreaType === "Country") {
-          halqaData = await HalqaModel.find({});
+          halqaData = await HalqaModel.find({}).populate("parentId");
         }
       } else {
         halqaData = await HalqaModel.find({}).populate("parentId");
