@@ -861,7 +861,7 @@ class IlaqaReport extends Response {
           unfilledArr.push(i);
         }
       });
-      const unfilled = await MaqamModel.find({ _id: unfilledArr });
+      const unfilled = await IlaqaModel.find({ _id: unfilledArr });
       return this.sendResponse(req, res, {
         message: "Reports data fetched successfully",
         status: 200,
