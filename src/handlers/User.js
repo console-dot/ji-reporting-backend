@@ -1146,39 +1146,44 @@ class User extends Response {
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      // Construct the query
-      const query = {};
-
-      // Add parameters to the query if they are provided
-      if (name) query.name = { $regex: new RegExp(name, "i") };
-      if (nazim) query.nazim = { $regex: new RegExp(nazim, "i") };
-      if (userAreaId) query.userAreaId = userAreaId;
-      if (userAreaType)
-        query.userAreaType = { $regex: new RegExp(userAreaType, "i") };
-      if (dob) query.dob = dob;
-      if (address) query.address = { $regex: new RegExp(address, "i") };
-      if (qualification) query.qualification = qualification;
-      if (subject) {
-        var ObjectId = require("mongoose").Types.ObjectId;
-        query.subject = new ObjectId(subject);
-      }
-      if (semester) query.semester = semester;
-      if (institution)
-        query.institution = { $regex: new RegExp(institution, "i") };
-      if (joiningDate) {
-        const joiningYear = new Date(joiningDate).getFullYear();
-        query.joiningDate = {
-          $gte: new Date(`${joiningYear}-01-01`),
-          $lt: new Date(`${joiningYear + 1}-01-01`),
+      let searchResult;
+      if (userAreaId && nazimType) {
+        const areaQuery = {
+          userAreaId,
+          nazimType,
         };
+        searchResult = await UserModel.find(areaQuery).populate("userAreaId");
+      } else {
+        // Construct the query
+        const query = {};
+        // Add parameters to the query if they are provided
+        if (name) query.name = { $regex: new RegExp(name, "i") };
+        if (nazim) query.nazim = { $regex: new RegExp(nazim, "i") };
+        if (userAreaType)
+          query.userAreaType = { $regex: new RegExp(userAreaType, "i") };
+        if (dob) query.dob = dob;
+        if (address) query.address = { $regex: new RegExp(address, "i") };
+        if (qualification) query.qualification = qualification;
+        if (subject) {
+          var ObjectId = require("mongoose").Types.ObjectId;
+          query.subject = new ObjectId(subject);
+        }
+        if (semester) query.semester = semester;
+        if (institution)
+          query.institution = { $regex: new RegExp(institution, "i") };
+        if (joiningDate) {
+          const joiningYear = new Date(joiningDate).getFullYear();
+          query.joiningDate = {
+            $gte: new Date(`${joiningYear}-01-01`),
+            $lt: new Date(`${joiningYear + 1}-01-01`),
+          };
+        }
+        // Perform the search using the constructed query
+        searchResult = await UserModel.find({
+          ...query,
+          userAreaId: accessList,
+        }).populate("userAreaId");
       }
-      if (nazimType) query.nazimType = { $regex: new RegExp(nazimType, "i") };
-
-      // Perform the search using the constructed query
-      const searchResult = await UserModel.find({
-        ...query,
-        userAreaId: accessList,
-      }).populate("userAreaId");
       // Send the search result as a response
       return this.sendResponse(req, res, {
         message: "User search successful",
