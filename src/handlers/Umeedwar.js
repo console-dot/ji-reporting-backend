@@ -276,6 +276,9 @@ class Umeedwar extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
+      const inset = parseInt(req.query.inset) ;
+      const offset = parseInt(req.query.offset) ;
+      const date = req.query.date;
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       if (!user) {
@@ -285,44 +288,136 @@ class Umeedwar extends Response {
         });
       }
       let reports;
-      if (
-        user?.nazim !== "halqa" &&
-        user.nazimType !== "rukan" &&
-        user?.nazimType !== "umeedwar"
-      ) {
-        reports = await UmeedwarModel.find({ areaId: accessList })
-          .populate([
-            {
-              path: "areaId",
-            },
-            {
-              path: "userId",
-            },
-          ])
-          .sort({ createdAt: -1 });
-      } else if (user?.userAreaType === "Country") {
-        reports = await UmeedwarModel.find({})
-          .populate([
-            {
-              path: "areaId",
-            },
-            {
-              path: "userId",
-            },
-          ])
-          .sort({ createdAt: -1 });
-      } else {
-        reports = await UmeedwarModel.find({ userId: user?._id })
-          .populate([
-            {
-              path: "areaId",
-            },
-            {
-              path: "userId",
-            },
-          ])
-          .sort({ createdAt: -1 });
+      let total;
+      if (offset >=0 && inset>=0) {
+   
+        if (
+          user?.nazim !== "halqa" &&
+          user.nazimType !== "rukan" &&
+          user?.nazimType !== "umeedwar"
+        ) {
+          reports = await UmeedwarModel.find({ areaId: accessList })
+            .populate([
+              {
+                path: "areaId",
+              },
+              {
+                path: "userId",
+              },
+            ])
+            .sort({ createdAt: -1 })
+            .skip(inset)
+            .limit(offset);
+        } else if (user?.userAreaType === "Country") {
+          reports = await UmeedwarModel.find({})
+            .populate([
+              {
+                path: "areaId",
+              },
+              {
+                path: "userId",
+              },
+            ])
+            .sort({ createdAt: -1 })
+            .skip(inset)
+            .limit(offset);
+        } else {
+          reports = await UmeedwarModel.find({ userId: user?._id })
+            .populate([
+              {
+                path: "areaId",
+              },
+              {
+                path: "userId",
+              },
+            ])
+            .sort({ createdAt: -1 })
+            .skip(inset)
+            .limit(offset);
+        }
       }
+      else if(date){
+        if (
+          user?.nazim !== "halqa" &&
+          user.nazimType !== "rukan" &&
+          user?.nazimType !== "umeedwar"
+        ) {
+          reports = await UmeedwarModel.find({ areaId: accessList ,month: date,})
+            .populate([
+              {
+                path: "areaId",
+              },
+              {
+                path: "userId",
+              },
+            ])
+            .sort({ createdAt: -1 });
+        } else if (user?.userAreaType === "Country") {
+          reports = await UmeedwarModel.find({month: date})
+            .populate([
+              {
+                path: "areaId",
+              },
+              {
+                path: "userId",
+              },
+            ])
+            .sort({ createdAt: -1 });
+        } else {
+          reports = await UmeedwarModel.find({ userId: user?._id ,month: date,})
+            .populate([
+              {
+                path: "areaId",
+              },
+              {
+                path: "userId",
+              },
+            ])
+            .sort({ createdAt: -1 });
+        }
+      }
+       else {
+        if (
+          user?.nazim !== "halqa" &&
+          user.nazimType !== "rukan" &&
+          user?.nazimType !== "umeedwar"
+        ) {
+          reports = await UmeedwarModel.find({ areaId: accessList })
+            .populate([
+              {
+                path: "areaId",
+              },
+              {
+                path: "userId",
+              },
+            ])
+            .sort({ createdAt: -1 });
+        } else if (user?.userAreaType === "Country") {
+          reports = await UmeedwarModel.find({})
+            .populate([
+              {
+                path: "areaId",
+              },
+              {
+                path: "userId",
+              },
+            ])
+            .sort({ createdAt: -1 });
+        } else {
+          reports = await UmeedwarModel.find({ userId: user?._id })
+            .populate([
+              {
+                path: "areaId",
+              },
+              {
+                path: "userId",
+              },
+            ])
+            .sort({ createdAt: -1 });
+        }
+      }
+      let totalReports = await UmeedwarModel.find({ areaId: accessList });
+      reports = { data: reports, length: totalReports.length };
       return this.sendResponse(req, res, {
         message: "Personal reports are fetched!",
         status: 200,
