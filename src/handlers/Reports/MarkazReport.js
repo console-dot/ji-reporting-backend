@@ -17,7 +17,7 @@ const {
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
-const { UserModel, ProvinceModel } = require("../../model");
+const { UserModel, ProvinceModel, CountryModel } = require("../../model");
 
 const isDataComplete = (dataToUpdate) => {
   const requiredKeys = [
@@ -89,7 +89,7 @@ const isDataComplete = (dataToUpdate) => {
   return true;
 };
 
-class ProvinceReport extends Response {
+class MarkazReport extends Response {
   createReport = async (req, res) => {
     try {
       const token = req.headers.authorization;
@@ -434,23 +434,24 @@ class ProvinceReport extends Response {
             countryAreaId: accessList,
             month: startDate,
           }).populate({ path: "countryAreaId" });
-        }
-        else {const existingReports = await MarkazReportModel.find({})
-          .select("_id")
-          .sort({ createdAt: -1 });
-        if (existingReports.length > 0) {
-          reports = await MarkazReportModel.find({})
-            .populate([
-              { path: "userId", select: ["_id", "email", "name", "age"] },
-              { path: "countryAreaId" },
-            ])
-            .sort({ createdAt: -1 })
-            .skip(inset)
-            .limit(offset);
         } else {
-          // No reports found
-          reports = [];
-        }}
+          const existingReports = await MarkazReportModel.find({})
+            .select("_id")
+            .sort({ createdAt: -1 });
+          if (existingReports.length > 0) {
+            reports = await MarkazReportModel.find({})
+              .populate([
+                { path: "userId", select: ["_id", "email", "name", "age"] },
+                { path: "countryAreaId" },
+              ])
+              .sort({ createdAt: -1 })
+              .skip(inset)
+              .limit(offset);
+          } else {
+            // No reports found
+            reports = [];
+          }
+        }
       }
       let total = await MarkazReportModel.find({
         countryAreaId: accessList,
@@ -490,43 +491,43 @@ class ProvinceReport extends Response {
           status: 404,
         });
       }
-      
+
       let report;
-    
+
       if (date) {
         report = await MarkazReportModel.findOne({
           countryAreaId: _id,
           month: date,
         }).populate({ path: "countryAreaId" });
-        console.log(_id)
         if (!report) {
           return this.sendResponse(req, res, {
             message: "Report not found",
             status: 400,
           });
         }
+      } else {
+        const accessList = (await getRoleFlow(id, key)).map((i) =>
+          i.toString()
+        );
+        const { provinceAreaId } = await MarkazReportModel.findOne({
+          _id,
+        }).select("provinceAreaId");
+        report = await MarkazReportModel.findOne({ _id }).populate([
+          { path: "userId", select: ["_id", "email", "name", "age"] },
+          { path: "countryAreaId" },
+          { path: "markazTanzeemId" },
+          { path: "markazWorkerInfoId" },
+          { path: "markazActivityId" },
+          { path: "mentionedActivityId" },
+          { path: "otherActivityId" },
+          { path: "tdId" },
+          { path: "markazDivisionLibId" },
+          { path: "rsdId" },
+          { path: "collegesId" },
+          { path: "jamiaatId" },
+          { path: "baitulmalId" },
+        ]);
       }
-      else{
-      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      const { provinceAreaId } = await MarkazReportModel.findOne({
-        _id,
-      }).select("provinceAreaId");
-     report = await MarkazReportModel.findOne({ _id }).populate([
-        { path: "userId", select: ["_id", "email", "name", "age"] },
-        { path: "countryAreaId" },
-        { path: "markazTanzeemId" },
-        { path: "markazWorkerInfoId" },
-        { path: "markazActivityId" },
-        { path: "mentionedActivityId" },
-        { path: "otherActivityId" },
-        { path: "tdId" },
-        { path: "markazDivisionLibId" },
-        { path: "rsdId" },
-        { path: "collegesId" },
-        { path: "jamiaatId" },
-        { path: "baitulmalId" },
-      ]);
-    }
       return this.sendResponse(req, res, {
         data: report,
         message: "Report fetched successfully",
@@ -805,32 +806,32 @@ class ProvinceReport extends Response {
       const startDate = new Date(desiredYear, desiredMonth, 0);
       const endDate = new Date(desiredYear, desiredMonth + 1, 1);
 
-      const provinceReports = await MarkazReportModel.find({
+      const markazReports = await MarkazReportModel.find({
         month: {
           $gte: startDate,
           $lte: endDate,
         },
-        provinceAreaId: accessList,
-      }).populate("provinceAreaId userId");
-      const allProvinces = await ProvinceModel.find({ _id: accessList });
-      const provinceReportsAreaIds = provinceReports.map((i) =>
-        i?.provinceAreaId?._id?.toString()
+        countryAreaId: user?.userAreaId,
+      }).populate("userId");
+      const countries = await CountryModel.find({ _id: accessList });
+      const markazReportsAreaIds = markazReports.map((i) =>
+        i?.countryAreaId?._id?.toString()
       );
-      const allProvincesAreaIds = allProvinces.map((i) => i?._id?.toString());
+      const countryAreaId = countries.map((i) => i?._id?.toString());
       const unfilledArr = [];
-      allProvincesAreaIds.forEach((i, index) => {
-        if (!provinceReportsAreaIds.includes(i)) {
+      countryAreaId.forEach((i, index) => {
+        if (!markazReportsAreaIds.includes(i)) {
           unfilledArr.push(i);
         }
       });
-      const unfilled = await ProvinceModel.find({ _id: unfilledArr });
+      const unfilled = await CountryModel.find({ _id: unfilledArr });
       return this.sendResponse(req, res, {
         message: "Reports data fetched successfully",
         status: 200,
         data: {
           unfilled: unfilled,
-          totalprovince: allProvincesAreaIds?.length,
-          allProvince: allProvinces,
+          totalCountries: countryAreaId?.length,
+          allCountries: countries,
         },
       });
     } catch (error) {
@@ -843,4 +844,4 @@ class ProvinceReport extends Response {
   };
 }
 
-module.exports = ProvinceReport;
+module.exports = MarkazReport;
