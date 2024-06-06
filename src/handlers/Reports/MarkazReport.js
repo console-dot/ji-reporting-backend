@@ -499,7 +499,6 @@ class MarkazReport extends Response {
           countryAreaId: _id,
           month: date,
         }).populate({ path: "countryAreaId" });
-        console.log(_id);
         if (!report) {
           return this.sendResponse(req, res, {
             message: "Report not found",
