@@ -1149,8 +1149,8 @@ class User extends Response {
       let searchResult;
       if (userAreaId && nazimType) {
         const areaQuery = {
-          userAreaId,
-          nazimType,
+          userAreaId: userAreaId,
+          nazimType: nazimType,
         };
         searchResult = await UserModel.find(areaQuery).populate("userAreaId");
       } else {
