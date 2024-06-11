@@ -1,12 +1,6 @@
-const {
-  HalqaModel,
-  IlaqaModel,
-  MaqamModel,
-  DivisionModel,
-  ProvinceModel,
-  UserModel,
-} = require("../../model");
-const { getPopulateMethod, getRoleFlow } = require("../../utils");
+const { auditLogger } = require("../../middlewares/auditLogger");
+const { HalqaModel, UserModel } = require("../../model");
+const { getRoleFlow } = require("../../utils");
 const Response = require("../Response");
 const jwt = require("jsonwebtoken");
 
@@ -18,6 +12,16 @@ class Halqa extends Response {
         return this.sendResponse(req, res, {
           message: "Name is required!",
           status: 400,
+        });
+      }
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
         });
       }
       if (!unitType) {
@@ -60,6 +64,12 @@ class Halqa extends Response {
         parentType: parentType,
         unitType,
       });
+      await auditLogger(
+        userExist,
+        "CREATED_HALQA",
+        "A user Created Halqa",
+        req
+      );
       await newHalqa.save();
       return this.sendResponse(req, res, {
         message: "Halqa created",
@@ -219,6 +229,16 @@ class Halqa extends Response {
     try {
       const _id = req.params.id;
       const data = req.body;
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const isExist = await HalqaModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
@@ -241,6 +261,12 @@ class Halqa extends Response {
       }
 
       if (updatedData?.modifiedCount > 0) {
+        await auditLogger(
+          userExist,
+          "UPDATED_HALQA",
+          "A user Updated Halqa",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Halqa updated",
           status: 200,
@@ -261,6 +287,16 @@ class Halqa extends Response {
   deleteOne = async (req, res) => {
     try {
       const _id = req.params.id;
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const isExist = await HalqaModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
@@ -270,6 +306,12 @@ class Halqa extends Response {
       }
       const deleted = await HalqaModel.deleteOne({ _id });
       if (deleted?.deletedCount > 0) {
+        await auditLogger(
+          userExist,
+          "DELETED_HALQA",
+          "A user Deleted Ilaqa",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Halqa deleted",
           status: 200,

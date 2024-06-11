@@ -19,6 +19,7 @@ const Mailer = require("./Mailer");
 const Response = require("./Response");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { auditLogger } = require("../middlewares/auditLogger");
 
 class User extends Response {
   signup = async (req, res) => {
@@ -230,6 +231,7 @@ class User extends Response {
         nazimType,
       });
       const newUserReq = await newUser.save();
+      await auditLogger(newUserReq, "USER_SIGNUP", "New user signed up", req);
       if (!newUserReq?._id) {
         return this.sendResponse(req, res, {
           message: "Failed to create new user",
@@ -363,6 +365,11 @@ class User extends Response {
           expiresIn: "1h",
         }
       );
+      const user = {
+        _id: userExist?._id,
+        email: req?.body?.email,
+      };
+      await auditLogger(user, "USER_LOGGED_IN", "A user logged in", req);
       return this.sendResponse(req, res, {
         data: {
           token,
@@ -438,6 +445,12 @@ class User extends Response {
         );
         const newKey = new ResetPasswordModel({ email, key });
         await newKey.save();
+        await auditLogger(
+          employeeExist,
+          "PASSWORD_RESET_REQUEST",
+          "A user tried to for reset link",
+          req
+        );
       }
       return this.sendResponse(req, res, {
         message:
@@ -486,9 +499,15 @@ class User extends Response {
         }
         await ResetPasswordModel.deleteMany({ email: decoded?.email });
         const password = await bcrypt.hash(password1, 10);
-        await UserModel.updateOne(
+        const user = await UserModel.updateOne(
           { email: decoded?.email },
           { $set: { password } }
+        );
+        await auditLogger(
+          user,
+          "PASSWORD_UPDATED",
+          "A user reset his password",
+          req
         );
         return this.sendResponse(req, res, {
           message: "Password Updated",
@@ -526,6 +545,7 @@ class User extends Response {
         });
       }
       const decoded = jwt.decode(token.split(" ")[1]);
+      const user = await UserModel.findOne({ _id: decoded?.id });
       const userExist = await UserModel.findOne({ _id });
       if (!userExist) {
         return this.sendResponse(req, res, {
@@ -544,6 +564,12 @@ class User extends Response {
         { $set: { isDeleted: true } }
       );
       if (update?.modifiedCount > 0) {
+        await auditLogger(
+          user,
+          "DEACTIVATE_USER",
+          "A user tried to deactivate a user",
+          req
+        );
         return this.sendResponse(req, res, { message: "User deleted" });
       }
       return this.sendResponse(req, res, { message: "Nothing to delete" });
@@ -650,6 +676,12 @@ class User extends Response {
         }
       );
       if (updated?.modifiedCount > 0) {
+        await auditLogger(
+          userExist,
+          "UPDATE_PROFILE",
+          "A user tried to update his profile",
+          req
+        );
         return this.sendResponse(req, res, { message: "User updated." });
       }
       return this.sendResponse(req, res, {
@@ -747,6 +779,12 @@ class User extends Response {
       );
 
       if (isUpdated?.modifiedCount > 0) {
+        await auditLogger(
+          userExist,
+          "UPDATE_STATUS",
+          "A user tried to update status",
+          req
+        );
         return this.sendResponse(req, res, { message: "User updated." });
       }
 
@@ -775,31 +813,6 @@ class User extends Response {
       const decoded = jwt.decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const _id = userId;
-      if (!_id) {
-        return this.sendResponse(req, res, {
-          message: "User ID is required",
-          status: 400,
-        });
-      }
-      const { password0, password1, password2 } = req.body;
-      if (!password0) {
-        return this.sendResponse(req, res, {
-          message: "Current Password is required",
-          status: 400,
-        });
-      }
-      if (!password1) {
-        return this.sendResponse(req, res, {
-          message: "New Password is required",
-          status: 400,
-        });
-      }
-      if (password1 !== password2) {
-        return this.sendResponse(req, res, {
-          message: "Both passwords should match",
-          status: 400,
-        });
-      }
       const userExist = await UserModel.findOne({ _id });
       if (!userExist) {
         return this.sendResponse(req, res, {
@@ -807,19 +820,50 @@ class User extends Response {
           status: 404,
         });
       }
-      const isValid = await bcrypt.compare(password0, userExist?.password);
-      if (!isValid) {
+      if (!_id) {
         return this.sendResponse(req, res, {
-          message: "Current password is not correct.",
-          status: 405,
+          message: "User ID is required",
+          status: 400,
         });
-      }
-      const password = await bcrypt.hash(password1, 10);
-      const updated = await UserModel.updateOne(
-        { _id },
-        { $set: { password } }
-      );
-      if (updated?.modifiedCount > 0) {
+        }
+        const { password0, password1, password2 } = req.body;
+        if (!password0) {
+          return this.sendResponse(req, res, {
+            message: "Current Password is required",
+            status: 400,
+            });
+            }
+            if (!password1) {
+              return this.sendResponse(req, res, {
+                message: "New Password is required",
+                status: 400,
+                });
+                }
+                if (password1 !== password2) {
+                  return this.sendResponse(req, res, {
+                    message: "Both passwords should match",
+                    status: 400,
+                    });
+                    }
+                    const isValid = await bcrypt.compare(password0, userExist?.password);
+                    if (!isValid) {
+                      return this.sendResponse(req, res, {
+                        message: "Current password is not correct.",
+                        status: 405,
+                        });
+                        }
+                        const password = await bcrypt.hash(password1, 10);
+                        const updated = await UserModel.updateOne(
+                          { _id },
+                          { $set: { password } }
+                          );
+                          if (updated?.modifiedCount > 0) {
+        await auditLogger(
+          userExist,
+          "UPDATE_PASSWORD",
+          "A user tried to update Password",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Password updated",
         });
@@ -881,9 +925,6 @@ class User extends Response {
   };
   me = async (req, res) => {
     try {
-      const temp = await getRoleFlow("655e9924ef962e2d062ad0f8", "division");
-      const temp2 = temp.map((i) => i.toString());
-      const ha = await HalqaModel.find({ _id: temp2 });
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
@@ -961,6 +1002,12 @@ class User extends Response {
         { $set: { status } }
       );
       if (update?.modifiedCount > 0) {
+        await auditLogger(
+          userExist,
+          "UPDATE_REQUEST",
+          "A user tried to update Request",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Status Updated",
         });

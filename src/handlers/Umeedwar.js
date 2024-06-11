@@ -1,3 +1,4 @@
+const { auditLogger } = require("../middlewares/auditLogger");
 const {
   UserModel,
   ItaatNazmModel,
@@ -252,6 +253,12 @@ class Umeedwar extends Response {
         areaRef: user.userAreaType,
       });
       await newKhaka.save();
+      await auditLogger(
+        user,
+        "PERSONAL_REPORTED_CREATED",
+        "A user created Personal report",
+        req
+      );
       return this.sendResponse(req, res, {
         message: "Personal report is created",
         status: 200,
@@ -276,8 +283,8 @@ class Umeedwar extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const inset = parseInt(req.query.inset) ;
-      const offset = parseInt(req.query.offset) ;
+      const inset = parseInt(req.query.inset);
+      const offset = parseInt(req.query.offset);
       const date = req.query.date;
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
@@ -289,8 +296,7 @@ class Umeedwar extends Response {
       }
       let reports;
       let total;
-      if (offset >=0 && inset>=0) {
-   
+      if (offset >= 0 && inset >= 0) {
         if (
           user?.nazim !== "halqa" &&
           user.nazimType !== "rukan" &&
@@ -335,14 +341,16 @@ class Umeedwar extends Response {
             .skip(inset)
             .limit(offset);
         }
-      }
-      else if(date){
+      } else if (date) {
         if (
           user?.nazim !== "halqa" &&
           user.nazimType !== "rukan" &&
           user?.nazimType !== "umeedwar"
         ) {
-          reports = await UmeedwarModel.find({ areaId: accessList ,month: date,})
+          reports = await UmeedwarModel.find({
+            areaId: accessList,
+            month: date,
+          })
             .populate([
               {
                 path: "areaId",
@@ -353,7 +361,7 @@ class Umeedwar extends Response {
             ])
             .sort({ createdAt: -1 });
         } else if (user?.userAreaType === "Country") {
-          reports = await UmeedwarModel.find({month: date})
+          reports = await UmeedwarModel.find({ month: date })
             .populate([
               {
                 path: "areaId",
@@ -364,7 +372,7 @@ class Umeedwar extends Response {
             ])
             .sort({ createdAt: -1 });
         } else {
-          reports = await UmeedwarModel.find({ userId: user?._id ,month: date,})
+          reports = await UmeedwarModel.find({ userId: user?._id, month: date })
             .populate([
               {
                 path: "areaId",
@@ -375,8 +383,7 @@ class Umeedwar extends Response {
             ])
             .sort({ createdAt: -1 });
         }
-      }
-       else {
+      } else {
         if (
           user?.nazim !== "halqa" &&
           user.nazimType !== "rukan" &&
@@ -673,7 +680,12 @@ class Umeedwar extends Response {
           },
         }
       );
-
+      await auditLogger(
+        user,
+        "PERSONAL_REPORTED_UPDATED",
+        "A user Updated Personal report",
+        req
+      );
       return this.sendResponse(req, res, {
         message: "Report is update!",
         status: 201,

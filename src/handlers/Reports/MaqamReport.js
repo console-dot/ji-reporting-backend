@@ -20,6 +20,7 @@ const {
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
 const { UserModel, MaqamModel, IlaqaModel } = require("../../model");
+const { auditLogger } = require("../../middlewares/auditLogger");
 
 const isDataComplete = (dataToUpdate) => {
   const requiredKeys = [
@@ -415,6 +416,12 @@ class MaqamReport extends Response {
         });
       }
       await newMaqamReport.save();
+      await auditLogger(
+        user,
+        "MAQAM_REPORT_CREATED",
+        "A user Created Maqam report",
+        req
+      );
       return this.sendResponse(req, res, {
         message: "Maqam Report Added",
         status: 201,
@@ -446,6 +453,13 @@ class MaqamReport extends Response {
       }
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const dataToUpdate = req.body;
       if (isDataComplete(dataToUpdate) == false) {
         return this.sendResponse(req, res, {
@@ -700,20 +714,20 @@ class MaqamReport extends Response {
         }
       );
 
-      // Update the DivisionReportModel
       const updatedMaqamReport = await MaqamReportModel.updateOne(
         { _id },
         { $set: dataToUpdate }
       );
 
       if (updatedMaqamReport?.modifiedCount > 0) {
+        await auditLogger(
+          isExist,
+          "MAQAM_REPORT_UPDATED",
+          "A user Updated Maqam report",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Report updated successfully",
-        });
-      }
-      if (updated?.modifiedCount > 0) {
-        return this.sendResponse(req, res, {
-          message: "Report updated",
         });
       }
       return this.sendResponse(req, res, {

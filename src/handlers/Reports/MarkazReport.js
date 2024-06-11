@@ -18,6 +18,7 @@ const {
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
 const { UserModel, ProvinceModel, CountryModel } = require("../../model");
+const { auditLogger } = require("../../middlewares/auditLogger");
 
 const isDataComplete = (dataToUpdate) => {
   const requiredKeys = [
@@ -351,6 +352,12 @@ class MarkazReport extends Response {
         baitulmalId: baitId?._id,
       });
       await newMarkazReport.save();
+      await auditLogger(
+        user,
+        "MARKAZ_REPORT_CREATED",
+        "A user created Markaz report",
+        req
+      );
       return this.sendResponse(req, res, {
         message: "Markaz Report Added",
         status: 201,
@@ -559,6 +566,13 @@ class MarkazReport extends Response {
       }
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const dataToUpdate = req.body;
       if (!isDataComplete(dataToUpdate)) {
         return this.sendResponse(req, res, {
@@ -758,6 +772,12 @@ class MarkazReport extends Response {
       );
 
       if (updatedProvinceReport?.modifiedCount > 0) {
+        await auditLogger(
+          userExist,
+          "MARKAZ_REPORT_UPDATED",
+          "A user Updated Markaz report",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Report updated successfully",
         });

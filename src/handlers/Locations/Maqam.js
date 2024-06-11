@@ -1,3 +1,4 @@
+const { auditLogger } = require("../../middlewares/auditLogger");
 const { MaqamModel, DivisionModel, UserModel } = require("../../model");
 const Response = require("../Response");
 const jwt = require("jsonwebtoken");
@@ -18,6 +19,16 @@ class Maqam extends Response {
           status: 400,
         });
       }
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const isExist = await MaqamModel.findOne({ name, province });
       if (isExist) {
         return this.sendResponse(req, res, {
@@ -27,6 +38,12 @@ class Maqam extends Response {
       }
       const newMaqam = new MaqamModel({ name, province });
       await newMaqam.save();
+      await auditLogger(
+        userExist,
+        "CREATED_MAQAM",
+        "A user Created Maqam",
+        req
+      );
       return this.sendResponse(req, res, {
         message: "Maqam created",
         status: 201,
@@ -41,7 +58,6 @@ class Maqam extends Response {
   };
   getAll = async (req, res) => {
     const token = req.headers.authorization;
-
     try {
       let data;
       if (token) {
@@ -59,6 +75,9 @@ class Maqam extends Response {
         }
       } else {
         data = await MaqamModel.find({}).populate("province");
+      }
+      if (!data?.length > 0) {
+        data = [];
       }
       return this.sendResponse(req, res, { data, status: 200 });
     } catch (err) {
@@ -113,6 +132,16 @@ class Maqam extends Response {
     try {
       const _id = req.params.id;
       const data = req.body;
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const isExist = await MaqamModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
@@ -122,6 +151,12 @@ class Maqam extends Response {
       }
       const updatedData = await MaqamModel.updateOne({ _id }, { $set: data });
       if (updatedData?.modifiedCount > 0) {
+        await auditLogger(
+          userExist,
+          "UPDATED_MAQAM",
+          "A user Updated Maqam",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Maqam updated",
           status: 200,
@@ -142,6 +177,16 @@ class Maqam extends Response {
   deleteOne = async (req, res) => {
     try {
       const _id = req.params.id;
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const isExist = await MaqamModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
@@ -151,6 +196,12 @@ class Maqam extends Response {
       }
       const deleted = await MaqamModel.deleteOne({ _id });
       if (deleted?.deletedCount > 0) {
+        await auditLogger(
+          userExist,
+          "DELETED_MAQAM",
+          "A user Deleted Maqam",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Maqam deleted",
           status: 200,

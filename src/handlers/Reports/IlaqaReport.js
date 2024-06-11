@@ -18,6 +18,7 @@ const {
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
 const { UserModel, MaqamModel, IlaqaModel } = require("../../model");
+const { auditLogger } = require("../../middlewares/auditLogger");
 
 const isDataComplete = (dataToUpdate) => {
   const requiredKeys = [
@@ -341,6 +342,12 @@ class IlaqaReport extends Response {
         baitulmalId: baitId?._id,
       });
       await newIlaqaReport.save();
+      await auditLogger(
+        user,
+        "ILAQA_REPORT_CREATED",
+        "A user Created Ilaqa report",
+        req
+      );
       return this.sendResponse(req, res, {
         message: "Ilaqa Report Added",
         status: 201,
@@ -551,6 +558,13 @@ class IlaqaReport extends Response {
       }
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const dataToUpdate = req.body;
       if (isDataComplete(dataToUpdate) == false) {
         return this.sendResponse(req, res, {
@@ -790,13 +804,14 @@ class IlaqaReport extends Response {
       );
 
       if (ilaqaReportModel?.modifiedCount > 0) {
+        await auditLogger(
+          userExist,
+          "ILAQA_REPORT_UPDATED",
+          "A user Updated Ilaqa report",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Report updated successfully",
-        });
-      }
-      if (updated?.modifiedCount > 0) {
-        return this.sendResponse(req, res, {
-          message: "Report updated",
         });
       }
       return this.sendResponse(req, res, {

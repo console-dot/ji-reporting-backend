@@ -41,7 +41,7 @@ const users = mongoose.Schema(
         "Maqam",
         "Province",
         "Tehsil",
-        "Pakistan",
+        "Country",
         "Ilaqa",
       ],
     },
