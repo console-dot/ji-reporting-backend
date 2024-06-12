@@ -1,3 +1,4 @@
+const { auditLogger } = require("../../middlewares/auditLogger");
 const { DivisionModel, UserModel } = require("../../model");
 const Response = require("../Response");
 const jwt = require("jsonwebtoken");
@@ -18,6 +19,16 @@ class Division extends Response {
           status: 400,
         });
       }
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const isExist = await DivisionModel.findOne({ name, province });
       if (isExist) {
         return this.sendResponse(req, res, {
@@ -26,6 +37,12 @@ class Division extends Response {
         });
       }
       const newDivision = new DivisionModel({ name, province });
+      await auditLogger(
+        userExist,
+        "CREATED_DIVISION",
+        "A user Created Division",
+        req
+      );
       await newDivision.save();
       return this.sendResponse(req, res, {
         message: "Division created",
@@ -92,6 +109,16 @@ class Division extends Response {
     try {
       const _id = req.params.id;
       const data = req.body;
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const isExist = await DivisionModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
@@ -104,6 +131,12 @@ class Division extends Response {
         { $set: data }
       );
       if (updatedData?.modifiedCount > 0) {
+        await auditLogger(
+          userExist,
+          "DIVISION_UPDATED",
+          "A user Updated Division",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Division updated",
           status: 200,
@@ -124,6 +157,16 @@ class Division extends Response {
   deleteOne = async (req, res) => {
     try {
       const _id = req.params.id;
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const isExist = await DivisionModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
@@ -133,6 +176,12 @@ class Division extends Response {
       }
       const deleted = await DivisionModel.deleteOne({ _id });
       if (deleted?.deletedCount > 0) {
+        await auditLogger(
+          userExist,
+          "DELETED_DIVISION",
+          "A user Deleted Division",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Division deleted",
           status: 200,

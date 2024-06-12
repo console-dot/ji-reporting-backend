@@ -1,5 +1,8 @@
-const { ProvinceModel, CountryModel } = require("../../model");
+const { auditLogger } = require("../../middlewares/auditLogger");
+const { ProvinceModel, CountryModel, UserModel } = require("../../model");
 const Response = require("../Response");
+const jwt = require("jsonwebtoken");
+
 
 class Province extends Response {
   createOne = async (req, res) => {
@@ -11,7 +14,16 @@ class Province extends Response {
           status: 400,
         });
       }
-
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const isExist = await ProvinceModel.findOne({ name });
       if (isExist) {
         return this.sendResponse(req, res, {
@@ -23,6 +35,12 @@ class Province extends Response {
       if (isCountry) {
         const newProvince = new ProvinceModel({ name, country: isCountry._id });
         await newProvince.save();
+        await auditLogger(
+          userExist,
+          "CREATED_PROVINCE",
+          "A user Created Province",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Province created",
           status: 201,
@@ -73,6 +91,16 @@ class Province extends Response {
   };
   updateOne = async (req, res) => {
     try {
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const _id = req.params.id;
       const data = req.body;
       const isCuntryExist = await CountryModel.findOne({ name: data?.country });
@@ -90,6 +118,12 @@ class Province extends Response {
           { $set: data }
         );
         if (updatedData?.modifiedCount > 0) {
+          await auditLogger(
+            userExist,
+            "UPDATED_PROVINCE",
+            "A user Updated Province",
+            req
+          );
           return this.sendResponse(req, res, {
             message: "Province updated",
             status: 200,
@@ -110,9 +144,18 @@ class Province extends Response {
   };
   deleteOne = async (req, res) => {
     try {
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const _id = req.params.id;
       const isExist = await ProvinceModel.findOne({ _id });
-
       if (!isExist) {
         return this.sendResponse(req, res, {
           message: "Not found!",
@@ -126,6 +169,12 @@ class Province extends Response {
       );
 
       if (updated.modifiedCount > 0) {
+        await auditLogger(
+          userExist,
+          "DELETED_PROVINCE",
+          "A user Deleted Province",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Province status updated",
           status: 200,

@@ -19,6 +19,7 @@ const {
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
 const { UserModel, DivisionModel } = require("../../model");
+const { auditLogger } = require("../../middlewares/auditLogger");
 
 const isDataComplete = ({
   month,
@@ -387,6 +388,12 @@ class DivisionReport extends Response {
       });
 
       await newDivisionReport.save();
+      await auditLogger(
+        user,
+        "DIVISION_REPORT_CREATED",
+        "A user Created Division report",
+        req
+      );
       return this.sendResponse(req, res, {
         message: "Division Report Added",
         status: 201,
@@ -605,6 +612,13 @@ class DivisionReport extends Response {
 
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const dataToUpdate = req.body;
       if (!isDataComplete(dataToUpdate)) {
         return this.sendResponse(req, res, {
@@ -808,6 +822,12 @@ class DivisionReport extends Response {
         }
       );
       if (updatedDivisionReport?.modifiedCount > 0) {
+        await auditLogger(
+          userExist,
+          "DIVISION_REPORT_UPDATED",
+          "A user Updated Division report",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Report updated successfully",
         });

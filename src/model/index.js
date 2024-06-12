@@ -17,6 +17,7 @@ const { StudiesModel } = require("./studies");
 const { ToseeDawaModel } = require("./toseeDawa");
 const { CountryModel } = require("./country");
 const { IlaqaModel } = require("./ilaqa");
+const {AuditLogModel} = require("./auditLog");
 
 module.exports = {
   RoleModel,
@@ -38,4 +39,5 @@ module.exports = {
   ToseeDawaModel,
   CountryModel,
   IlaqaModel,
+  AuditLogModel,
 };

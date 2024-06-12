@@ -1,3 +1,4 @@
+const { auditLogger } = require("../../middlewares/auditLogger");
 const { IlaqaModel, MaqamModel, UserModel } = require("../../model");
 const Response = require("../Response");
 const jwt = require("jsonwebtoken");
@@ -5,6 +6,16 @@ const jwt = require("jsonwebtoken");
 class Ilaqa extends Response {
   createOne = async (req, res) => {
     try {
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const { name, maqam } = req.body;
       if (!name) {
         return this.sendResponse(req, res, {
@@ -27,6 +38,12 @@ class Ilaqa extends Response {
       }
       const newIlaqa = new IlaqaModel({ name, maqam });
       await newIlaqa.save();
+      await auditLogger(
+        userExist,
+        "CREATED_IlAQA",
+        "A user Created Ilaqa",
+        req
+      );
       return this.sendResponse(req, res, {
         message: "Ilaqa created",
         status: 201,
@@ -109,6 +126,16 @@ class Ilaqa extends Response {
     try {
       const _id = req.params.id;
       const data = req.body;
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const isExist = await IlaqaModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
@@ -118,6 +145,12 @@ class Ilaqa extends Response {
       }
       const updatedData = await IlaqaModel.updateOne({ _id }, { $set: data });
       if (updatedData?.modifiedCount > 0) {
+        await auditLogger(
+          userExist,
+          "UPDATED_ILAQA",
+          "A user Updated Ilaqa",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Ilaqa updated",
           status: 200,
@@ -145,8 +178,24 @@ class Ilaqa extends Response {
           status: 404,
         });
       }
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const deleted = await IlaqaModel.deleteOne({ _id });
       if (deleted?.deletedCount > 0) {
+        await auditLogger(
+          userExist,
+          "ILAQA_DELETED",
+          "A user Deleted Ilaqa",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Ilaqa deleted",
           status: 200,

@@ -20,6 +20,7 @@ const {
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
 const { UserModel, ProvinceModel } = require("../../model");
+const { auditLogger } = require("../../middlewares/auditLogger");
 
 const isDataComplete = (dataToUpdate) => {
   const requiredKeys = [
@@ -362,6 +363,12 @@ class ProvinceReport extends Response {
         baitulmalId: baitId?._id,
       });
       await newProvinceReport.save();
+      await auditLogger(
+        user,
+        "PROVINCE_REPORTE_CREATEd",
+        "A user Created Province report",
+        req
+      );
       return this.sendResponse(req, res, {
         message: "Province Report Added",
         status: 201,
@@ -620,6 +627,13 @@ class ProvinceReport extends Response {
       }
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const dataToUpdate = req.body;
       if (!isDataComplete(dataToUpdate)) {
         return this.sendResponse(req, res, {
@@ -823,13 +837,14 @@ class ProvinceReport extends Response {
       );
 
       if (updatedProvinceReport?.modifiedCount > 0) {
+        await auditLogger(
+          userExist,
+          "PROVINCE_REPORTE_EDITED",
+          "A user Updated Province report",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Report updated successfully",
-        });
-      }
-      if (updated?.modifiedCount > 0) {
-        return this.sendResponse(req, res, {
-          message: "Report updated",
         });
       }
       return this.sendResponse(req, res, {

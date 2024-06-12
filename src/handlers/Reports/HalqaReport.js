@@ -12,6 +12,7 @@ const {
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
 const { UserModel, HalqaModel } = require("../../model");
+const { auditLogger } = require("../../middlewares/auditLogger");
 
 const isDataComplete = (dataToUpdate) => {
   const requiredKeys = [
@@ -219,6 +220,12 @@ class HalqaReport extends Response {
         rsdId: rsd._id,
       });
       await newHalqaReport.save();
+      await auditLogger(
+        user,
+        "HALQA_REPORT_CREATED",
+        "A user Created Halqa report",
+        req
+      );
       return this.sendResponse(req, res, {
         message: "Halqa Report Added",
         status: 201,
@@ -231,7 +238,7 @@ class HalqaReport extends Response {
       });
     }
   };
-   getReports = async (req, res) => {
+  getReports = async (req, res) => {
     try {
       const token = req.headers.authorization;
       if (!token) {
@@ -240,26 +247,27 @@ class HalqaReport extends Response {
           status: 401,
         });
       }
-  
+
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-  
+
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
       const year = req.query.year;
       const month = req.query.month;
       const tab = req.query.tab;
-  
-      const startDate = year && month ? new Date(Date.UTC(year, month - 1, 1)) : null;
-  
+
+      const startDate =
+        year && month ? new Date(Date.UTC(year, month - 1, 1)) : null;
+
       const baseQuery = {
         halqaAreaId: accessList,
         ...(startDate && { month: startDate }),
       };
-  
+
       const populateOptions = [
         { path: "userId", select: ["_id", "email", "name", "age"] },
         {
@@ -269,16 +277,16 @@ class HalqaReport extends Response {
           },
         },
       ];
-  
+
       const allReports = await HalqaReportModel.find(baseQuery)
         .populate(populateOptions)
         .sort({ createdAt: -1 });
-  
-      const filterByParentType = (type) => 
+
+      const filterByParentType = (type) =>
         allReports.filter((i) => i?.halqaAreaId?.parentType === type);
-  
+
       let reports, totalReports;
-  
+
       if (tab) {
         const parentType = tab.charAt(0).toUpperCase() + tab.slice(1); // Capitalize first letter
         if (year && month) {
@@ -295,7 +303,7 @@ class HalqaReport extends Response {
         reports = allReports.slice(inset, inset + offset);
         totalReports = allReports.length;
       }
-  
+
       return this.sendResponse(req, res, {
         data: { data: reports, length: totalReports },
         message: "Reports fetched successfully",
@@ -308,7 +316,6 @@ class HalqaReport extends Response {
       });
     }
   };
-  
 
   getSingleReport = async (req, res) => {
     const token = req.headers.authorization;
@@ -381,6 +388,13 @@ class HalqaReport extends Response {
       }
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
+      const userExist = await UserModel.findOne({ _id: userId });
+      if (!userExist) {
+        return this.sendResponse(req, res, {
+          message: "User not found!",
+          status: 404,
+        });
+      }
       const dataToUpdate = req.body;
       if (!isDataComplete(dataToUpdate)) {
         return this.sendResponse(req, res, {
@@ -532,6 +546,12 @@ class HalqaReport extends Response {
         { $set: dataToUpdate }
       );
       if (updatedHalqaReport?.modifiedCount > 0) {
+        await auditLogger(
+          userExist,
+          "Halqa_REPORT_UPDATED",
+          "A user Updated Halqa report",
+          req
+        );
         return this.sendResponse(req, res, {
           message: "Report updated",
         });
