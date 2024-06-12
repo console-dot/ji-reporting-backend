@@ -448,7 +448,7 @@ class User extends Response {
         await auditLogger(
           employeeExist,
           "PASSWORD_RESET_REQUEST",
-          "A user tried to for reset link",
+          "A user tried for reset link",
           req
         );
       }
