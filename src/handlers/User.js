@@ -18,10 +18,31 @@ const { getImmediateUser, getParentId, getRoleFlow } = require("../utils");
 const Mailer = require("./Mailer");
 const Response = require("./Response");
 const bcrypt = require("bcrypt");
+const CryptoJS = require("crypto-js");
 const jwt = require("jsonwebtoken");
 const { auditLogger } = require("../middlewares/auditLogger");
 
 class User extends Response {
+  encryptData = (data) => {
+    const secretKey = "1122";
+
+    const isEncrypted = (data) => {
+      try {
+        const decrypted = CryptoJS.AES.decrypt(data, secretKey).toString(
+          CryptoJS.enc.Utf8
+        );
+        return decrypted.length > 0;
+      } catch (e) {
+        return false;
+      }
+    };
+
+    if (isEncrypted(data)) {
+      return data;
+    } else {
+      return CryptoJS.AES.encrypt(data, secretKey).toString();
+    }
+  };
   signup = async (req, res) => {
     try {
       let {
@@ -192,6 +213,9 @@ class User extends Response {
         });
       }
       let newUserRequest;
+      const encryptedPhone = this.encryptData(phoneNumber);
+      const encryptedWhatsapp = this.encryptData(whatsAppNumber);
+      const encryptedHomeAdress = this.encryptData(address);
       if (
         (nazimType === "rukan" || nazimType === "umeedwar") &&
         userAreaType !== "Halqa" &&
@@ -220,14 +244,14 @@ class User extends Response {
         userRequestId: userRequestReq?._id,
         fatherName,
         dob,
-        address,
+        address: encryptedHomeAdress,
         qualification,
         subject,
         semester,
         institution,
         joiningDate,
-        phoneNumber,
-        whatsAppNumber,
+        phoneNumber: encryptedPhone,
+        whatsAppNumber: encryptedWhatsapp,
         nazimType,
       });
       const newUserReq = await newUser.save();
@@ -664,14 +688,14 @@ class User extends Response {
             age,
             fatherName,
             dob,
-            address,
+            address: this.encryptData(address),
             qualification,
             subject,
             semester,
             institution,
             joiningDate,
-            phoneNumber,
-            whatsAppNumber,
+            phoneNumber: this.encryptData(phoneNumber),
+            whatsAppNumber: this.encryptData(whatsAppNumber),
           },
         }
       );
@@ -825,39 +849,39 @@ class User extends Response {
           message: "User ID is required",
           status: 400,
         });
-        }
-        const { password0, password1, password2 } = req.body;
-        if (!password0) {
-          return this.sendResponse(req, res, {
-            message: "Current Password is required",
-            status: 400,
-            });
-            }
-            if (!password1) {
-              return this.sendResponse(req, res, {
-                message: "New Password is required",
-                status: 400,
-                });
-                }
-                if (password1 !== password2) {
-                  return this.sendResponse(req, res, {
-                    message: "Both passwords should match",
-                    status: 400,
-                    });
-                    }
-                    const isValid = await bcrypt.compare(password0, userExist?.password);
-                    if (!isValid) {
-                      return this.sendResponse(req, res, {
-                        message: "Current password is not correct.",
-                        status: 405,
-                        });
-                        }
-                        const password = await bcrypt.hash(password1, 10);
-                        const updated = await UserModel.updateOne(
-                          { _id },
-                          { $set: { password } }
-                          );
-                          if (updated?.modifiedCount > 0) {
+      }
+      const { password0, password1, password2 } = req.body;
+      if (!password0) {
+        return this.sendResponse(req, res, {
+          message: "Current Password is required",
+          status: 400,
+        });
+      }
+      if (!password1) {
+        return this.sendResponse(req, res, {
+          message: "New Password is required",
+          status: 400,
+        });
+      }
+      if (password1 !== password2) {
+        return this.sendResponse(req, res, {
+          message: "Both passwords should match",
+          status: 400,
+        });
+      }
+      const isValid = await bcrypt.compare(password0, userExist?.password);
+      if (!isValid) {
+        return this.sendResponse(req, res, {
+          message: "Current password is not correct.",
+          status: 405,
+        });
+      }
+      const password = await bcrypt.hash(password1, 10);
+      const updated = await UserModel.updateOne(
+        { _id },
+        { $set: { password } }
+      );
+      if (updated?.modifiedCount > 0) {
         await auditLogger(
           userExist,
           "UPDATE_PASSWORD",
@@ -978,6 +1002,14 @@ class User extends Response {
         return this.sendResponse(req, res, {
           message: "Status is required",
           status: 400,
+        });
+      }
+      if (status === "rejected") {
+        await UserModel.deleteOne({ userRequestId: _id });
+        await UserRequest.deleteOne({ _id });
+        return this.sendResponse(req, res, {
+          message: "Request Rejected!",
+          status: 200,
         });
       }
       const decoded = jwt.decode(token.split(" ")[1]);
