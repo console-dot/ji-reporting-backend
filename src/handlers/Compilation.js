@@ -40,7 +40,7 @@ function sumObjectsInArray(array) {
       });
   });
 
-  return sumObject;
+  return splitKeysAndRemoveFirst(sumObject);
 }
 
 function sumObjectsInNestedObject(obj, parentKey = '', depth = 1) {
@@ -223,7 +223,8 @@ class Compilation extends Response {
                         status: 400,
                     });
             }
-
+             data.startDate = startDate;
+             data.endDate= endDate;
             return this.sendResponse(req, res, {
                 data: data,
                 status: 200,
