@@ -667,7 +667,6 @@ class HalqaCompare extends Response {
       response.data.labels = labels;
       response.data.datasets = datasets;
       return { labels, datasets };
-
       res.status(200).json(response);
     } catch (error) {
       console.log(error);
