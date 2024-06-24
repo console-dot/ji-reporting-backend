@@ -1,3 +1,4 @@
+const { UserModel, IlaqaModel } = require("../model");
 const { ProvinceReportModel, MarkazReportModel, MaqamReportModel, DivisionReportModel, IlaqaReportModel, HalqaReportModel } = require("../model/reports");
 const Response = require("./Response");
 function splitKeysAndRemoveFirst(obj) {
@@ -70,7 +71,17 @@ function sumObjectsInNestedObject(obj, parentKey = '', depth = 1) {
   }
   return sum;
 }
-
+const isMuntakhib = async (userId) => {
+    const isUser = await UserModel.findOne({ _id: userId });
+    if (isUser) {
+      const isIlaqa = await IlaqaModel.find({ maqam: isUser?.userAreaId });
+      if (isIlaqa.length > 1) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  };
 class Compilation extends Response {
     
     getCompiledReports = async (req, res) => {
@@ -166,8 +177,13 @@ class Compilation extends Response {
                         { path: "collegesId" },
                         { path: "jamiaatId" },
                     ]).lean();
-                    
-                    data = sumObjectsInArray(a);
+                    let b =sumObjectsInArray(a)
+                    let muntakhib=false;
+                    const isIlaqa = await IlaqaModel.find({ maqam: areaId });
+                    if(isIlaqa?.length>0){
+                        muntakhib=true;
+                    }
+                   data = {b, muntakhib:muntakhib}
                     break;
                 case 'division':
                     query.divisionAreaId = areaId;
