@@ -6,7 +6,7 @@ const Compare = require("./Compare");
 const Notifcations = require("./Notifications");
 const Subjects = require("./Subjects");
 const UmeedWaar = require("./Umeedwar");
-const Compilation = require('./Compilation');
+const Compilation = require("./Compilation");
 
 const {
   HalqaCompare,
@@ -14,6 +14,7 @@ const {
   DivisionCompare,
   ProvinceCompare,
   PersonalCompare,
+  IlaqaCompare,
 } = require("./Comparison");
 
 module.exports = {
@@ -25,10 +26,11 @@ module.exports = {
   Notifcations,
   Subjects,
   HalqaCompare,
+  IlaqaCompare,
   MaqamCompare,
   DivisionCompare,
   ProvinceCompare,
   PersonalCompare,
   UmeedWaar,
-  Compilation
+  Compilation,
 };

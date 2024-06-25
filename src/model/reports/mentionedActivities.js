@@ -10,10 +10,6 @@ const mentionedActivitiesModel = mongoose.Schema({
         type: Boolean,
         default: false,
       },
-      registered: {
-        type: Boolean,
-        default: false,
-      },
     },
     required: true,
   },
