@@ -212,6 +212,7 @@ class MaqamCompare extends Response {
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
+      
       return { labels, datasets };
       res.status(200).json(response);
     } catch (error) {
@@ -289,8 +290,14 @@ class MaqamCompare extends Response {
             if (report[report?.length - 1].jamiaatId._doc[doc]) {
               sample.data.push(
                 parseInt(
-                  report[report?.length - 1].jamiaatId._doc[doc]._doc.end
-                )
+                  report[report?.length - 1].jamiaatId._doc[doc]._doc.start
+                ) +
+                  parseInt(
+                    report[report?.length - 1].jamiaatId._doc[doc]._doc.increase
+                  ) -
+                  parseInt(
+                    report[report?.length - 1].jamiaatId._doc[doc]._doc.decrease
+                  )
               );
               if (!labels.includes(doc.toLowerCase())) {
                 labels.push(doc.toLowerCase());
