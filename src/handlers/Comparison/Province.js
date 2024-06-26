@@ -1068,7 +1068,6 @@ class ProvinceCompare extends Response {
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
-      console.log(labels, datasets);
       return { labels, datasets };
       res.status(200).json(response);
     } catch (error) {
