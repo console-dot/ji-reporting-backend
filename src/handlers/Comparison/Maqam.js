@@ -132,6 +132,186 @@ class MaqamCompare extends Response {
       });
     }
   };
+  colleges = async (req, res) => {
+    try {
+      const token = req?.headers?.authorization;
+      const { dates, areaId, duration_type } = req?.body;
+      if (dates?.length < 2) {
+        return this.sendResponse(req, res, {
+          message: "Atleast 2 dates required",
+          status: 400,
+        });
+      }
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 400,
+        });
+      }
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const _id = userId;
+      if (!_id) {
+        return this.sendResponse(req, res, {
+          message: "ID is required",
+          status: 403,
+        });
+      }
+      const labels = [];
+      const datasets = [];
+      for (let i of dates) {
+        const bg = this.getRandomRGB();
+        const sample = {
+          label: duration_type === "month" ? `${months[i.month]} ${i.year}` : i,
+          data: [],
+          backgroundColor: bg,
+          borderColor: bg,
+          borderWidth: 1,
+        };
+        let sod, eod;
+        if (duration_type === "month") {
+          sod = new Date(`${i.month}-01-${i.year}`);
+          eod = new Date(i.year, i.month);
+        } else if (duration_type === "year") {
+          sod = new Date(`01-01-${i}`);
+          eod = new Date(`12-31-${i}`);
+        } else {
+          return this.sendResponse(req, res, {
+            message: "Invalid duration type",
+            status: 403,
+          });
+        }
+        const report = await MaqamReportModel.find(
+          {
+            month: {
+              $gt: sod,
+              $lte: eod,
+            },
+            maqamAreaId: areaId,
+          },
+          "collegesId"
+        ).populate("collegesId");
+        if (report?.length > 0) {
+          const keys = Object.keys(
+            report[report?.length - 1].collegesId._doc
+          ).filter((key) => key !== "_id" && key !== "__v");
+          keys.forEach((doc) => {
+            if (report[report?.length - 1].collegesId._doc[doc]) {
+              sample.data.push(
+                parseInt(
+                  report[report?.length - 1].collegesId._doc[doc]._doc.end
+                )
+              );
+              if (!labels.includes(doc.toLowerCase())) {
+                labels.push(doc.toLowerCase());
+              }
+            }
+          });
+        }
+        datasets.push(sample);
+      }
+      response.data.labels = labels;
+      response.data.datasets = datasets;
+      return { labels, datasets };
+      res.status(200).json(response);
+    } catch (error) {
+      console.log(error);
+      return this.sendResponse(req, res, {
+        message: "Internal server error",
+        status: 500,
+      });
+    }
+  };
+  jamiaat = async (req, res) => {
+    try {
+      const token = req?.headers?.authorization;
+      const { dates, areaId, duration_type } = req?.body;
+      if (dates?.length < 2) {
+        return this.sendResponse(req, res, {
+          message: "Atleast 2 dates required",
+          status: 400,
+        });
+      }
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 400,
+        });
+      }
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const _id = userId;
+      if (!_id) {
+        return this.sendResponse(req, res, {
+          message: "ID is required",
+          status: 403,
+        });
+      }
+      const labels = [];
+      const datasets = [];
+      for (let i of dates) {
+        const bg = this.getRandomRGB();
+        const sample = {
+          label: duration_type === "month" ? `${months[i.month]} ${i.year}` : i,
+          data: [],
+          backgroundColor: bg,
+          borderColor: bg,
+          borderWidth: 1,
+        };
+        let sod, eod;
+        if (duration_type === "month") {
+          sod = new Date(`${i.month}-01-${i.year}`);
+          eod = new Date(i.year, i.month);
+        } else if (duration_type === "year") {
+          sod = new Date(`01-01-${i}`);
+          eod = new Date(`12-31-${i}`);
+        } else {
+          return this.sendResponse(req, res, {
+            message: "Invalid duration type",
+            status: 403,
+          });
+        }
+        const report = await MaqamReportModel.find(
+          {
+            month: {
+              $gt: sod,
+              $lte: eod,
+            },
+            maqamAreaId: areaId,
+          },
+          "jamiaatId"
+        ).populate("jamiaatId");
+        if (report?.length > 0) {
+          const keys = Object.keys(
+            report[report?.length - 1].jamiaatId._doc
+          ).filter((key) => key !== "_id" && key !== "__v");
+          keys.forEach((doc) => {
+            if (report[report?.length - 1].jamiaatId._doc[doc]) {
+              sample.data.push(
+                parseInt(
+                  report[report?.length - 1].jamiaatId._doc[doc]._doc.end
+                )
+              );
+              if (!labels.includes(doc.toLowerCase())) {
+                labels.push(doc.toLowerCase());
+              }
+            }
+          });
+        }
+        datasets.push(sample);
+      }
+      response.data.labels = labels;
+      response.data.datasets = datasets;
+      return { labels, datasets };
+      res.status(200).json(response);
+    } catch (error) {
+      console.log(error);
+      return this.sendResponse(req, res, {
+        message: "Internal server error",
+        status: 500,
+      });
+    }
+  };
   createMaqamIfradiQuawatReport = async (req, res) => {
     try {
       const token = req?.headers?.authorization;
@@ -566,13 +746,37 @@ class MaqamCompare extends Response {
           if (reports?.length > 0) {
             const keys = Object.keys(
               reports[reports.length - 1]._doc.tdId._doc
-            ).filter((i) => i !== "_id" && i !== "__v");
+            ).filter(
+              (i) =>
+                i !== "_id" &&
+                i !== "__v" &&
+                i !== "current" &&
+                i !== "currentManual" &&
+                i !== "meetings" &&
+                i !== "meetingsManual"
+            );
             keys.forEach((doc) => {
-              if (reports[reports.length - 1]._doc?.tdId._doc) {
+              if (
+                reports[reports.length - 1]._doc?.tdId._doc &&
+                ![
+                  "current",
+                  "currentmanual",
+                  "meetings",
+                  "meetingsmanual",
+                ].includes(doc)
+              ) {
                 sample.data.push(
                   parseInt(reports[reports.length - 1]._doc?.tdId._doc[doc])
                 );
-                if (!labels.includes(doc.toLowerCase())) {
+                if (
+                  !labels.includes(doc.toLowerCase()) &&
+                  ![
+                    "current",
+                    "currentmanual",
+                    "meetings",
+                    "meetingsmanual",
+                  ].includes(doc.toLowerCase())
+                ) {
                   labels.push(doc.toLowerCase());
                 }
               }
@@ -1140,6 +1344,8 @@ class MaqamCompare extends Response {
 
       const reportFunctions = [
         this.maqamTanzeemReport,
+        this.jamiaat,
+        this.colleges,
         this.createMaqamIfradiQuawatReport,
         this.createActivitiesReport,
         this.createMentionedActivitesReport,
