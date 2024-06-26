@@ -4,7 +4,7 @@ const { DivisionCompare } = require("./Division");
 const { ProvinceCompare } = require("./Province");
 const { PersonalCompare } = require("./Personal");
 const { IlaqaCompare } = require("./Ilaqa");
-
+const {MarkazCompare} = require("./Markaz")
 module.exports = {
   HalqaCompare,
   MaqamCompare,
@@ -12,4 +12,5 @@ module.exports = {
   DivisionCompare,
   PersonalCompare,
   IlaqaCompare,
+  MarkazCompare
 };
