@@ -34,6 +34,19 @@ class HalqaCompare extends Response {
 
     return `rgb(${r}, ${g}, ${b})`;
   };
+  calculatePercentage = (achieved, goal) => {
+    if (goal === 0) {
+      return 0;
+    }
+    return ((achieved / goal) * 100).toFixed(2);
+  };
+  calculateProfitLossPercentage = (income, expenditure) => {
+   
+    if (income === 0) {
+      return -100; // Indicate complete loss if there is no income
+    }
+    return (((income - expenditure) / income) * 100).toFixed(2);
+  };
   createIfradiQuawatReport = async (req, res) => {
     try {
       const token = req?.headers?.authorization;
@@ -455,7 +468,7 @@ class HalqaCompare extends Response {
         }
         datasets.push(sample);
       }
-      console.log(labels, datasets);
+    
       response.data.labels = labels;
       response.data.datasets = datasets;
       return { labels, datasets };
@@ -621,9 +634,72 @@ class HalqaCompare extends Response {
           },
           "rsdId"
         ).populate("rsdId");
-        if (reports?.length > 0 && property === "spiderChart") {
+       
+        if ( property === "spiderChart") {
+          {
+            const report = await HalqaReportModel.find(
+              {
+                month: {
+                  $gt: sod,
+                  $lte: eod,
+                },
+                halqaAreaId: areaId,
+              },
+              "wiId"
+            ).populate("wiId");
+            console.log(report)
+            let temp = {};
+            if (report?.length > 0) {
+              const keys = Object.keys(
+                report[report?.length - 1].wiId._doc
+              ).filter((key) => key !== "_id" && key !== "__v");
+              keys
+                .filter((ke) => ke === "umeedWaran" || ke === "rafaqa")
+                .forEach((doc) => {
+               
+                  if (report[report?.length - 1].wiId._doc[doc]) {
+
+                    temp = {
+                      ...temp,
+                      [doc.toLowerCase()]:
+                        parseInt(
+                          report[report?.length - 1].wiId._doc[doc]
+                            ._doc.start
+                        ) +
+                        parseInt(
+                          report[report?.length - 1].wiId._doc[doc]
+                            ._doc.increase
+                        ) -
+                        parseInt(
+                          report[report?.length - 1].wiId._doc[doc]
+                            ._doc.decrease
+                        ),
+                    };
+                  
+                  }
+                });
+              if (reports?.length > 0) {
+                const keys = Object.keys(
+                  reports[reports.length - 1]._doc.rsdId._doc
+                ).filter((i) => i !== "_id" && i !== "__v");
+                keys.forEach((doc) => {
+                  if (reports[reports.length - 1]._doc?.rsdId._doc) {
+                    sample.data.push(
+                      this.calculatePercentage(
+                        reports[reports.length - 1]._doc?.rsdId._doc[doc],
+                        temp[`${[doc.split("Filled")[0].toLowerCase()]}`]
+                      )
+                    );
+                    if (!labels.includes(doc.toLowerCase())) {
+                      labels.push(doc.toLowerCase());
+                    }
+                  }
+                });
+              }
+            }
+          }
         }
-        if (reports?.length > 0) {
+        else {
           const keys = Object.keys(
             reports[reports?.length - 1]._doc.rsdId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
@@ -657,6 +733,7 @@ class HalqaCompare extends Response {
     try {
       const token = req?.headers?.authorization;
       const { dates, areaId, duration_type } = req?.body;
+      const property = req?.params?.property;
       if (dates.length < 2) {
         return this.sendResponse(req, res, {
           message: "Atleast 2 dates required",
@@ -715,20 +792,41 @@ class HalqaCompare extends Response {
 
         if (reports?.length > 0) {
           const keys = Object.keys(
-            reports[reports?.length - 1]._doc.baitulmalId._doc
-          ).filter((i) => i !== "_id" && i !== "__v");
-          keys.forEach((doc) => {
-            if (reports[reports?.length - 1]._doc?.baitulmalId._doc) {
-              sample.data.push(
-                parseInt(
-                  reports[reports?.length - 1]._doc?.baitulmalId._doc[doc]
-                )
+            reports[reports?.length - 1]?._doc.baitulmalId?._doc
+          )?.filter((i) => i !== "_id" && i !== "__v");
+          if (property === "spiderChart") {
+            if (reports[reports?.length - 1]?._doc?.baitulmalId?._doc) {
+              const income =
+                reports[reports?.length - 1]._doc.baitulmalId._doc[
+                  "monthlyIncome"
+                ];
+              const expenditure =
+                reports[reports?.length - 1]._doc.baitulmalId._doc[
+                  "monthlyExpenditure"
+                ];
+             
+              const profitLossPercentage = this.calculateProfitLossPercentage(
+                income,
+                expenditure
               );
-              if (!labels.includes(doc.toLowerCase())) {
-                labels.push(doc.toLowerCase());
-              }
+           
+              sample.data.push(profitLossPercentage);
+              labels.push("monthlyexpenditure");
             }
-          });
+          } else {
+            keys?.forEach((doc) => {
+              if (reports[reports?.length - 1]?._doc?.baitulmalId?._doc) {
+                sample.data.push(
+                  parseInt(
+                    reports[reports?.length - 1]?._doc?.baitulmalId?._doc[doc]
+                  )
+                );
+                if (!labels.includes(doc.toLowerCase())) {
+                  labels.push(doc.toLowerCase());
+                }
+              }
+            });
+          }
         }
         datasets.push(sample);
       }
