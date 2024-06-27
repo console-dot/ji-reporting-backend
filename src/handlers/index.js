@@ -15,6 +15,7 @@ const {
   ProvinceCompare,
   PersonalCompare,
   IlaqaCompare,
+  MarkazCompare
 } = require("./Comparison");
 
 module.exports = {
@@ -32,5 +33,6 @@ module.exports = {
   ProvinceCompare,
   PersonalCompare,
   UmeedWaar,
+  MarkazCompare,
   Compilation,
 };

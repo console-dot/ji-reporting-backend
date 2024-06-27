@@ -1,5 +1,9 @@
 const { UserModel } = require("../../model");
-const { ProvinceReportModel } = require("../../model/reports");
+const {
+  Mark,
+  MarkazReportModelazReportModel,
+  MarkazReportModel,
+} = require("../../model/reports");
 const jwt = require("jsonwebtoken");
 const Response = require("../Response");
 
@@ -26,113 +30,13 @@ const response = {
   },
   status: 200,
 };
-class ProvinceCompare extends Response {
+class MarkazCompare extends Response {
   getRandomRGB = () => {
     const r = Math.floor(Math.random() * 256); // Random red value between 0 and 255
     const g = Math.floor(Math.random() * 256); // Random green value between 0 and 255
     const b = Math.floor(Math.random() * 256); // Random blue value between 0 and 255
 
     return `rgb(${r}, ${g}, ${b})`;
-  };
-  provinceTanzeemReport = async (req, res) => {
-    try {
-      const token = req?.headers?.authorization;
-      const { dates, areaId, duration_type } = req?.body;
-      if (dates.length < 2) {
-        return this.sendResponse(req, res, {
-          message: "Atleast 2 dates required",
-          status: 400,
-        });
-      }
-      if (!token) {
-        return this.sendResponse(req, res, {
-          message: "Access Denied",
-          status: 400,
-        });
-      }
-      const decoded = jwt.decode(token.split(" ")[1]);
-      const userId = decoded?.id;
-      const _id = userId;
-      if (!_id) {
-        return this.sendResponse(req, res, {
-          message: "ID is required",
-          status: 403,
-        });
-      }
-      const labels = [];
-      const datasets = [];
-      for (let i of dates) {
-        const bg = this.getRandomRGB();
-        const sample = {
-          label: duration_type === "month" ? `${months[i.month]} ${i.year}` : i,
-          data: [],
-          backgroundColor: bg,
-          borderColor: bg,
-          borderWidth: 1,
-        };
-        let sod, eod;
-        if (duration_type === "month") {
-          sod = new Date(`${i.month}-01-${i.year}`);
-          eod = new Date(i.year, i.month);
-        } else if (duration_type === "year") {
-          sod = new Date(`01-01-${i}`);
-          eod = new Date(`12-31-${i}`);
-        } else {
-          return this.sendResponse(req, res, {
-            message: "Invalid duration type",
-            status: 403,
-          });
-        }
-        const report = await ProvinceReportModel.find(
-          {
-            month: {
-              $gt: sod,
-              $lte: eod,
-            },
-            provinceAreaId: areaId,
-          },
-          "provinceTanzeemId"
-        ).populate("provinceTanzeemId");
-
-        if (report?.length > 0) {
-          const keys = Object.keys(
-            report[report?.length - 1].provinceTanzeemId._doc
-          ).filter((key) => key !== "_id" && key !== "__v");
-          keys.forEach((doc) => {
-            if (report[report?.length - 1].provinceTanzeemId._doc[doc]) {
-              sample.data.push(
-                parseInt(
-                  report[report?.length - 1].provinceTanzeemId._doc[doc]._doc
-                    .start
-                ) +
-                  parseInt(
-                    report[report?.length - 1].provinceTanzeemId._doc[doc]._doc
-                      .increase
-                  ) -
-                  parseInt(
-                    report[report?.length - 1].provinceTanzeemId._doc[doc]._doc
-                      .decrease
-                  )
-              );
-              if (!labels.includes(doc.toLowerCase())) {
-                labels.push(doc.toLowerCase());
-              }
-            }
-          });
-        }
-        datasets.push(sample);
-      }
-      response.data.labels = labels;
-      response.data.datasets = datasets;
-      return { labels, datasets };
-      res.status(200).json(response);
-    } catch (error) {
-      console.log(error);
-      return this.sendResponse(req, res, {
-        message: "Internal server error",
-        status: 500,
-      });
-    }
   };
   colleges = async (req, res) => {
     try {
@@ -183,13 +87,13 @@ class ProvinceCompare extends Response {
             status: 403,
           });
         }
-        const report = await ProvinceReportModel.find(
+        const report = await MarkazReportModel.find(
           {
             month: {
               $gt: sod,
               $lte: eod,
             },
-            provinceAreaId: areaId,
+            countryAreaId: areaId,
           },
           "collegesId"
         ).populate("collegesId");
@@ -273,13 +177,13 @@ class ProvinceCompare extends Response {
             status: 403,
           });
         }
-        const report = await ProvinceReportModel.find(
+        const report = await MarkazReportModel.find(
           {
             month: {
               $gt: sod,
               $lte: eod,
             },
-            provinceAreaId: areaId,
+            countryAreaId: areaId,
           },
           "jamiaatId"
         ).populate("jamiaatId");
@@ -314,7 +218,7 @@ class ProvinceCompare extends Response {
       });
     }
   };
-  createProvinceIfradiQuawatReport = async (req, res) => {
+  markazTanzeemReport = async (req, res) => {
     try {
       const token = req?.headers?.authorization;
       const { dates, areaId, duration_type } = req?.body;
@@ -363,34 +267,135 @@ class ProvinceCompare extends Response {
             status: 403,
           });
         }
-        const report = await ProvinceReportModel.find(
+        const report = await MarkazReportModel.find(
           {
             month: {
               $gt: sod,
               $lte: eod,
             },
-            provinceAreaId: areaId,
+            countryAreaId: areaId,
           },
-          "provinceWorkerInfoId"
-        ).populate("provinceWorkerInfoId");
+          "markazTanzeemId"
+        ).populate("markazTanzeemId");
+
         if (report?.length > 0) {
           const keys = Object.keys(
-            report[report?.length - 1].provinceWorkerInfoId._doc
+            report[report?.length - 1].markazTanzeemId._doc
           ).filter((key) => key !== "_id" && key !== "__v");
           keys.forEach((doc) => {
-            if (report[report?.length - 1].provinceWorkerInfoId._doc[doc]) {
+            if (report[report?.length - 1].markazTanzeemId._doc[doc]) {
               sample.data.push(
                 parseInt(
-                  report[report?.length - 1].provinceWorkerInfoId._doc[doc]._doc
+                  report[report?.length - 1].markazTanzeemId._doc[doc]._doc
                     .start
                 ) +
                   parseInt(
-                    report[report?.length - 1].provinceWorkerInfoId._doc[doc]
-                      ._doc.increase
+                    report[report?.length - 1].markazTanzeemId._doc[doc]._doc
+                      .increase
                   ) -
                   parseInt(
-                    report[report?.length - 1].provinceWorkerInfoId._doc[doc]
-                      ._doc.decrease
+                    report[report?.length - 1].markazTanzeemId._doc[doc]._doc
+                      .decrease
+                  )
+              );
+              if (!labels.includes(doc.toLowerCase())) {
+                labels.push(doc.toLowerCase());
+              }
+            }
+          });
+        }
+        datasets.push(sample);
+      }
+      response.data.labels = labels;
+      response.data.datasets = datasets;
+
+      return { labels, datasets };
+      res.status(200).json(response);
+    } catch (error) {
+      console.log(error);
+      return this.sendResponse(req, res, {
+        message: "Internal server error",
+        status: 500,
+      });
+    }
+  };
+  createMarkazfradiQuawatReport = async (req, res) => {
+    try {
+      const token = req?.headers?.authorization;
+      const { dates, areaId, duration_type } = req?.body;
+      if (dates.length < 2) {
+        return this.sendResponse(req, res, {
+          message: "Atleast 2 dates required",
+          status: 400,
+        });
+      }
+      if (!token) {
+        return this.sendResponse(req, res, {
+          message: "Access Denied",
+          status: 400,
+        });
+      }
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      const _id = userId;
+      if (!_id) {
+        return this.sendResponse(req, res, {
+          message: "ID is required",
+          status: 403,
+        });
+      }
+      const labels = [];
+      const datasets = [];
+      for (let i of dates) {
+        const bg = this.getRandomRGB();
+        const sample = {
+          label: duration_type === "month" ? `${months[i.month]} ${i.year}` : i,
+          data: [],
+          backgroundColor: bg,
+          borderColor: bg,
+          borderWidth: 1,
+        };
+        let sod, eod;
+        if (duration_type === "month") {
+          sod = new Date(`${i.month}-01-${i.year}`);
+          eod = new Date(i.year, i.month);
+        } else if (duration_type === "year") {
+          sod = new Date(`01-01-${i}`);
+          eod = new Date(`12-31-${i}`);
+        } else {
+          return this.sendResponse(req, res, {
+            message: "Invalid duration type",
+            status: 403,
+          });
+        }
+        const report = await MarkazReportModel.find(
+          {
+            month: {
+              $gt: sod,
+              $lte: eod,
+            },
+            countryAreaId: areaId,
+          },
+          "markazWorkerInfoId"
+        ).populate("markazWorkerInfoId");
+        if (report?.length > 0) {
+          const keys = Object.keys(
+            report[report?.length - 1].markazWorkerInfoId._doc
+          ).filter((key) => key !== "_id" && key !== "__v");
+          keys.forEach((doc) => {
+            if (report[report?.length - 1].markazWorkerInfoId._doc[doc]) {
+              sample.data.push(
+                parseInt(
+                  report[report?.length - 1].markazWorkerInfoId._doc[doc]._doc
+                    .startSum
+                ) +
+                  parseInt(
+                    report[report?.length - 1].markazWorkerInfoId._doc[doc]._doc
+                      .increaseSum
+                  ) -
+                  parseInt(
+                    report[report?.length - 1].markazWorkerInfoId._doc[doc]._doc
+                      .decreaseSum
                   )
               );
               if (!labels.includes(doc.toLowerCase())) {
@@ -462,25 +467,26 @@ class ProvinceCompare extends Response {
             status: 403,
           });
         }
-        const reports = await ProvinceReportModel.find(
+        const reports = await MarkazReportModel.find(
           {
             month: {
               $gt: sod,
               $lte: eod,
             },
-            provinceAreaId: areaId,
+            countryAreaId: areaId,
           },
-          "provinceActivityId"
-        ).populate("provinceActivityId");
+          "markazActivityId"
+        ).populate("markazActivityId");
         if (reports.length > 0) {
           const keys = Object.keys(
-            reports[reports.length - 1]._doc.provinceActivityId._doc
+            reports[reports.length - 1]._doc.markazActivityId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
+      
           keys.forEach((doc) => {
-            if (reports[reports.length - 1]._doc?.provinceActivityId._doc) {
+            if (reports[reports.length - 1]._doc?.markazActivityId._doc) {
               sample.data.push(
                 parseInt(
-                  reports[reports.length - 1]._doc.provinceActivityId._doc[doc]
+                  reports[reports.length - 1]._doc.markazActivityId._doc[doc]
                     .done
                 )
               );
@@ -504,7 +510,7 @@ class ProvinceCompare extends Response {
       });
     }
   };
-  createProvinceMentionedActivitesReport = async (req, res) => {
+  createMentionedActivitesReport = async (req, res) => {
     try {
       const token = req?.headers?.authorization;
       const { dates, areaId, duration_type } = req?.body;
@@ -553,13 +559,13 @@ class ProvinceCompare extends Response {
             status: 403,
           });
         }
-        const reports = await ProvinceReportModel.find(
+        const reports = await MarkazReportModel.find(
           {
             month: {
               $gt: sod,
               $lte: eod,
             },
-            provinceAreaId: areaId,
+            countryAreaId: areaId,
           },
           "mentionedActivityId"
         ).populate("mentionedActivityId");
@@ -585,6 +591,7 @@ class ProvinceCompare extends Response {
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
+      return { labels, datasets };
       return { labels, datasets };
       res.status(200).json(response);
     } catch (error) {
@@ -644,13 +651,13 @@ class ProvinceCompare extends Response {
             status: 403,
           });
         }
-        const reports = await ProvinceReportModel.find(
+        const reports = await MarkazReportModel.find(
           {
             month: {
               $gt: sod,
               $lte: eod,
             },
-            provinceAreaId: areaId,
+            countryAreaId: areaId,
           },
           "otherActivityId"
         ).populate("otherActivityId");
@@ -659,45 +666,18 @@ class ProvinceCompare extends Response {
           const keys = Object.keys(
             reports[reports.length - 1]._doc.otherActivityId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
-          keys
-            .filter((i) =>
-              [
-                "dawatiwafud",
-                "rawabitparties",
-                "nizamsalah",
-                "shabbedari",
-                "tanzeemiround",
-                "tarbiyatgaah",
-                "tarbiyatgaahgoalsum",
-                "tarbiyatgaahheldsum",
-              ].includes(i.toLowerCase())
-            )
-            .forEach((doc) => {
-              if (reports[reports.length - 1]._doc?.otherActivityId._doc) {
-                sample.data.push(
-                  parseInt(
-                    reports[reports.length - 1]._doc?.otherActivityId._doc[
-                      doc
-                    ] || 0
-                  )
-                );
-                if (
-                  !labels.includes(doc.toLowerCase()) &&
-                  [
-                    "dawatiwafud",
-                    "rawabitparties",
-                    "nizamsalah",
-                    "shabbedari",
-                    "tanzeemiround",
-                    "tarbiyatgaah",
-                    "tarbiyatgaahgoalsum",
-                    "tarbiyatgaahheldsum",
-                  ].includes(doc.toLowerCase())
-                ) {
-                  labels.push(doc.toLowerCase());
-                }
+          keys.forEach((doc) => {
+            if (reports[reports.length - 1]._doc?.otherActivityId._doc) {
+              sample.data.push(
+                parseInt(
+                  reports[reports.length - 1]._doc?.otherActivityId._doc[doc]
+                )
+              );
+              if (!labels.includes(doc.toLowerCase())) {
+                labels.push(doc.toLowerCase());
               }
-            });
+            }
+          });
         }
         datasets.push(sample);
       }
@@ -762,18 +742,24 @@ class ProvinceCompare extends Response {
             status: 403,
           });
         }
-        const reports = await ProvinceReportModel.find(
+        const reports = await MarkazReportModel.find(
           {
             month: {
               $gt: sod,
               $lte: eod,
             },
-            provinceAreaId: areaId,
+            countryAreaId: areaId,
           },
           "tdId"
         ).populate("tdId");
 
         if (reports?.length > 0) {
+          if (reports[0]?.tdId === null) {
+            return this.sendResponse(req, res, {
+              message: "Selected property contains no values",
+              status: 400,
+            });
+          }
           const keys = Object.keys(
             reports[reports.length - 1]._doc.tdId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
@@ -854,26 +840,26 @@ class ProvinceCompare extends Response {
             status: 403,
           });
         }
-        const reports = await ProvinceReportModel.find(
+        const reports = await MarkazReportModel.find(
           {
             month: {
               $gt: sod,
               $lte: eod,
             },
-            provinceAreaId: areaId,
+            countryAreaId: areaId,
           },
-          "provinceDivisionLibId"
-        ).populate("provinceDivisionLibId");
+          "markazDivisionLibId"
+        ).populate("markazDivisionLibId");
 
         if (reports?.length > 0) {
           const keys = Object.keys(
-            reports[reports.length - 1]._doc.provinceDivisionLibId._doc
+            reports[reports.length - 1]._doc.markazDivisionLibId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
           keys.forEach((doc) => {
-            if (reports[reports.length - 1]._doc?.provinceDivisionLibId._doc) {
+            if (reports[reports.length - 1]._doc?.markazDivisionLibId._doc) {
               sample.data.push(
                 parseInt(
-                  reports[reports.length - 1]._doc?.provinceDivisionLibId._doc[
+                  reports[reports.length - 1]._doc?.markazDivisionLibId._doc[
                     doc
                   ]
                 )
@@ -898,97 +884,7 @@ class ProvinceCompare extends Response {
       });
     }
   };
-  paighamDigest = async (req, res) => {
-    try {
-      const token = req?.headers?.authorization;
-      const { dates, areaId, duration_type } = req?.body;
-      if (dates.length < 2) {
-        return this.sendResponse(req, res, {
-          message: "Atleast 2 dates required",
-          status: 400,
-        });
-      }
-      if (!token) {
-        return this.sendResponse(req, res, {
-          message: "Access Denied",
-          status: 400,
-        });
-      }
-      const decoded = jwt.decode(token.split(" ")[1]);
-      const userId = decoded?.id;
-      const _id = userId;
-      if (!_id) {
-        return this.sendResponse(req, res, {
-          message: "ID is required",
-          status: 403,
-        });
-      }
-      const labels = [];
-      const datasets = [];
-      for (let i of dates) {
-        const bg = this.getRandomRGB();
-        const sample = {
-          label: duration_type === "month" ? `${months[i.month]} ${i.year}` : i,
-          data: [],
-          backgroundColor: bg,
-          borderColor: bg,
-          borderWidth: 1,
-        };
-        let sod, eod;
-        if (duration_type === "month") {
-          sod = new Date(`${i.month}-01-${i.year}`);
-          eod = new Date(i.year, i.month);
-        } else if (duration_type === "year") {
-          sod = new Date(`01-01-${i}`);
-          eod = new Date(`12-31-${i}`);
-        } else {
-          return this.sendResponse(req, res, {
-            message: "Dates are invalid",
-            status: 403,
-          });
-        }
-        const reports = await ProvinceReportModel.find(
-          {
-            month: {
-              $gt: sod,
-              $lte: eod,
-            },
-            provinceAreaId: areaId,
-          },
-          "paighamDigestId"
-        ).populate("paighamDigestId");
 
-        if (reports?.length > 0) {
-          const keys = Object.keys(
-            reports[reports.length - 1]._doc.paighamDigestId._doc
-          ).filter((i) => i !== "_id" && i !== "__v");
-          keys.forEach((doc) => {
-            if (reports[reports.length - 1]._doc?.paighamDigestId._doc) {
-              sample.data.push(
-                parseInt(
-                  reports[reports.length - 1]._doc?.paighamDigestId._doc[doc]
-                )
-              );
-              if (!labels.includes(doc.toLowerCase())) {
-                labels.push(doc.toLowerCase());
-              }
-            }
-          });
-        }
-        datasets.push(sample);
-      }
-      response.data.labels = labels;
-      response.data.datasets = datasets;
-      return { labels, datasets };
-      res.status(200).json(response);
-    } catch (error) {
-      console.log(error);
-      return this.sendResponse(req, res, {
-        message: "Internal Server Error",
-        status: 500,
-      });
-    }
-  };
   rozShabBedari = async (req, res) => {
     try {
       const token = req?.headers?.authorization;
@@ -1038,13 +934,13 @@ class ProvinceCompare extends Response {
             status: 403,
           });
         }
-        const reports = await ProvinceReportModel.find(
+        const reports = await MarkazReportModel.find(
           {
             month: {
               $gt: sod,
               $lte: eod,
             },
-            provinceAreaId: areaId,
+            countryAreaId: areaId,
           },
           "rsdId"
         ).populate("rsdId");
@@ -1127,26 +1023,26 @@ class ProvinceCompare extends Response {
             status: 403,
           });
         }
-        const reports = await ProvinceReportModel.find(
+        const reports = await MarkazReportModel.find(
           {
             month: {
               $gt: sod,
               $lte: eod,
             },
-            provinceAreaId: areaId,
+            countryAreaId: areaId,
           },
           "baitulmalId"
         ).populate("baitulmalId");
-
+        
         if (reports?.length > 0) {
           const keys = Object.keys(
-            reports[reports?.length - 1]._doc.baitulmalId._doc
-          ).filter((i) => i !== "_id" && i !== "__v");
-          keys.forEach((doc) => {
-            if (reports[reports?.length - 1]._doc?.baitulmalId._doc) {
+            reports[reports?.length - 1]?._doc.baitulmalId?._doc
+          )?.filter((i) => i !== "_id" && i !== "__v");
+          keys?.forEach((doc) => {
+            if (reports[reports?.length - 1]?._doc?.baitulmalId?._doc) {
               sample.data.push(
                 parseInt(
-                  reports[reports?.length - 1]._doc?.baitulmalId._doc[doc]
+                  reports[reports?.length - 1]?._doc?.baitulmalId?._doc[doc]
                 )
               );
               if (!labels.includes(doc.toLowerCase())) {
@@ -1169,7 +1065,7 @@ class ProvinceCompare extends Response {
       });
     }
   };
-  provinceComparison = async (req, res) => {
+  markazComparison = async (req, res) => {
     try {
       const token = req?.headers?.authorization;
       if (!token) {
@@ -1189,6 +1085,7 @@ class ProvinceCompare extends Response {
       }
 
       const { dates } = req.body;
+     
       if (dates.length < 2) {
         return this.sendResponse(req, res, {
           message: "Atleast 2 dates required",
@@ -1200,16 +1097,16 @@ class ProvinceCompare extends Response {
       const datasets = [];
 
       const reportFunctions = [
-        this.provinceTanzeemReport,
+        this.markazTanzeemReport,
         this.jamiaat,
         this.colleges,
-        this.createProvinceIfradiQuawatReport,
+        this.createMarkazfradiQuawatReport,
         this.createActivitiesReport,
-        this.createProvinceMentionedActivitesReport,
+        this.createMentionedActivitesReport,
         this.createOtherActivityReport,
         this.toseeDawatReport,
+
         this.libraryReport,
-        this.paighamDigest,
         this.rozShabBedari,
         this.baitulmal,
       ];
@@ -1260,16 +1157,16 @@ class ProvinceCompare extends Response {
     const property = req?.params?.property;
     switch (property) {
       case "tanzeem":
-        this.provinceTanzeemReport(req, res);
+        this.divisionTanzeemReport(req, res);
         break;
       case "workerInfo":
-        this.createProvinceIfradiQuawatReport(req, res);
+        this.createDivisionfradiQuawatReport(req, res);
         break;
       case "activities":
         this.createActivitiesReport(req, res);
         break;
       case "mentionedActivities":
-        this.createProvinceMentionedActivitesReport(req, res);
+        this.createMentionedActivitesReport(req, res);
         break;
       case "otherActivity":
         this.createOtherActivityReport(req, res);
@@ -1287,7 +1184,7 @@ class ProvinceCompare extends Response {
         this.rozShabBedari(req, res);
         break;
       case "compareAll":
-        this.provinceComparison(req, res);
+        this.markazComparison(req, res);
         break;
       default:
         return this.sendResponse(req, res, {
@@ -1298,4 +1195,4 @@ class ProvinceCompare extends Response {
   };
 }
 
-module.exports = { ProvinceCompare };
+module.exports = { MarkazCompare };
