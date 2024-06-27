@@ -857,7 +857,6 @@ class MarkazCompare extends Response {
   toseeDawatReport = async (req, res) => {
     try {
       const property = req?.params?.property;
-
       const token = req?.headers?.authorization;
       const { dates, areaId, duration_type } = req?.body;
       if (dates.length < 2) {
