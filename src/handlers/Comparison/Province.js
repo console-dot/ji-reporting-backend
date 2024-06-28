@@ -810,7 +810,7 @@ class ProvinceCompare extends Response {
         if (reports?.length > 0) {
           const keys = Object.keys(
             reports[reports.length - 1]._doc.otherActivityId._doc
-          ).filter((i) => i !== "_id" && i !== "__v");
+          ).filter((i) => i !== "_id" && i !== "__v" && i !== "anyOther");
           if (property === "spiderChart") {
             if (reports[reports.length - 1]._doc?.otherActivityId._doc) {
               sample.data.push(
