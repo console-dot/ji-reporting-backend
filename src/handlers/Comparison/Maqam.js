@@ -937,7 +937,7 @@ class MaqamCompare extends Response {
                     "meetingsmanual",
                   ].includes(doc)
                 ) {
-                  console.log(doc);
+             
                   sample.data.push(
                     parseInt(reports[reports.length - 1]._doc?.tdId._doc[doc])
                   );
