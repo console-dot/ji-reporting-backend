@@ -478,8 +478,13 @@ class IlaqaCompare extends Response {
               if (reports[reports?.length - 1].mentionedActivityId._doc[doc]) {
                 sample.data.push(
                   this.calculatePercentage(
-                    reports[reports?.length - 1].mentionedActivityId._doc[doc]
-                      ._doc.done,
+                    reports[reports?.length - 1]._doc.mentionedActivityId._doc[
+                      doc
+                    ].sum
+                      ? reports[reports?.length - 1]._doc.mentionedActivityId
+                          ._doc[doc].sum
+                      : reports[reports.length - 1]._doc.mentionedActivityId
+                          ._doc[doc].done,
                     reports[reports?.length - 1].mentionedActivityId._doc[doc]
                       ._doc.decided
                   )
@@ -494,9 +499,13 @@ class IlaqaCompare extends Response {
               if (reports[reports.length - 1]._doc?.mentionedActivityId._doc) {
                 sample.data.push(
                   parseInt(
-                    reports[reports.length - 1]._doc.mentionedActivityId._doc[
+                    reports[reports?.length - 1]._doc.mentionedActivityId._doc[
                       doc
-                    ].done
+                    ].sum
+                      ? reports[reports?.length - 1]._doc.mentionedActivityId
+                          ._doc[doc].sum
+                      : reports[reports.length - 1]._doc.mentionedActivityId
+                          ._doc[doc].done
                   )
                 );
                 if (!labels.includes(doc.toLowerCase())) {
