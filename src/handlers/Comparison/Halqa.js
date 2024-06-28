@@ -41,7 +41,6 @@ class HalqaCompare extends Response {
     return ((achieved / goal) * 100).toFixed(2);
   };
   calculateProfitLossPercentage = (income, expenditure) => {
-   
     if (income === 0) {
       return -100; // Indicate complete loss if there is no income
     }
@@ -253,8 +252,7 @@ class HalqaCompare extends Response {
               }
             }
           });
-        }
-        if (reports?.length > 0) {
+        } else {
           const keys = Object.keys(
             reports[reports?.length - 1]._doc.halqaActivityId._doc
           ).filter((key) => key !== "_id" && key !== "__v");
@@ -443,18 +441,23 @@ class HalqaCompare extends Response {
         if (reports.length > 0 && property === "spiderChart") {
           if (reports[reports?.length - 1]._doc?.tdId._doc) {
             sample.data.push(
-              ((parseInt(reports[reports?.length - 1]._doc?.tdId.meetings) /
-                parseInt(
-                  reports[reports?.length - 1]._doc?.tdId.rwabitMeetingsGoal
-                )) *
-                100).toFixed(2)
+              (
+                (parseInt(reports[reports?.length - 1]._doc?.tdId.meetings) /
+                  parseInt(
+                    reports[reports?.length - 1]._doc?.tdId.rwabitMeetingsGoal
+                  )) *
+                100
+              ).toFixed(2)
             );
           }
+
           labels.push("meetings");
         } else {
           const keys = Object.keys(
             reports[reports?.length - 1]._doc.tdId._doc
-          ).filter((key) => key !== "_id" && key !== "__v");
+          ).filter(
+            (key) => key !== "_id" && key !== "__v" && key !== "registered"
+          );
           keys.forEach((doc) => {
             if (reports[reports?.length - 1]._doc?.tdId._doc) {
               sample.data.push(
@@ -468,7 +471,7 @@ class HalqaCompare extends Response {
         }
         datasets.push(sample);
       }
-    
+
       response.data.labels = labels;
       response.data.datasets = datasets;
       return { labels, datasets };
@@ -545,7 +548,9 @@ class HalqaCompare extends Response {
         if (reports?.length > 0) {
           const keys = Object.keys(
             reports[reports?.length - 1]._doc.halqaLibId._doc
-          ).filter((key) => key !== "_id" && key !== "__v");
+          ).filter(
+            (key) => key !== "_id" && key !== "__v" && key !== "registered"
+          );
           keys.forEach((doc) => {
             if (reports[reports?.length - 1]._doc?.halqaLibId._doc) {
               sample.data.push(
@@ -634,8 +639,8 @@ class HalqaCompare extends Response {
           },
           "rsdId"
         ).populate("rsdId");
-       
-        if ( property === "spiderChart") {
+
+        if (property === "spiderChart") {
           {
             const report = await HalqaReportModel.find(
               {
@@ -647,7 +652,6 @@ class HalqaCompare extends Response {
               },
               "wiId"
             ).populate("wiId");
-            console.log(report)
             let temp = {};
             if (report?.length > 0) {
               const keys = Object.keys(
@@ -656,26 +660,22 @@ class HalqaCompare extends Response {
               keys
                 .filter((ke) => ke === "umeedWaran" || ke === "rafaqa")
                 .forEach((doc) => {
-               
                   if (report[report?.length - 1].wiId._doc[doc]) {
-
                     temp = {
                       ...temp,
                       [doc.toLowerCase()]:
                         parseInt(
-                          report[report?.length - 1].wiId._doc[doc]
-                            ._doc.start
+                          report[report?.length - 1].wiId._doc[doc]._doc.start
                         ) +
                         parseInt(
-                          report[report?.length - 1].wiId._doc[doc]
-                            ._doc.increase
+                          report[report?.length - 1].wiId._doc[doc]._doc
+                            .increase
                         ) -
                         parseInt(
-                          report[report?.length - 1].wiId._doc[doc]
-                            ._doc.decrease
+                          report[report?.length - 1].wiId._doc[doc]._doc
+                            .decrease
                         ),
                     };
-                  
                   }
                 });
               if (reports?.length > 0) {
@@ -698,8 +698,7 @@ class HalqaCompare extends Response {
               }
             }
           }
-        }
-        else {
+        } else {
           const keys = Object.keys(
             reports[reports?.length - 1]._doc.rsdId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
@@ -716,6 +715,7 @@ class HalqaCompare extends Response {
         }
         datasets.push(sample);
       }
+      console.log(labels, datasets);
       response.data.labels = labels;
       response.data.datasets = datasets;
       return { labels, datasets };
@@ -804,13 +804,14 @@ class HalqaCompare extends Response {
                 reports[reports?.length - 1]._doc.baitulmalId._doc[
                   "monthlyExpenditure"
                 ];
-             
+
               const profitLossPercentage = this.calculateProfitLossPercentage(
                 income,
                 expenditure
               );
-           
+
               sample.data.push(profitLossPercentage);
+
               labels.push("monthlyexpenditure");
             }
           } else {
@@ -892,7 +893,7 @@ class HalqaCompare extends Response {
 
         // Update labels
         reportLabels.forEach((label) => {
-          if (!labels.includes(label)) {
+          if (!labels.includes(label) && label !== "registered") {
             labels.push(label);
           }
         });
@@ -970,7 +971,7 @@ class HalqaCompare extends Response {
 
         // Update labels
         reportLabels.forEach((label) => {
-          if (!labels.includes(label)) {
+          if (!labels.includes(label) && label !== "registered") {
             labels.push(label);
           }
         });

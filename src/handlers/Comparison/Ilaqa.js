@@ -35,7 +35,6 @@ class IlaqaCompare extends Response {
     return `rgb(${r}, ${g}, ${b})`;
   };
   calculatePercentage = (achieved, goal) => {
-    
     if (goal === 0) {
       return 0;
     }
@@ -135,7 +134,6 @@ class IlaqaCompare extends Response {
                 if (!labels.includes(doc.toLowerCase())) {
                   labels.push(doc.toLowerCase());
                 }
-              
               }
             });
           } else {
@@ -166,6 +164,7 @@ class IlaqaCompare extends Response {
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
+
       return { labels, datasets };
       res.status(200).json(response);
     } catch (error) {
@@ -260,7 +259,6 @@ class IlaqaCompare extends Response {
                 if (!labels.includes(doc.toLowerCase())) {
                   labels.push(doc.toLowerCase());
                 }
-          
               }
             });
           } else {
@@ -268,13 +266,13 @@ class IlaqaCompare extends Response {
               if (report[report?.length - 1].wiId._doc[doc]) {
                 sample.data.push(
                   parseInt(
-                    report[report?.length - 1].wiId._doc[doc]._doc.startSum
+                    report[report?.length - 1].wiId._doc[doc]._doc.start
                   ) +
                     parseInt(
-                      report[report?.length - 1].wiId._doc[doc]._doc.increaseSum
+                      report[report?.length - 1].wiId._doc[doc]._doc.increase
                     ) -
                     parseInt(
-                      report[report?.length - 1].wiId._doc[doc]._doc.decreaseSum
+                      report[report?.length - 1].wiId._doc[doc]._doc.decrease
                     )
                 );
                 if (!labels.includes(doc.toLowerCase())) {
@@ -288,6 +286,7 @@ class IlaqaCompare extends Response {
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
+
       return { labels, datasets };
       res.status(200).json(response);
     } catch (error) {
@@ -373,10 +372,10 @@ class IlaqaCompare extends Response {
                       .decided
                   )
                 );
+
                 if (!labels.includes(doc.toLowerCase())) {
                   labels.push(doc.toLowerCase());
                 }
-            
               }
             });
           } else {
@@ -399,6 +398,7 @@ class IlaqaCompare extends Response {
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
+
       return { labels, datasets };
       res.status(200).json(response);
     } catch (error) {
@@ -508,8 +508,10 @@ class IlaqaCompare extends Response {
         }
         datasets.push(sample);
       }
+
       response.data.labels = labels;
       response.data.datasets = datasets;
+
       return { labels, datasets };
       res.status(200).json(response);
     } catch (error) {
@@ -585,14 +587,16 @@ class IlaqaCompare extends Response {
             reports[reports?.length - 1]._doc.otherActivityId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
           keys.forEach((doc) => {
-            if (reports[reports?.length - 1]._doc?.otherActivityId._doc) {
-              sample.data.push(
-                parseInt(
-                  reports[reports?.length - 1]._doc?.otherActivityId._doc[doc]
-                )
-              );
-              if (!labels.includes(doc.toLowerCase())) {
-                labels.push(doc.toLowerCase());
+            if (doc !== "anyOther") {
+              if (reports[reports?.length - 1]._doc?.otherActivityId._doc) {
+                sample.data.push(
+                  parseInt(
+                    reports[reports?.length - 1]._doc?.otherActivityId._doc[doc]
+                  )
+                );
+                if (!labels.includes(doc.toLowerCase())) {
+                  labels.push(doc.toLowerCase());
+                }
               }
             }
           });
@@ -601,6 +605,7 @@ class IlaqaCompare extends Response {
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
+
       return { labels, datasets };
       res.status(200).json(response);
     } catch (error) {
@@ -671,7 +676,7 @@ class IlaqaCompare extends Response {
           },
           "tdId"
         ).populate("tdId");
-     
+
         reports?.map((obj) => {
           if (!obj?.tdId) {
             return null;
@@ -696,41 +701,18 @@ class IlaqaCompare extends Response {
                     ]
                   )
                 );
-               !labels.includes("meetingssum") ?  labels.push("meetingssum") : null;
+                !labels.includes("meetingssum")
+                  ? labels.push("meetingssum")
+                  : null;
               }
-            }
-            else {
-            keys.forEach((doc) => {
-              if (
-                reports[reports.length - 1]._doc?.tdId._doc &&
-                ![
-                  "uploadedCurrent",
-                  "manualCurrent",
-
-                  "rwabitMeetingsGoal",
-                  "uploadedMeetings",
-                  "manualMeetings",
-
-                  "uploadedLitrature",
-                  "manualLitrature",
-
-                  "uploadedCommonStudentMeetings",
-                  "manualCommonStudentMeetings",
-
-                  "uploadedCommonLiteratureDistribution",
-                  "manualCommonLiteratureDistribution",
-                ].includes(doc)
-              ) {
-                sample.data.push(
-                  parseInt(reports[reports.length - 1]._doc?.tdId._doc[doc])
-                );
+            } else {
+              keys.forEach((doc) => {
                 if (
-                  !labels.includes(doc.toLowerCase()) &&
+                  reports[reports.length - 1]._doc?.tdId._doc &&
                   ![
-                    "rawabitDecided",
                     "uploadedCurrent",
                     "manualCurrent",
-
+                    "registered",
                     "rwabitMeetingsGoal",
                     "uploadedMeetings",
                     "manualMeetings",
@@ -743,18 +725,44 @@ class IlaqaCompare extends Response {
 
                     "uploadedCommonLiteratureDistribution",
                     "manualCommonLiteratureDistribution",
-                  ].includes(doc.toLowerCase())
+                  ].includes(doc)
                 ) {
-                  labels.push(doc.toLowerCase());
+                  sample.data.push(
+                    parseInt(reports[reports.length - 1]._doc?.tdId._doc[doc])
+                  );
+                  if (
+                    !labels.includes(doc.toLowerCase()) &&
+                    ![
+                      "rawabitDecided",
+                      "uploadedCurrent",
+                      "manualCurrent",
+                      "registered",
+                      "rwabitMeetingsGoal",
+                      "uploadedMeetings",
+                      "manualMeetings",
+
+                      "uploadedLitrature",
+                      "manualLitrature",
+
+                      "uploadedCommonStudentMeetings",
+                      "manualCommonStudentMeetings",
+
+                      "uploadedCommonLiteratureDistribution",
+                      "manualCommonLiteratureDistribution",
+                    ].includes(doc.toLowerCase())
+                  ) {
+                    labels.push(doc.toLowerCase());
+                  }
                 }
-              }
-            });}
+              });
+            }
           }
           datasets.push(sample);
         });
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
+      console.log(labels, datasets);
 
       return { labels, datasets };
 
@@ -1083,11 +1091,16 @@ class IlaqaCompare extends Response {
             ).filter((i) => i !== "_id" && i !== "__v");
             keys.forEach((doc) => {
               if (reports[reports.length - 1]._doc?.rsdId._doc) {
-                sample.data.push(
-                  parseInt(reports[reports.length - 1]._doc?.rsdId._doc[doc])
-                );
-                if (!labels.includes(doc.toLowerCase())) {
-                  labels.push(doc.toLowerCase());
+                if (
+                  doc === "umeedwaranFilledSum" ||
+                  doc === "rafaqaFilledSum"
+                ) {
+                  sample.data.push(
+                    parseInt(reports[reports.length - 1]._doc?.rsdId._doc[doc])
+                  );
+                  if (!labels.includes(doc.toLowerCase())) {
+                    labels.push(doc.toLowerCase());
+                  }
                 }
               }
             });
@@ -1189,7 +1202,9 @@ class IlaqaCompare extends Response {
               );
 
               sample.data.push(profitLossPercentage);
-             !labels.includes('monthlyexpenditure')? labels.push("monthlyexpenditure"):null;
+              !labels.includes("monthlyexpenditure")
+                ? labels.push("monthlyexpenditure")
+                : null;
             }
           } else {
             keys?.forEach((doc) => {
@@ -1256,10 +1271,10 @@ class IlaqaCompare extends Response {
         this.createMaqamIfradiQuawatReport,
         this.createOtherActivityReport,
         this.createMentionedActivitesReport,
+        this.toseeDawatReport,
         this.rozShabBedari,
         this.baitulmal,
       ];
-
       // Utility function to find a dataset with a specific label
       const findDatasetByLabel = (label) =>
         datasets.find((dataset) => dataset.label === label);
@@ -1270,7 +1285,9 @@ class IlaqaCompare extends Response {
 
         // Update labels
         reportLabels.forEach((label) => {
-          if (!labels.includes(label)) {
+          if (!labels.includes(label) && labels !== "studycircle") {
+            labels.push(label);
+          } else {
             labels.push(label);
           }
         });
@@ -1291,6 +1308,7 @@ class IlaqaCompare extends Response {
       // Update response
       response.data.labels = labels;
       response.data.datasets = datasets;
+      console.log(labels.length, "after");
       res.status(200).json(response);
     } catch (error) {
       console.log(error);
@@ -1373,6 +1391,7 @@ class IlaqaCompare extends Response {
       // Update response
       response.data.labels = labels;
       response.data.datasets = datasets;
+
       res.status(200).json(response);
     } catch (error) {
       console.log(error);
