@@ -722,7 +722,11 @@ class MaqamCompare extends Response {
                   parseInt(
                     reports[reports?.length - 1]._doc.mentionedActivityId._doc[
                       doc
-                    ].done
+                    ].sum
+                      ? reports[reports?.length - 1]._doc.mentionedActivityId
+                          ._doc[doc].sum
+                      : reports[reports.length - 1]._doc.mentionedActivityId
+                          ._doc[doc].done
                   )
                 );
                 if (!labels.includes(doc.toLowerCase())) {
