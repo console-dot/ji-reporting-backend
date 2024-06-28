@@ -771,7 +771,7 @@ class IlaqaCompare extends Response {
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
-      console.log(labels, datasets);
+    
 
       return { labels, datasets };
 
@@ -1317,7 +1317,7 @@ class IlaqaCompare extends Response {
       // Update response
       response.data.labels = labels;
       response.data.datasets = datasets;
-      console.log(labels.length, "after");
+  
       res.status(200).json(response);
     } catch (error) {
       console.log(error);

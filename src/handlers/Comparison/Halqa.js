@@ -715,7 +715,7 @@ class HalqaCompare extends Response {
         }
         datasets.push(sample);
       }
-      console.log(labels, datasets);
+   
       response.data.labels = labels;
       response.data.datasets = datasets;
       return { labels, datasets };
