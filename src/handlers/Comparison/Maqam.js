@@ -366,16 +366,8 @@ class MaqamCompare extends Response {
               if (report[report?.length - 1].jamiaatId._doc[doc]) {
                 sample.data.push(
                   parseInt(
-                    report[report?.length - 1].jamiaatId._doc[doc]._doc.start
-                  ) +
-                    parseInt(
-                      report[report?.length - 1].jamiaatId._doc[doc]._doc
-                        .increase
-                    ) -
-                    parseInt(
-                      report[report?.length - 1].jamiaatId._doc[doc]._doc
-                        .decrease
-                    )
+                    report[report?.length - 1].jamiaatId._doc[doc]._doc.end
+                  )
                 );
                 if (!labels.includes(doc.toLowerCase())) {
                   labels.push(doc.toLowerCase());
@@ -813,7 +805,7 @@ class MaqamCompare extends Response {
         if (reports?.length > 0) {
           const keys = Object.keys(
             reports[reports?.length - 1]._doc.otherActivityId._doc
-          ).filter((i) => i !== "_id" && i !== "__v");
+          ).filter((i) => i !== "_id" && i !== "__v" && i !== "anyOther");
           keys.forEach((doc) => {
             if (reports[reports?.length - 1]._doc?.otherActivityId._doc) {
               sample.data.push(
@@ -867,6 +859,7 @@ class MaqamCompare extends Response {
           status: 403,
         });
       }
+
       const labels = [];
       const datasets = [];
       for (let i of dates) {
@@ -899,12 +892,13 @@ class MaqamCompare extends Response {
             },
             maqamAreaId: areaId,
           },
-          "tdId"
-        ).populate("tdId");
+          "muntakhibTdId"
+        ).populate("muntakhibTdId");
         reports?.map((obj) => {
           if (!obj?.tdId) {
             return null;
           }
+
           if (reports?.length > 0) {
             const keys = Object.keys(
               reports[reports.length - 1]._doc.tdId._doc
@@ -915,8 +909,10 @@ class MaqamCompare extends Response {
                 i !== "current" &&
                 i !== "currentManual" &&
                 i !== "meetings" &&
-                i !== "meetingsManual"
+                i !== "meetingsManual" &&
+                i !== "registered"
             );
+
             if (property === "spiderChart") {
               if (reports[reports.length - 1]._doc?.tdId._doc) {
                 sample.data.push(
@@ -941,6 +937,7 @@ class MaqamCompare extends Response {
                     "meetingsmanual",
                   ].includes(doc)
                 ) {
+             
                   sample.data.push(
                     parseInt(reports[reports.length - 1]._doc?.tdId._doc[doc])
                   );
@@ -964,6 +961,7 @@ class MaqamCompare extends Response {
       }
       response.data.labels = labels;
       response.data.datasets = datasets;
+
       return { labels, datasets };
       res.status(200).json(response);
     } catch (error) {
@@ -1041,7 +1039,7 @@ class MaqamCompare extends Response {
           if (reports?.length > 0) {
             const keys = Object.keys(
               reports[reports.length - 1]._doc.muntakhibTdId._doc
-            ).filter((i) => i !== "_id" && i !== "__v");
+            ).filter((i) => i !== "_id" && i !== "__v" && i !== "registered");
             if (property === "spiderChart") {
               if (reports[reports.length - 1]._doc?.muntakhibTdId._doc) {
                 sample.data.push(
