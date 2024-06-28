@@ -809,7 +809,7 @@ class MarkazCompare extends Response {
         if (reports?.length > 0) {
           const keys = Object.keys(
             reports[reports.length - 1]._doc.otherActivityId._doc
-          ).filter((i) => i !== "_id" && i !== "__v");
+          ).filter((i) => i !== "_id" && i !== "__v" && i !== "anyOther");
           if (property === "spiderChart") {
             if (reports[reports?.length - 1].otherActivityId._doc) {
               sample.data.push(
@@ -826,18 +826,30 @@ class MarkazCompare extends Response {
               labels.push("tarbiyatgaah");
             }
           } else {
-            keys.forEach((doc) => {
-              if (reports[reports.length - 1]._doc?.otherActivityId._doc) {
-                sample.data.push(
-                  parseInt(
-                    reports[reports.length - 1]._doc?.otherActivityId._doc[doc]
-                  )
-                );
-                if (!labels.includes(doc.toLowerCase())) {
-                  labels.push(doc.toLowerCase());
+            keys
+              .filter(
+                (ke) =>
+                  ![
+                    "tarbiyatgaahheldmanual",
+                    "tarbiyatgaahheld",
+                    "tarbiyatgaahgoalmanual",
+                    "tarbiyatgaahgoal",
+                  ].includes(ke.toLowerCase())
+              )
+              .forEach((doc) => {
+                if (reports[reports.length - 1]._doc?.otherActivityId._doc) {
+                  sample.data.push(
+                    parseInt(
+                      reports[reports.length - 1]._doc?.otherActivityId._doc[
+                        doc
+                      ]
+                    )
+                  );
+                  if (!labels.includes(doc.toLowerCase())) {
+                    labels.push(doc.toLowerCase());
+                  }
                 }
-              }
-            });
+              });
           }
         }
         datasets.push(sample);
