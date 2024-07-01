@@ -857,7 +857,7 @@ class IlaqaReport extends Response {
       }
       const startDate = new Date(desiredYear, desiredMonth, 0);
       const endDate = new Date(desiredYear, desiredMonth + 1, 1);
-
+      accessList.push(id);
       const ilaqaReports = await IlaqaReportModel.find({
         month: {
           $gte: startDate,

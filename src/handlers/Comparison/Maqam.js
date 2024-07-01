@@ -39,7 +39,11 @@ class MaqamCompare extends Response {
     if (goal === 0) {
       return 0;
     }
-    return ((achieved / goal) * 100).toFixed(2);
+    if (achieved > goal) {
+      return 100;
+    } else {
+      return ((achieved / goal) * 100).toFixed(2);
+    }
   };
   calculateProfitLossPercentage = (income, expenditure) => {
     if (income === 0) {
@@ -937,7 +941,6 @@ class MaqamCompare extends Response {
                     "meetingsmanual",
                   ].includes(doc)
                 ) {
-             
                   sample.data.push(
                     parseInt(reports[reports.length - 1]._doc?.tdId._doc[doc])
                   );
