@@ -233,47 +233,53 @@ class HalqaCompare extends Response {
           },
           "halqaActivityId"
         ).populate("halqaActivityId");
-        if (reports.length > 0 && property === "spiderChart") {
-          const keys = Object.keys(
-            reports[reports?.length - 1]._doc.halqaActivityId._doc
-          ).filter((key) => key !== "_id" && key !== "__v");
+        if (reports?.length > 0) {
+          if (reports?.length > 0 && property === "spiderChart") {
+            const keys = Object.keys(
+              reports[reports?.length - 1]._doc?.halqaActivityId._doc
+            ).filter((key) => key !== "_id" && key !== "__v");
 
-          keys.forEach((doc) => {
-            if (reports[reports?.length - 1]._doc?.halqaActivityId._doc[doc]) {
-              sample.data.push(
-                (parseInt(
-                  reports[reports?.length - 1]._doc.halqaActivityId._doc[doc]
-                    ._doc.decided
-                ) /
+            keys.forEach((doc) => {
+              if (
+                reports[reports?.length - 1]._doc?.halqaActivityId._doc[doc]
+              ) {
+                sample.data.push(
+                  (parseInt(
+                    reports[reports?.length - 1]._doc?.halqaActivityId._doc[doc]
+                      .decided
+                  ) /
+                    parseInt(
+                      reports[reports?.length - 1]._doc?.halqaActivityId._doc[
+                        doc
+                      ].completed
+                    )) *
+                    100
+                );
+                if (!labels.includes(doc.toLowerCase())) {
+                  labels.push(doc.toLowerCase());
+                }
+              }
+            });
+          } else {
+            const keys = Object.keys(
+              reports[reports?.length - 1]._doc.halqaActivityId._doc
+            ).filter((key) => key !== "_id" && key !== "__v");
+            keys.forEach((doc) => {
+              if (
+                reports[reports?.length - 1]._doc?.halqaActivityId._doc[doc]
+              ) {
+                sample.data.push(
                   parseInt(
-                    reports[reports?.length - 1]._doc.halqaActivityId._doc[doc]
-                      ._doc.completed
-                  )) *
-                  100
-              );
-              if (!labels.includes(doc.toLowerCase())) {
-                labels.push(doc.toLowerCase());
+                    reports[reports?.length - 1]._doc?.halqaActivityId._doc[doc]
+                      .completed
+                  )
+                );
+                if (!labels.includes(doc.toLowerCase())) {
+                  labels.push(doc.toLowerCase());
+                }
               }
-            }
-          });
-        } else {
-          const keys = Object.keys(
-            reports[reports?.length - 1]._doc.halqaActivityId._doc
-          ).filter((key) => key !== "_id" && key !== "__v");
-
-          keys.forEach((doc) => {
-            if (reports[reports?.length - 1]._doc?.halqaActivityId._doc[doc]) {
-              sample.data.push(
-                parseInt(
-                  reports[reports?.length - 1]._doc.halqaActivityId._doc[doc]
-                    ._doc.completed
-                )
-              );
-              if (!labels.includes(doc.toLowerCase())) {
-                labels.push(doc.toLowerCase());
-              }
-            }
-          });
+            });
+          }
         }
         datasets.push(sample);
       }
@@ -442,36 +448,41 @@ class HalqaCompare extends Response {
           },
           "tdId"
         ).populate("tdId");
-        if (reports.length > 0 && property === "spiderChart") {
-          if (reports[reports?.length - 1]._doc?.tdId._doc) {
-            sample.data.push(
-              (
-                (parseInt(reports[reports?.length - 1]._doc?.tdId.meetings) /
-                  parseInt(
-                    reports[reports?.length - 1]._doc?.tdId.rwabitMeetingsGoal
-                  )) *
-                100
-              ).toFixed(2)
-            );
-          }
-
-          labels.push("meetings");
-        } else {
-          const keys = Object.keys(
-            reports[reports?.length - 1]._doc.tdId._doc
-          ).filter(
-            (key) => key !== "_id" && key !== "__v" && key !== "registered"
-          );
-          keys.forEach((doc) => {
+        if (reports?.length > 0) {
+          if (reports.length > 0 && property === "spiderChart") {
             if (reports[reports?.length - 1]._doc?.tdId._doc) {
               sample.data.push(
-                parseInt(reports[reports?.length - 1]._doc?.tdId._doc[doc])
+                (
+                  (parseInt(
+                    reports[reports?.length - 1]._doc?.tdId._doc.meetings
+                  ) /
+                    parseInt(
+                      reports[reports?.length - 1]._doc?.tdId._doc
+                        .rwabitMeetingsGoal
+                    )) *
+                  100
+                ).toFixed(2)
               );
-              if (!labels.includes(doc.toLowerCase())) {
-                labels.push(doc.toLowerCase());
-              }
             }
-          });
+
+            labels.push("meetings");
+          } else {
+            const keys = Object.keys(
+              reports[reports?.length - 1]._doc.tdId._doc
+            ).filter(
+              (key) => key !== "_id" && key !== "__v" && key !== "registered"
+            );
+            keys.forEach((doc) => {
+              if (reports[reports?.length - 1]._doc?.tdId._doc) {
+                sample.data.push(
+                  parseInt(reports[reports?.length - 1]._doc?.tdId._doc[doc])
+                );
+                if (!labels.includes(doc.toLowerCase())) {
+                  labels.push(doc.toLowerCase());
+                }
+              }
+            });
+          }
         }
         datasets.push(sample);
       }
@@ -703,23 +714,25 @@ class HalqaCompare extends Response {
             }
           }
         } else {
-          const keys = Object.keys(
-            reports[reports?.length - 1]._doc.rsdId._doc
-          ).filter((i) => i !== "_id" && i !== "__v");
-          keys.forEach((doc) => {
-            if (reports[reports?.length - 1]._doc?.rsdId._doc) {
-              sample.data.push(
-                parseInt(reports[reports?.length - 1]._doc?.rsdId._doc[doc])
-              );
-              if (!labels.includes(doc.toLowerCase())) {
-                labels.push(doc.toLowerCase());
+          if (reports?.length > 0) {
+            const keys = Object.keys(
+              reports[reports?.length - 1]._doc.rsdId._doc
+            ).filter((i) => i !== "_id" && i !== "__v");
+            keys.forEach((doc) => {
+              if (reports[reports?.length - 1]._doc?.rsdId._doc) {
+                sample.data.push(
+                  parseInt(reports[reports?.length - 1]._doc?.rsdId._doc[doc])
+                );
+                if (!labels.includes(doc.toLowerCase())) {
+                  labels.push(doc.toLowerCase());
+                }
               }
-            }
-          });
+            });
+          }
         }
         datasets.push(sample);
       }
-   
+
       response.data.labels = labels;
       response.data.datasets = datasets;
       return { labels, datasets };
