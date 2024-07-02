@@ -587,7 +587,7 @@ class MarkazCompare extends Response {
           },
           "markazActivityId"
         ).populate("markazActivityId");
-        if (reports.length > 0) {
+        if (reports?.length > 0) {
           const keys = Object.keys(
             reports[reports.length - 1]._doc.markazActivityId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
@@ -697,7 +697,7 @@ class MarkazCompare extends Response {
           },
           "mentionedActivityId"
         ).populate("mentionedActivityId");
-        if (reports.length > 0) {
+        if (reports?.length > 0) {
           const keys = Object.keys(
             reports[reports.length - 1]._doc.mentionedActivityId._doc
           ).filter((i) => i !== "_id" && i !== "__v");
