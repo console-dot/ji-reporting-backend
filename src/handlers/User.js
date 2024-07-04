@@ -1018,6 +1018,7 @@ class User extends Response {
         await UserModel.findOne({
           _id: userId,
         });
+      const userExist = await UserModel.findOne({ _id: userId });
       const allIds = await getRoleFlow(
         immediate_user_id.toString(),
         userAreaType.toLowerCase()
