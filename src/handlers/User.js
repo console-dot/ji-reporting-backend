@@ -104,7 +104,7 @@ class User extends Response {
           status: 400,
         });
       }
-      if (!nazim) {
+      if (!nazim && nazim) {
         return this.sendResponse(req, res, {
           message: "Nazim type is requied!",
           status: 400,
@@ -170,7 +170,7 @@ class User extends Response {
           status: 400,
         });
       }
-      if (!nazimType) {
+      if (!nazimType && nazim !== "markaz") {
         return this.sendResponse(req, res, {
           message: "Nazim Type is requied!",
           status: 400,
@@ -190,70 +190,107 @@ class User extends Response {
           status: 400,
         });
       }
+      let newUser;
 
-      const role = await RoleModel.findOne({ title: nazim });
-      const immediate_user_id = await getImmediateUser(
-        userAreaId,
-        userAreaType
-      );
-      const existingNazim = await UserModel.findOne({
-        userAreaId: userAreaId,
-        nazimType: { $in: ["nazim", "rukan-nazim", "umeedwaar-nazim"] },
-        isDeleted: false,
-      });
-      if (
-        existingNazim &&
-        (nazimType === "nazim" ||
-          nazimType === "rukan-nazim" ||
-          nazimType === "umeedwaar-nazim")
-      ) {
-        return this.sendResponse(req, res, {
-          message: `Another ${existingNazim?.nazimType} with ${existingNazim?.email} found for this area`,
-          status: 404,
+      if (nazim === "markaz") {
+        let newUserRequest;
+        const user = await UserModel.findOne({ userAreaId });
+        const userRequestReq = new UserRequest({
+          immediate_user_id: user?.userAreaId,
+          nazimType: joiningDate?.title,
         });
-      }
-      let newUserRequest;
-      const encryptedPhone = this.encryptData(phoneNumber);
-      const encryptedWhatsapp = this.encryptData(whatsAppNumber);
-      const encryptedHomeAdress = this.encryptData(address);
-      if (
-        (nazimType === "rukan" || nazimType === "umeedwar") &&
-        userAreaType !== "Halqa" &&
-        userAreaType !== "Ilaqa"
-      ) {
-        newUserRequest = new UserRequest({
-          immediate_user_id: userAreaId,
-          nazimType,
+        newUserRequest = await userRequestReq.save();
+        const encryptedPhone = this.encryptData(phoneNumber);
+        const encryptedWhatsapp = this.encryptData(whatsAppNumber);
+        const encryptedHomeAdress = this.encryptData(address);
+        newUser = new UserModel({
+          email,
+          password,
+          name,
+          age,
+          nazim: "country",
+          userAreaId,
+          userAreaType: "Country",
+          userRequestId: userRequestReq?._id,
+          fatherName,
+          dob,
+          address: encryptedHomeAdress,
+          qualification,
+          subject,
+          semester,
+          institution,
+          joiningDate,
+          phoneNumber: encryptedPhone,
+          whatsAppNumber: encryptedWhatsapp,
+          nazimType: joiningDate?.title,
         });
       } else {
-        newUserRequest = new UserRequest({
-          immediate_user_id,
+        const role = await RoleModel.findOne({ title: nazim });
+        const immediate_user_id = await getImmediateUser(
+          userAreaId,
+          userAreaType
+        );
+        const existingNazim = await UserModel.findOne({
+          userAreaId: userAreaId,
+          nazimType: { $in: ["nazim", "rukan-nazim", "umeedwaar-nazim"] },
+          isDeleted: false,
+        });
+        if (
+          existingNazim &&
+          (nazimType === "nazim" ||
+            nazimType === "rukan-nazim" ||
+            nazimType === "umeedwaar-nazim")
+        ) {
+          return this.sendResponse(req, res, {
+            message: `Another ${existingNazim?.nazimType} with ${existingNazim?.email} found for this area`,
+            status: 404,
+          });
+        }
+
+        const encryptedPhone = this.encryptData(phoneNumber);
+        const encryptedWhatsapp = this.encryptData(whatsAppNumber);
+        const encryptedHomeAdress = this.encryptData(address);
+        let newUserRequest;
+        if (
+          (nazimType === "rukan" || nazimType === "umeedwar") &&
+          userAreaType !== "Halqa" &&
+          userAreaType !== "Ilaqa"
+        ) {
+          newUserRequest = new UserRequest({
+            immediate_user_id: userAreaId,
+            nazimType,
+          });
+        } else {
+          newUserRequest = new UserRequest({
+            immediate_user_id,
+            nazimType,
+          });
+        }
+        const userRequestReq = await newUserRequest.save();
+        newUser = new UserModel({
+          email,
+          password,
+          name,
+          age,
+          role: role ? [role?._id] : [],
+          nazim,
+          userAreaId,
+          userAreaType,
+          userRequestId: userRequestReq?._id,
+          fatherName,
+          dob,
+          address: encryptedHomeAdress,
+          qualification,
+          subject,
+          semester,
+          institution,
+          joiningDate,
+          phoneNumber: encryptedPhone,
+          whatsAppNumber: encryptedWhatsapp,
           nazimType,
         });
       }
-      const userRequestReq = await newUserRequest.save();
-      const newUser = new UserModel({
-        email,
-        password,
-        name,
-        age,
-        role: role ? [role?._id] : [],
-        nazim,
-        userAreaId,
-        userAreaType,
-        userRequestId: userRequestReq?._id,
-        fatherName,
-        dob,
-        address: encryptedHomeAdress,
-        qualification,
-        subject,
-        semester,
-        institution,
-        joiningDate,
-        phoneNumber: encryptedPhone,
-        whatsAppNumber: encryptedWhatsapp,
-        nazimType,
-      });
+
       const newUserReq = await newUser.save();
       await auditLogger(newUserReq, "USER_SIGNUP", "New user signed up", req);
       if (!newUserReq?._id) {
