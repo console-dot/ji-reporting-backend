@@ -7,7 +7,7 @@ class Mailer {
       port: parseInt(process.env.MAIL_PORT),
       secure: parseInt(process.env.MAIL_PORT) == 465, // true for 465, false for other ports
       auth: {
-        user: process.env.MAIL_EMAIL, // generated ethereal user
+        user: process.env.SMTP_EMAIL, // generated ethereal user
         pass: process.env.MAIL_PASSWORD, // generated ethereal password
       },
     });

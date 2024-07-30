@@ -499,7 +499,7 @@ class User extends Response {
           </body>
           </html>`;
         mailer.sendMail(
-          process.env.MAIL_EMAIL,
+          process.env.SMTP_EMAIL,
           email,
           "Reset password link",
           html
