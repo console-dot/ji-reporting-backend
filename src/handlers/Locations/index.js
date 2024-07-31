@@ -6,6 +6,7 @@ const Province = require("./Province");
 const Tehsil = require("./Tehsil");
 const FilterHalqas = require("./FilterHalqas");
 const Ilaqa = require("./Ilaqa");
+const Country = require("./Markaz");
 module.exports = {
   District,
   Division,
@@ -15,4 +16,5 @@ module.exports = {
   Tehsil,
   FilterHalqas,
   Ilaqa,
+  Country,
 };
