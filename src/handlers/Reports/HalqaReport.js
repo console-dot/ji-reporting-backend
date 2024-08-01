@@ -319,7 +319,9 @@ class HalqaReport extends Response {
 
   getSingleReport = async (req, res) => {
     const token = req.headers.authorization;
+    const { date } = req?.query;
     const _id = req?.params?.id;
+
     try {
       if (!token) {
         return this.sendResponse(req, res, {
@@ -338,8 +340,9 @@ class HalqaReport extends Response {
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      const hr = await HalqaReportModel.findOne({ _id }).select("halqaAreaId");
+      const hr = await HalqaReportModel.findOne({ halqaAreaId:_id }).select("halqaAreaId");
       const halqaAreaId = hr?.halqaAreaId || "";
+
       if (!accessList.includes(halqaAreaId.toString())) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
@@ -347,7 +350,18 @@ class HalqaReport extends Response {
         });
       }
       let report;
-      report = await HalqaReportModel.findOne({ _id }).populate([
+      if (date) {
+        report = await HalqaReportModel.findOne({
+          halqaAreaId: _id,
+          month: date,
+        }).populate({ path: "halqaAreaId" });
+        if (!report) {
+          return this.sendResponse(req, res, {
+            message: "Report not found",
+            status: 400,
+          });
+        }
+      } else { report = await HalqaReportModel.findOne({halqaAreaId: _id }).populate([
         { path: "userId", select: ["_id", "email", "name", "age"] },
         { path: "wiId" },
         { path: "halqaActivityId" },
@@ -357,7 +371,7 @@ class HalqaReport extends Response {
         { path: "rsdId" },
         { path: "halqaAreaId" },
         { path: "baitulmalId" },
-      ]);
+      ]);}
       return this.sendResponse(req, res, {
         data: report,
         message: "Halqa Report fetched",
