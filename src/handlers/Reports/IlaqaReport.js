@@ -251,7 +251,6 @@ class IlaqaReport extends Response {
       const newMentionedActivity = new MentionedActivitiesModel({
         ijtRafaqa,
         studyCircle: studyCircleMentioned,
-        ijtKarkunan,
         darseQuran,
         shaheenMeeting,
         paighamEvent,
@@ -633,7 +632,6 @@ class IlaqaReport extends Response {
           "members",
         ],
         maqamActivityId: [
-          "ijtArkan",
           "ijtNazmeen",
           "ijtUmeedwaran",
           "sadurMeeting",
@@ -711,7 +709,6 @@ class IlaqaReport extends Response {
             element === "karkunan" ||
             element === "shaheen" ||
             element === "members" ||
-            element === "ijtArkan" ||
             element === "studyCircle" ||
             element === "ijtNazmeen" ||
             element === "sadurMeeting" ||
