@@ -1296,7 +1296,6 @@ class MarkazCompare extends Response {
           },
           "baitulmalId"
         ).populate("baitulmalId");
-        console.log(reports)
         if (reports?.length > 0) {
           const keys = Object.keys(
             reports[reports?.length - 1]?._doc.baitulmalId?._doc
