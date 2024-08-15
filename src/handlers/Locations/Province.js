@@ -144,7 +144,8 @@ class Province extends Response {
   };
   deleteOne = async (req, res) => {
     try {
-      const token = req.headers.authorization;
+      const token = req.body.headers.Authorization;
+     
       const decoded = jwt.decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const userExist = await UserModel.findOne({ _id: userId });
