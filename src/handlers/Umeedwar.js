@@ -297,6 +297,7 @@ class Umeedwar extends Response {
       let reports;
       let total;
       if (offset >= 0 && inset >= 0) {
+     
         if (
           user?.nazim !== "halqa" &&
           user.nazimType !== "rukan" &&
