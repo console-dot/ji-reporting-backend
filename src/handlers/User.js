@@ -64,8 +64,10 @@ class User extends Response {
         joiningDate,
         phoneNumber,
         whatsAppNumber,
+        langPreference,
         nazimType,
       } = req.body;
+      
       if (!userAreaId || !userAreaType) {
         return this.sendResponse(req, res, {
           message: "Location is requied!",
@@ -220,6 +222,7 @@ class User extends Response {
           semester,
           institution,
           joiningDate,
+          langPreference,
           phoneNumber: encryptedPhone,
           whatsAppNumber: encryptedWhatsapp,
           nazimType: joiningDate?.title,
@@ -285,6 +288,7 @@ class User extends Response {
           semester,
           institution,
           joiningDate,
+          langPreference,
           phoneNumber: encryptedPhone,
           whatsAppNumber: encryptedWhatsapp,
           nazimType,
@@ -431,6 +435,7 @@ class User extends Response {
         email: req?.body?.email,
       };
       await auditLogger(user, "USER_LOGGED_IN", "A user logged in", req);
+    
       return this.sendResponse(req, res, {
         data: {
           token,
@@ -438,6 +443,7 @@ class User extends Response {
           id: userExist?._id,
           type: userExist?.nazim,
           nazimType: userExist?.nazimType,
+          langPreference: userExist?.langPreference
         },
       });
     } catch (err) {
@@ -679,9 +685,11 @@ class User extends Response {
         semester,
         institution,
         joiningDate,
+        langPreference,
         phoneNumber,
         whatsAppNumber,
       } = req.body;
+      
       const userExist = await UserModel.findOne({ _id });
       if (!userExist) {
         return this.sendResponse(req, res, {
@@ -733,6 +741,7 @@ class User extends Response {
             joiningDate,
             phoneNumber: this.encryptData(phoneNumber),
             whatsAppNumber: this.encryptData(whatsAppNumber),
+            langPreference
           },
         }
       );
@@ -999,7 +1008,7 @@ class User extends Response {
         const { id } = decoded;
         const user = await UserModel.findOne(
           { _id: id },
-          "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType nazim isDeleted"
+          "email name age _id userAreaId fatherName phoneNumber whatsAppNumber langPreference joiningDate institution semester subject qualification address dob nazimType nazim isDeleted"
         ).populate({ path: "userAreaId", refPath: "userAreaType" });
         return this.sendResponse(req, res, {
           data: user,

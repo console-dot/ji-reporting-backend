@@ -114,10 +114,14 @@ const users = mongoose.Schema(
       type: String,
       required: false,
     },
+    langPreference: {
+      type: String
+    },
     nazimType: {
       type: String,
       enum: ["nazim", "umeedwar", "rukan", "umeedwaar-nazim", "rukan-nazim"],
     },
+    
   },
   { timestamps: true } // For created_at and updated_at
 );
