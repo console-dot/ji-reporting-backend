@@ -1117,7 +1117,7 @@ class User extends Response {
         "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType isDeleted"
       ).populate([
         "userRequestId",
-        { path: "userAreaId", refPath: "userAreaType" },
+        { path: "userAreaId", refPath: "UserRequest" },
       ]);
       return this.sendResponse(req, res, {
         data: data.filter((i) => i?.userRequestId?.status === "accepted"),
