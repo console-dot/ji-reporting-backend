@@ -18,5 +18,5 @@ router.get("/user-requests", handler.getAllRequests);
 router.patch("/user-requests/:id", handler.updateRequest);
 router.get("/un-filled/:id", handler.getUnfilledUsers);
 router.get("/filter", handler.userSearchFilter);
-
+router.patch("/lang-preference", handler.changeLanguage);
 module.exports = router;

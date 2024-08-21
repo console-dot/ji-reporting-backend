@@ -1126,11 +1126,11 @@ class User extends Response {
         "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType isDeleted"
       ).populate([
         "userRequestId",
-        { path: "userAreaId", refPath: "userAreaType" },
+        { path: "userAreaId", refPath: "UserRequest" },
       ]);
       return this.sendResponse(req, res, {
-        data: data.filter((i) => i?.userRequestId?.status === "accepted"),
-        // data:data,
+        // data: data.filter((i) => i?.userRequestId?.status === "accepted"),
+        data:data,
         status: 200,
       });
     } catch (err) {
@@ -1326,6 +1326,39 @@ class User extends Response {
       });
     }
   };
+  changeLanguage = async (req , res) =>{
+   try {const {id, lang} = req.body;
+    if (!id) {
+      return this.sendResponse(req, res, {
+        message: "Access Denied",
+        status: 401,
+      });
+    }
+    if (!lang) {
+      return this.sendResponse(req, res, {
+        message: "Changed Language is required",
+        status: 400,
+      });
+    }
+    const result = await UserModel.findByIdAndUpdate(
+      id,
+      { langPreference: lang }, 
+      { new: true, runValidators: true } 
+    ); 
+    return {
+      message: "Language preference updated successfully.",
+      status: 200,
+      user: result,
+    };
+  }
+    catch (error) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: "Internal Server Error",
+        status: 500,
+      });
+    }
+  }
 }
 
 module.exports = User;
