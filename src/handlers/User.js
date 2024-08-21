@@ -822,7 +822,6 @@ class User extends Response {
           status: 404,
         });
       }
-
       const role = await RoleModel.findOne({ title: nazim.toLowerCase() });
       const isUpdated = await UserModel.updateOne(
         { _id: userId },
@@ -838,7 +837,6 @@ class User extends Response {
           },
         }
       );
-
       if (isUpdated?.modifiedCount > 0) {
         await auditLogger(
           userExist,
