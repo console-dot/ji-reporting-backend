@@ -773,6 +773,18 @@ class User extends Response {
       const superId = decoded?.id;
       const _id = superId;
 
+      if (!userAreaId) {
+        return this.sendResponse(req, res, {
+          message: "UserArea  is required",
+          status: 404,
+        });
+      }
+      if (!nazim) {
+        return this.sendResponse(req, res, {
+          message: "Nazim is required",
+          status: 404,
+        });
+      }
       if (!nazimType) {
         return this.sendResponse(req, res, {
           message: "NazimType  is required",
