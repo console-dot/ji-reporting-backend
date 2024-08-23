@@ -773,19 +773,19 @@ class User extends Response {
       const superId = decoded?.id;
       const _id = superId;
 
-      if (!userAreaId) {
+      if (!userAreaId && userAreaId !== '') {
         return this.sendResponse(req, res, {
           message: "UserArea  is required",
           status: 404,
         });
       }
-      if (!nazim) {
+      if (!nazim && userAreaId !=="") {
         return this.sendResponse(req, res, {
           message: "Nazim is required",
           status: 404,
         });
       }
-      if (!nazimType) {
+      if (!nazimType && userAreaId !=="") {
         return this.sendResponse(req, res, {
           message: "NazimType  is required",
           status: 404,
@@ -1129,11 +1129,11 @@ class User extends Response {
         "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType isDeleted"
       ).populate([
         "userRequestId",
-        { path: "userAreaId", refPath: "UserRequest" },
+        { path: "userAreaId", refPath: "userAreaType" },
       ]);
       return this.sendResponse(req, res, {
         data: data.filter((i) => i?.userRequestId?.status === "accepted"),
-        // data:data,
+
         status: 200,
       });
     } catch (err) {
