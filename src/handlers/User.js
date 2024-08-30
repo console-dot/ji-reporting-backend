@@ -967,6 +967,7 @@ class User extends Response {
       const userFound = await UserModel.findOne({
         _id: userId,
       });
+      console.log(userFound)
       if (!userFound) {
         return this.sendResponse(req, res, {
           message: "User not found",
@@ -974,7 +975,7 @@ class User extends Response {
         });
       }
       const allRequests = await UserRequest.find({
-        immediate_user_id: userFound?.userAreaId,
+        // immediate_user_id: userFound?.userAreaId,
         status: "pending",
       });
       const request_ids = allRequests.map((i) => i?._id.toString());
@@ -1132,8 +1133,8 @@ class User extends Response {
         { path: "userAreaId", refPath: "userAreaType" },
       ]);
       return this.sendResponse(req, res, {
-        data: data.filter((i) => i?.userRequestId?.status === "accepted"),
-
+        // data: data.filter((i) => i?.userRequestId?.status === "accepted"),
+  data:data,
         status: 200,
       });
     } catch (err) {

@@ -884,7 +884,7 @@ class MaqamReport extends Response {
         maqamAreaId: accessList,
       });
       const totalReport = total.length;
-      reports = { data: reports, length: totalReport };
+      reports = { data: reports, length: reports?.length };
       return this.sendResponse(req, res, { data: reports });
     } catch (err) {
       console.log(err);
