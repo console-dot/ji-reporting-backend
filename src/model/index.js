@@ -18,7 +18,7 @@ const { ToseeDawaModel } = require("./toseeDawa");
 const { CountryModel } = require("./country");
 const { IlaqaModel } = require("./ilaqa");
 const {AuditLogModel} = require("./auditLog");
-
+const {ImageModel} =require("./image");
 module.exports = {
   RoleModel,
   UserModel,
@@ -28,6 +28,7 @@ module.exports = {
   DivisionModel,
   ProvinceModel,
   MaqamModel,
+  ImageModel,
   ResetPasswordModel,
   HalqaReports,
   NotificationsModal,
