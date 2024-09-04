@@ -75,6 +75,10 @@ const users = mongoose.Schema(
       required: true,
       ref: "Subject",
     },
+    profileImage : {
+      type: mongoose.Types.ObjectId,
+      ref:"Image"
+    },
     semester: {
       type: String,
       enum: [

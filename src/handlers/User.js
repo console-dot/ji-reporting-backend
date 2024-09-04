@@ -7,7 +7,10 @@ const {
   DivisionModel,
   CountryModel,
   IlaqaModel,
+  ImageModel,
 } = require("../model");
+const multer = require("multer");
+const sharp = require("sharp");
 const { UserRequest } = require("../model/userRequest");
 const {
   MaqamReportModel,
@@ -773,19 +776,19 @@ class User extends Response {
       const superId = decoded?.id;
       const _id = superId;
 
-      if (!userAreaId && userAreaId !== '') {
+      if (!userAreaId && userAreaId !== "") {
         return this.sendResponse(req, res, {
           message: "UserArea  is required",
           status: 404,
         });
       }
-      if (!nazim && userAreaId !=="") {
+      if (!nazim && userAreaId !== "") {
         return this.sendResponse(req, res, {
           message: "Nazim is required",
           status: 404,
         });
       }
-      if (!nazimType && userAreaId !=="") {
+      if (!nazimType && userAreaId !== "") {
         return this.sendResponse(req, res, {
           message: "NazimType  is required",
           status: 404,
@@ -1011,7 +1014,7 @@ class User extends Response {
         const { id } = decoded;
         const user = await UserModel.findOne(
           { _id: id },
-          "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType nazim isDeleted"
+          "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType nazim isDeleted profileImage"
         ).populate({ path: "userAreaId", refPath: "userAreaType" });
         return this.sendResponse(req, res, {
           data: user,
@@ -1326,6 +1329,127 @@ class User extends Response {
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
         status: 500,
+      });
+    }
+  };
+  upload = async (req, res) => {
+    try {
+      if (!req.files) {
+        return this.sendResponse(req, res, {
+          message: "Upload the file/image",
+          status: 404,
+          data: null,
+        });
+      }
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      console.log(userId);
+      const file = req.files;
+      const { mimetype, data, name } = file.profileImage;
+
+      const temp = await sharp(data).webp({ quality: 20 }).toBuffer();
+
+      const newFile = new ImageModel({
+        mimetype: mimetype,
+        data: temp,
+        name: name,
+      });
+      const uploaded = await newFile.save();
+      const updateUser = await UserModel.findByIdAndUpdate(userId, {
+        profileImage: uploaded._id,
+      });
+      console.log(uploaded, updateUser);
+      if (!updateUser) {
+        return this.sendResponse(req, res, {
+          status: 201,
+          message: "Something went wrong!",
+        });
+      }
+      return this.sendResponse(req, res, {
+        status: 201,
+        message: "Uploaded Successfully!",
+      });
+    } catch (error) {
+      console.log(error);
+      return this.sendResponse(req, res, {
+        status: 500,
+        message: "Internal Server Error!",
+      });
+    }
+  };
+  updateImage = async (req, res) => {
+    try {
+      if (!req.files) {
+        return this.sendResponse(req, res, {
+          message: "Upload the file/image",
+          status: 404,
+          data: null,
+        });
+      }
+      const { id } = req.params;
+      const token = req.headers.authorization;
+      const decoded = jwt.decode(token.split(" ")[1]);
+      const userId = decoded?.id;
+      console.log(userId);
+      const file = req.files;
+      const { mimetype, data, name } = file.profileImage;
+
+      const temp = await sharp(data).webp({ quality: 20 }).toBuffer();
+      const updateImage = await ImageModel.findByIdAndUpdate(id, {
+        mimetype: mimetype,
+        data: temp,
+        name: name,
+      });
+
+      if (!updateImage) {
+        return this.sendResponse(req, res, {
+          status: 201,
+          message: "Something went wrong!",
+        });
+      }
+      return this.sendResponse(req, res, {
+        status: 201,
+        message: "Updated Successfully!",
+      });
+    } catch (error) {
+      console.log(error);
+      return this.sendResponse(req, res, {
+        status: 500,
+        message: "Internal Server Error!",
+      });
+    }
+  };
+  getImage = async (req, res) => {
+    try {
+      const { id } = req?.params;
+
+      if (!id) {
+        return this.sendResponse(req, res, {
+          status: 405,
+          message: "No Image Id Provided",
+        });
+      }
+
+      const file = await ImageModel.findOne({ _id: id });
+
+      if (!file) {
+        return this.sendResponse(req, res, {
+          status: 404,
+          message: "File with the given ID not found",
+        });
+      }
+
+      const contentType = file?.mimetype || "application/octet-stream";
+
+      res.setHeader("Content-Type", contentType);
+
+      return res.status(200).send(file?.data);
+    } catch (error) {
+      console.log(error);
+      return this.sendResponse(req, res, {
+        status: 500,
+        message: "Internal Server Error!",
       });
     }
   };

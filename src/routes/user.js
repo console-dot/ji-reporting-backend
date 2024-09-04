@@ -18,5 +18,7 @@ router.get("/user-requests", handler.getAllRequests);
 router.patch("/user-requests/:id", handler.updateRequest);
 router.get("/un-filled/:id", handler.getUnfilledUsers);
 router.get("/filter", handler.userSearchFilter);
-
+router.post("/upload", handler.upload);
+router.put("/upload/:id", handler.updateImage);
+router.get("/upload/:id", handler.getImage)
 module.exports = router;
