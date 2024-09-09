@@ -1136,7 +1136,6 @@ class User extends Response {
       ]);
       return this.sendResponse(req, res, {
         data: data.filter((i) => i?.userRequestId?.status === "accepted"),
-
         status: 200,
       });
     } catch (err) {
