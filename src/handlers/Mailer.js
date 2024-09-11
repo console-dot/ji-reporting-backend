@@ -7,7 +7,7 @@ class Mailer {
       port: parseInt(process.env.MAIL_PORT),
       secure: parseInt(process.env.MAIL_PORT) == 465, // true for 465, false for other ports
       auth: {
-        user: process.env.SMTP_EMAIL, // generated ethereal user
+        user: process.env.MAIL_EMAIL, // generated ethereal user
         pass: process.env.MAIL_PASSWORD, // generated ethereal password
       },
     });
@@ -20,6 +20,7 @@ class Mailer {
       html,
     };
     try {
+   
       const res = await this.transporter.sendMail(mailOptions);
       return 0;
     } catch (err) {
