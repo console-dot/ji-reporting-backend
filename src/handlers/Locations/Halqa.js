@@ -48,16 +48,18 @@ class Halqa extends Response {
         });
       }
       const isExist = await HalqaModel.findOne({
-        name,
+        name: { $regex: new RegExp(`^${name}$`, 'i') }, // Case-insensitive check for name
         parentId,
-        parentType: parentType,
+        parentType
       });
+      
       if (isExist) {
         return this.sendResponse(req, res, {
-          message: "Halqa already exist!",
+          message: "Halqa already exists!",
           status: 400,
         });
       }
+      
       const newHalqa = new HalqaModel({
         name,
         parentId,
@@ -353,7 +355,7 @@ class Halqa extends Response {
         });
       }
       return this.sendResponse(req, res, {
-        message: "Nothing to update",
+        message: "Wait! Too many requests",
         status: 400,
       });
     } catch (err) {

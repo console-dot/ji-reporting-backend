@@ -29,10 +29,14 @@ class Division extends Response {
           status: 404,
         });
       }
-      const isExist = await DivisionModel.findOne({ name, province });
+      const isExist = await DivisionModel.findOne({ 
+        name: { $regex: new RegExp(`^${name}$`, 'i') }, // Case-insensitive check for name
+        province 
+      });
+  
       if (isExist) {
         return this.sendResponse(req, res, {
-          message: "Division already exist!",
+          message: "Division already exists!",
           status: 400,
         });
       }

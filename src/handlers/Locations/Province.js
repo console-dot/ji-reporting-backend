@@ -24,13 +24,17 @@ class Province extends Response {
           status: 404,
         });
       }
-      const isExist = await ProvinceModel.findOne({ name });
+      const isExist = await ProvinceModel.findOne({
+        name: { $regex: new RegExp(`^${name}$`, 'i') } // Case-insensitive check for name
+      });
+      
       if (isExist) {
         return this.sendResponse(req, res, {
-          message: "Province already exist!",
+          message: "Province already exists!",
           status: 400,
         });
       }
+      
       const isCountry = await CountryModel.findOne({ name: country });
       if (isCountry) {
         const newProvince = new ProvinceModel({ name, country: isCountry._id });

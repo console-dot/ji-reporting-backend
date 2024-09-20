@@ -523,7 +523,7 @@ class User extends Response {
                                         </p>
                                         <a href="${
                                           process.env.BASE_URL ||
-                                          "http://localhost:3000"
+                                          "https://staging.jamiatreporting.com"
                                         }/reset?key=${key}"
                                             style="background:#20e277;text-decoration:none !important; font-weight:500; margin-top:35px; color:#fff;text-transform:uppercase; font-size:14px;padding:10px 24px;display:inline-block;border-radius:50px;">Reset
                                             Password</a>
@@ -603,6 +603,7 @@ class User extends Response {
       }
       try {
         const decoded = jwt.verify(key, process.env.JWT_SECRET);
+        console.log(decoded)
         const keyExist = await ResetPasswordModel.findOne({
           email: decoded?.email,
           key,
