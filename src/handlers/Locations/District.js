@@ -29,10 +29,14 @@ class District extends Response {
           status: 404,
         });
       }
-      const isExist = await DistrictModel.findOne({ name, division });
+      const isExist = await DistrictModel.findOne({ 
+        name: { $regex: new RegExp(`^${name}$`, 'i') }, // Case-insensitive check for name
+        division 
+      });
+  
       if (isExist) {
         return this.sendResponse(req, res, {
-          message: "District already exist!",
+          message: "District already exists!",
           status: 400,
         });
       }

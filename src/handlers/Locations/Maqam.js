@@ -29,13 +29,18 @@ class Maqam extends Response {
           status: 404,
         });
       }
-      const isExist = await MaqamModel.findOne({ name, province });
+      const isExist = await MaqamModel.findOne({
+        name: { $regex: new RegExp(`^${name}$`, 'i') }, // Case-insensitive check for name
+        province
+      });
+      
       if (isExist) {
         return this.sendResponse(req, res, {
-          message: "Maqam already exist!",
+          message: "Maqam already exists!",
           status: 400,
         });
       }
+      
       const newMaqam = new MaqamModel({ name, province });
       await newMaqam.save();
       await auditLogger(

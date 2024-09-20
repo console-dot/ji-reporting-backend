@@ -123,6 +123,7 @@ const getRoleFlow = async (id, key) => {
         getRoleFlow(item?._id, "maqam")
       );
       const provinceResultsm = await Promise.all(provincePromisesm);
+     
       return [
         ...provinceResults.flat(),
         ...divisionList.map((item) => item?._id),

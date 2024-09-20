@@ -29,13 +29,18 @@ class Ilaqa extends Response {
           status: 400,
         });
       }
-      const isExist = await IlaqaModel.findOne({ name, maqam });
+      const isExist = await IlaqaModel.findOne({
+        name: { $regex: new RegExp(`^${name}$`, 'i') }, // Case-insensitive check for name
+        maqam
+      });
+      
       if (isExist) {
         return this.sendResponse(req, res, {
-          message: "Ilaqa already exist!",
+          message: "Ilaqa already exists!",
           status: 400,
         });
       }
+      
       const newIlaqa = new IlaqaModel({ name, maqam });
       await newIlaqa.save();
       await auditLogger(
