@@ -254,6 +254,7 @@ class IlaqaReport extends Response {
         darseQuran,
         shaheenMeeting,
         paighamEvent,
+        ijtKarkunan
       });
       const newOtherActivity = new OtherActivitiesModel({
         dawatiWafud,

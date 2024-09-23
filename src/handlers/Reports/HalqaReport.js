@@ -329,6 +329,7 @@ class HalqaReport extends Response {
           status: 401,
         });
       }
+      
       if (!_id) {
         return this.sendResponse(req, res, {
           message: "Id is required",
@@ -340,8 +341,9 @@ class HalqaReport extends Response {
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      const hr = await HalqaReportModel.findOne({ halqaAreaId:_id }).select("halqaAreaId");
+      const hr = await HalqaReportModel.findOne({ _id })
       const halqaAreaId = hr?.halqaAreaId || "";
+      
 
       if (!accessList.includes(halqaAreaId.toString())) {
         return this.sendResponse(req, res, {
@@ -352,7 +354,7 @@ class HalqaReport extends Response {
       let report;
       if (date) {
         report = await HalqaReportModel.findOne({
-          halqaAreaId: _id,
+           _id,
           month: date,
         }).populate({ path: "halqaAreaId" });
         if (!report) {
@@ -361,7 +363,7 @@ class HalqaReport extends Response {
             status: 400,
           });
         }
-      } else { report = await HalqaReportModel.findOne({halqaAreaId: _id }).populate([
+      } else { report = await HalqaReportModel.findOne({_id }).populate([
         { path: "userId", select: ["_id", "email", "name", "age"] },
         { path: "wiId" },
         { path: "halqaActivityId" },
