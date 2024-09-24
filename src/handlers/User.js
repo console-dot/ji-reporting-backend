@@ -610,7 +610,7 @@ class User extends Response {
       }
       try {
         const decoded = jwt.verify(key, process.env.JWT_SECRET);
-        console.log(decoded)
+      
         const keyExist = await ResetPasswordModel.findOne({
           email: decoded?.email,
           key,
@@ -799,7 +799,7 @@ class User extends Response {
           },
         }
       );
-      console.log(updated)
+     
       if (updated?.modifiedCount > 0) {
         await auditLogger(
           userExist,
@@ -1450,7 +1450,6 @@ class User extends Response {
       const token = req.headers.authorization;
       const decoded = jwt.decode(token.split(" ")[1]);
       const userId = decoded?.id;
-      console.log(userId);
       const file = req.files;
       const { mimetype, data, name } = file.profileImage;
 
