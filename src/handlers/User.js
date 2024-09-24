@@ -332,7 +332,7 @@ class User extends Response {
           status: 400,
         });
       }
-      const userExist = await UserModel.findOne({ email });
+      const userExist = await UserModel.findOne({ email }).populate('userAreaId');
       // return
       if (!userExist) {
         return this.sendResponse(req, res, {
@@ -353,6 +353,13 @@ class User extends Response {
           status: 400,
         });
       }
+      if (userExist?.userAreaId?.disabled) {
+        return this.sendResponse(req, res, {
+          message: "Your Location is disabled.",
+          status: 400,
+        });
+      }
+     
       if (userExist.nazim.toLowerCase() === "halqa") {
         const areaExist = await HalqaModel?.findOne({
           _id: userExist?.userAreaId,
@@ -765,13 +772,13 @@ class User extends Response {
       } else {
         email = email.toLowerCase();
       }
-      const emailExist = await UserModel.findOne({ email, _id: { $ne: _id } });
-      if (emailExist) {
-        return this.sendResponse(req, res, {
-          message: "User already exist with same email",
-          status: 400,
-        });
-      }
+      // const emailExist = await UserModel.findOne({ email, _id: { $ne: _id } });
+      // if (emailExist) {
+      //   return this.sendResponse(req, res, {
+      //     message: "User already exist with same email",
+      //     status: 400,
+      //   });
+      // }
       const updated = await UserModel.updateOne(
         { _id },
         {
@@ -792,6 +799,7 @@ class User extends Response {
           },
         }
       );
+      console.log(updated)
       if (updated?.modifiedCount > 0) {
         await auditLogger(
           userExist,

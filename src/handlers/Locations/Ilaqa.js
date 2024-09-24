@@ -84,6 +84,7 @@ class Ilaqa extends Response {
             path: "maqam",
             populate: { path: "province" },
           });
+          console.log(data)
         } else if (isUser.userAreaType === "Country") {
           data = await IlaqaModel.find({}).populate({
             path: "maqam",

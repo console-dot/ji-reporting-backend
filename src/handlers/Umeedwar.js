@@ -297,9 +297,8 @@ class Umeedwar extends Response {
       let reports;
       let total;
       if (offset >= 0 && inset >= 0) {
-     
         if (
-          user?.nazim !== "halqa" &&
+          user?.userAreaType !== "Country" &&
           user.nazimType !== "rukan" &&
           user?.nazimType !== "umeedwar"
         ) {
@@ -315,7 +314,11 @@ class Umeedwar extends Response {
             .sort({ createdAt: -1 })
             .skip(inset)
             .limit(offset);
-        } else if (user?.userAreaType === "Country") {
+        } else if (
+          user?.userAreaType === "Country" &&
+          user.nazimType !== "rukan" &&
+          user?.nazimType !== "umeedwar"
+        ) {
           reports = await UmeedwarModel.find({})
             .populate([
               {
@@ -386,7 +389,6 @@ class Umeedwar extends Response {
         }
       } else {
         if (
-          user?.nazim !== "halqa" &&
           user.nazimType !== "rukan" &&
           user?.nazimType !== "umeedwar"
         ) {
