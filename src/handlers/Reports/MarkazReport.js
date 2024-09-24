@@ -80,6 +80,15 @@ const isDataComplete = (dataToUpdate) => {
     "monthlyExpenditure",
     "savings",
     "loss",
+    "jamiaatA",
+    "jamiaatB",
+    "jamiaatC",
+    "jamiaatD",
+    "jamiaatE",
+    "collegesA",
+    "collegesB",
+    "collegesC",
+    "collegesD",
   ];
 
   const missingKeys = requiredKeys.filter((key) => !(key in dataToUpdate));

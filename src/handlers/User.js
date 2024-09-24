@@ -332,7 +332,7 @@ class User extends Response {
           status: 400,
         });
       }
-      const userExist = await UserModel.findOne({ email });
+      const userExist = await UserModel.findOne({ email }).populate('userAreaId');
       // return
       if (!userExist) {
         return this.sendResponse(req, res, {
@@ -353,6 +353,13 @@ class User extends Response {
           status: 400,
         });
       }
+      if (userExist?.userAreaId?.disabled) {
+        return this.sendResponse(req, res, {
+          message: "Your Location is disabled.",
+          status: 400,
+        });
+      }
+     
       if (userExist.nazim.toLowerCase() === "halqa") {
         const areaExist = await HalqaModel?.findOne({
           _id: userExist?.userAreaId,
@@ -603,7 +610,7 @@ class User extends Response {
       }
       try {
         const decoded = jwt.verify(key, process.env.JWT_SECRET);
-        console.log(decoded)
+      
         const keyExist = await ResetPasswordModel.findOne({
           email: decoded?.email,
           key,
@@ -765,13 +772,13 @@ class User extends Response {
       } else {
         email = email.toLowerCase();
       }
-      const emailExist = await UserModel.findOne({ email, _id: { $ne: _id } });
-      if (emailExist) {
-        return this.sendResponse(req, res, {
-          message: "User already exist with same email",
-          status: 400,
-        });
-      }
+      // const emailExist = await UserModel.findOne({ email, _id: { $ne: _id } });
+      // if (emailExist) {
+      //   return this.sendResponse(req, res, {
+      //     message: "User already exist with same email",
+      //     status: 400,
+      //   });
+      // }
       const updated = await UserModel.updateOne(
         { _id },
         {
@@ -792,6 +799,7 @@ class User extends Response {
           },
         }
       );
+     
       if (updated?.modifiedCount > 0) {
         await auditLogger(
           userExist,
@@ -1442,7 +1450,6 @@ class User extends Response {
       const token = req.headers.authorization;
       const decoded = jwt.decode(token.split(" ")[1]);
       const userId = decoded?.id;
-      console.log(userId);
       const file = req.files;
       const { mimetype, data, name } = file.profileImage;
 
