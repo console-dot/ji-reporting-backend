@@ -332,7 +332,9 @@ class User extends Response {
           status: 400,
         });
       }
-      const userExist = await UserModel.findOne({ email }).populate('userAreaId');
+      const userExist = await UserModel.findOne({ email }).populate(
+        "userAreaId"
+      );
       // return
       if (!userExist) {
         return this.sendResponse(req, res, {
@@ -359,7 +361,7 @@ class User extends Response {
           status: 400,
         });
       }
-     
+
       if (userExist.nazim.toLowerCase() === "halqa") {
         const areaExist = await HalqaModel?.findOne({
           _id: userExist?.userAreaId,
@@ -610,7 +612,7 @@ class User extends Response {
       }
       try {
         const decoded = jwt.verify(key, process.env.JWT_SECRET);
-      
+
         const keyExist = await ResetPasswordModel.findOne({
           email: decoded?.email,
           key,
@@ -799,7 +801,7 @@ class User extends Response {
           },
         }
       );
-     
+
       if (updated?.modifiedCount > 0) {
         await auditLogger(
           userExist,
@@ -1418,7 +1420,7 @@ class User extends Response {
       const updateUser = await UserModel.findByIdAndUpdate(userId, {
         profileImage: uploaded._id,
       });
-      
+
       if (!updateUser) {
         return this.sendResponse(req, res, {
           status: 201,

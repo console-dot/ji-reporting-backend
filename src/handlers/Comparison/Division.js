@@ -1523,6 +1523,8 @@ class DivisionCompare extends Response {
       // Update response
       response.data.labels = labels;
       response.data.datasets = datasets;
+      response.data.chart = 'compareAll';
+
       res.status(200).json(response);
     } catch (error) {
       console.log(error);

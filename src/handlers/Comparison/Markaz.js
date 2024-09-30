@@ -1300,7 +1300,7 @@ class MarkazCompare extends Response {
           const keys = Object.keys(
             reports[reports?.length - 1]?._doc.baitulmalId?._doc
           )?.filter((i) => i !== "_id" && i !== "__v");
-          console.log(keys)
+         
           if (property === "spiderChart" || property ==="radialChart") {
             if (reports[reports?.length - 1]?._doc?.baitulmalId?._doc) {
               const income =

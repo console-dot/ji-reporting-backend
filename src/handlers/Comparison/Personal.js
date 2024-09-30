@@ -92,6 +92,7 @@ class PersonalCompare extends Response {
           },
           "prayersId"
         ).populate("prayersId");
+
         if (report.length > 0) {
           const keys = Object.keys(
             report[report.length - 1].prayersId._doc
@@ -115,6 +116,12 @@ class PersonalCompare extends Response {
                   doc === "namazFajar"
                     ? report[report.length - 1].prayersId._doc[doc].fajarOnTime
                     : report[report.length - 1].prayersId._doc[doc]
+                        .otherPrayersOnTime
+                ),
+                parseInt(
+                  doc === "namazFajar"
+                    ? report[report.length - 1].prayersId._doc[doc].fajarInfradi
+                    : report[report.length - 1].prayersId._doc[doc]
                         .otherPrayersInfradi
                 )
               );
@@ -128,6 +135,7 @@ class PersonalCompare extends Response {
             }
           });
         }
+
         datasets.push(sample);
       }
       response.data.labels = labels;

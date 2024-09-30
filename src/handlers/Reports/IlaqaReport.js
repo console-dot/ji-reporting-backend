@@ -195,7 +195,7 @@ class IlaqaReport extends Response {
         savings,
         loss,
       } = req.body;
-
+      
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
@@ -248,13 +248,14 @@ class IlaqaReport extends Response {
         busmRehaishUnits,
         busmTotalUnits,
       });
+      
       const newMentionedActivity = new MentionedActivitiesModel({
         ijtRafaqa,
         studyCircle: studyCircleMentioned,
         darseQuran,
         shaheenMeeting,
         paighamEvent,
-        ijtKarkunan
+        ijtKarkunan,
       });
       const newOtherActivity = new OtherActivitiesModel({
         dawatiWafud,

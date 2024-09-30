@@ -57,7 +57,7 @@ class HalqaCompare extends Response {
       const token = req?.headers?.authorization;
       const { dates, areaId, duration_type } = req?.body;
       const property = req?.params?.property;
-
+      
       if (dates.length < 2 && property !== "radialChart") {
         return this.sendResponse(req, res, {
           message: "Atleast 2 dates required",
@@ -878,6 +878,8 @@ class HalqaCompare extends Response {
   halqaComparison = async (req, res) => {
     try {
       const token = req?.headers?.authorization;
+      const property = req?.params?.property;
+
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
@@ -946,6 +948,7 @@ class HalqaCompare extends Response {
       // Update response
       response.data.labels = labels;
       response.data.datasets = datasets;
+      response.data.chart = 'compareAll';
       res.status(200).json(response);
     } catch (error) {
       console.log(error);
