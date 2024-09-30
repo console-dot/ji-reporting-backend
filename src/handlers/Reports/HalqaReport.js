@@ -321,7 +321,6 @@ class HalqaReport extends Response {
     const token = req.headers.authorization;
     const { date } = req?.query;
     const _id = req?.params?.id;
-
     try {
       if (!token) {
         return this.sendResponse(req, res, {
@@ -343,7 +342,7 @@ class HalqaReport extends Response {
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       const hr = await HalqaReportModel.findOne({ _id })
       const halqaAreaId = hr?.halqaAreaId || "";
-      
+      console.log(hr)
 
       if (!accessList.includes(halqaAreaId.toString())) {
         return this.sendResponse(req, res, {
