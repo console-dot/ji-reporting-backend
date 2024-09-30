@@ -1316,7 +1316,6 @@ class IlaqaCompare extends Response {
           }
         });
       }
- console.log(labels,datasets)
       // Update response
       response.data.labels = labels;
       response.data.datasets = datasets;
