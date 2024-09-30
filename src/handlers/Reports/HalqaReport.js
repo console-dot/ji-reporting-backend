@@ -340,10 +340,9 @@ class HalqaReport extends Response {
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
       const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      const hr = await HalqaReportModel.findOne({ _id })
-      const halqaAreaId = hr?.halqaAreaId || "";
-      console.log(hr)
-
+      const hr = await HalqaReportModel.findOne({halqaAreaId: _id })
+      
+      const halqaAreaId = _id;
       if (!accessList.includes(halqaAreaId.toString())) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
@@ -353,7 +352,7 @@ class HalqaReport extends Response {
       let report;
       if (date) {
         report = await HalqaReportModel.findOne({
-           _id,
+           halqaAreaId:_id,
           month: date,
         }).populate({ path: "halqaAreaId" });
         if (!report) {
