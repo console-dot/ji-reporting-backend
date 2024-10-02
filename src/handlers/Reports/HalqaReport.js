@@ -343,7 +343,7 @@ class HalqaReport extends Response {
       const hr = await HalqaReportModel.findOne({halqaAreaId: _id })
       
       const halqaAreaId = _id;
-      if (!accessList.includes(halqaAreaId.toString())) {
+      if (date && !accessList.includes(halqaAreaId.toString())) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
           status: 401,
