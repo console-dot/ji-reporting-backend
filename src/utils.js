@@ -9,7 +9,7 @@ const {
   IlaqaModel,
   CountryModel,
 } = require("./model");
-
+const mongoose = require("mongoose");
 const getImmediateUser = async (userAreaId, userAreaType) => {
   let req = undefined;
   switch (userAreaType) {
@@ -62,82 +62,122 @@ const getPopulateMethod = (type) => {
       return null;
   }
 };
+const cache = {
+  halqas: [],
+  ilaqas: [],
+  tehsils: [],
+  districts: [],
+  divisions: [],
+  maqams: [],
+  provinces: [],
+};
+
+const cacheAllData = async () => {
+  cache.halqas = await HalqaModel.find().lean();
+
+  cache.ilaqas = await IlaqaModel.find().lean();
+
+  cache.tehsils = await TehsilModel.find().lean();
+
+  cache.districts = await DistrictModel.find().lean();
+
+  cache.divisions = await DivisionModel.find().lean();
+
+  cache.maqams = await MaqamModel.find().lean();
+
+  cache.provinces = await ProvinceModel.find().lean();
+};
 
 const getRoleFlow = async (id, key) => {
-  const getHalqaList = async (parentId) => {
-    const halqaList = await HalqaModel.find({ parentId });
-    return halqaList.map((item) => item?._id);
+  const getHalqaList = (parentId) => {
+    return cache.halqas
+      .filter((halqa) => halqa.parentId.toString() === parentId.toString()) // Ensure parentId is compared as a string
+      .map((item) => item._id);
   };
 
   switch (key.toLowerCase()) {
     case "halqa":
-      return [id];
+      return [id.toString()];
 
     case "ilaqa":
-      const ilaqaHalqaList = await getHalqaList(id);
-      return [...ilaqaHalqaList, id];
+      const ilaqaHalqaList = getHalqaList(id);
+      return [...ilaqaHalqaList, id.toString()];
+
     case "tehsil":
     case "maqam":
-      const ilaqaList = await IlaqaModel.find({ maqam: id });
-      // Get the halqa documents where the parent is directly the provided maqam ID
-      const directHalqaList = await HalqaModel.find({ parentId: id });
-      // Map over each ilaqa to retrieve its associated halqas
-      const ilaqaHalqaPromises = ilaqaList.map((ilaqa) =>
-        getHalqaList(ilaqa?._id)
+      const ilaqaList = cache.ilaqas.filter(
+        (ilaqa) => ilaqa.maqam.toString() === id.toString()
       );
-      const ilaqaHalqaLists = await Promise.all(ilaqaHalqaPromises);
-      // Flatten the list of associated halqas from ilaqas
-      const allIlaqaHalqas = ilaqaHalqaLists.flat();
-      // Combine all the halqas: direct halqas and associated halqas from ilaqas
-      const allHalqas = [...directHalqaList, ...allIlaqaHalqas, ...ilaqaList];
-      // Return the IDs of all halqas
-      return [...allHalqas.map((halqa) => halqa._id), id];
+
+      const directHalqaList = getHalqaList(id);
+
+      const ilaqaHalqaLists = ilaqaList.map((ilaqa) => getHalqaList(ilaqa._id));
+      const allIlaqaHalqas = [].concat(...ilaqaHalqaLists);
+
+      const allHalqas = [
+        ...directHalqaList,
+        ...allIlaqaHalqas,
+        ...ilaqaList.map((ilaqa) => ilaqa._id),
+      ];
+
+      return [...allHalqas, id.toString()];
+
     case "district":
-      const tehsilList = await TehsilModel.find({ district: id });
-      const halqaPromises = tehsilList.map((item) => getHalqaList(item?._id));
-      const halqaLists = await Promise.all(halqaPromises);
-      return [...tehsilList.map((item) => item?._id), ...halqaLists.flat(), id];
+      const tehsilList = cache.tehsils.filter(
+        (tehsil) => tehsil.district.toString() === id.toString()
+      );
+      const halqaLists = tehsilList.map((tehsil) => getHalqaList(tehsil._id));
+      return [
+        ...tehsilList.map((item) => item._id),
+        ...[].concat(...halqaLists),
+        id.toString(),
+      ];
 
     case "division":
-      const directDivisionHalqas = await HalqaModel.find({ parentId: id });
-      const districtList = await DistrictModel.find({ division: id });
-      const divisionPromises = districtList.map((item) =>
-        getRoleFlow(item?._id, "district")
+      const directDivisionHalqas = getHalqaList(id);
+      const districtList = cache.districts.filter(
+        (district) => district.division.toString() === id.toString()
       );
-      const divisionResults = await Promise.all(divisionPromises);
+      const divisionResults = await Promise.all(
+        districtList.map((item) => getRoleFlow(item._id, "district"))
+      );
       return [
-        ...directDivisionHalqas.map((item) => item?._id),
-        ...divisionResults.flat(),
-        ...districtList.map((item) => item?._id),
-        id,
+        ...directDivisionHalqas,
+        ...[].concat(...divisionResults),
+        ...districtList.map((item) => item._id),
+        id.toString(),
       ];
 
     case "province":
-      const divisionList = await DivisionModel.find({ province: id });
-      const provincePromises = divisionList.map((item) =>
-        getRoleFlow(item?._id, "division")
+      const divisionList = cache.divisions.filter(
+        (division) => division.province.toString() === id.toString()
       );
-      const provinceResults = await Promise.all(provincePromises);
-      const maqamList = await MaqamModel.find({ province: id });
-      const provincePromisesm = maqamList.map((item) =>
-        getRoleFlow(item?._id, "maqam")
+      const provinceResults = await Promise.all(
+        divisionList.map((item) => getRoleFlow(item._id, "division"))
       );
-      const provinceResultsm = await Promise.all(provincePromisesm);
-     
+      const maqamList = cache.maqams.filter(
+        (maqam) => maqam.province.toString() === id.toString()
+      );
+      const provinceResultsm = await Promise.all(
+        maqamList.map((item) => getRoleFlow(item._id, "maqam"))
+      );
       return [
-        ...provinceResults.flat(),
-        ...divisionList.map((item) => item?._id),
-        ...provinceResultsm.flat(),
-        ...maqamList.map((item) => item?._id),
-        id,
+        ...[].concat(...provinceResults),
+        ...divisionList.map((item) => item._id),
+        ...[].concat(...provinceResultsm),
+        ...maqamList.map((item) => item._id),
+        id.toString(),
       ];
+
     case "country":
-      const provinceList = await ProvinceModel?.find({ country: id });
-      const countryPromices = provinceList?.map((province) =>
-        getRoleFlow(province?._id, "province")
+      const provinceList = cache.provinces.filter(
+        (province) => province.country.toString() === id.toString()
       );
-      const countryResultsm = await Promise.all(countryPromices);
-      return [...countryResultsm.flat(), id];
+      const countryResults = await Promise.all(
+        provinceList.map((province) => getRoleFlow(province._id, "province"))
+      );
+      return [...[].concat(...countryResults), id.toString()];
+
     default:
       return [];
   }
@@ -202,6 +242,7 @@ module.exports = {
   getImmediateUser,
   getPopulateMethod,
   months,
+  cacheAllData,
   getRoleFlow,
   getParentId,
 };
