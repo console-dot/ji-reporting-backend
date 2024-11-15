@@ -1,5 +1,11 @@
 const { auditLogger } = require("../../middlewares/auditLogger");
-const { MaqamModel, DivisionModel, UserModel } = require("../../model");
+const {
+  MaqamModel,
+  DivisionModel,
+  UserModel,
+  CountryModel,
+  ProvinceModel,
+} = require("../../model");
 const Response = require("../Response");
 const jwt = require("jsonwebtoken");
 
@@ -30,17 +36,17 @@ class Maqam extends Response {
         });
       }
       const isExist = await MaqamModel.findOne({
-        name: { $regex: new RegExp(`^${name}$`, 'i') }, // Case-insensitive check for name
-        province
+        name: { $regex: new RegExp(`^${name}$`, "i") }, // Case-insensitive check for name
+        province,
       });
-      
+
       if (isExist) {
         return this.sendResponse(req, res, {
           message: "Maqam already exists!",
           status: 400,
         });
       }
-      
+
       const newMaqam = new MaqamModel({ name, province });
       await newMaqam.save();
       await auditLogger(
@@ -224,10 +230,47 @@ class Maqam extends Response {
       });
     }
   };
+  // toggleDisable = async (req, res) => {
+  //   try {
+  //     const _id = req.params.id;
+  //     const { disabled } = req.body;
+  //     const isExist = await MaqamModel.findOne({ _id });
+  //     if (!isExist) {
+  //       return this.sendResponse(req, res, {
+  //         message: "Not found!",
+  //         status: 404,
+  //       });
+  //     }
+  //     const updatedLocation = await MaqamModel.updateOne(
+  //       { _id },
+  //       {
+  //         $set: { disabled },
+  //       }
+  //     );
+  //     if (updatedLocation?.modifiedCount > 0) {
+  //       return this.sendResponse(req, res, {
+  //         message: "Maqam Updated",
+  //         status: 200,
+  //       });
+  //     }
+  //     return this.sendResponse(req, res, {
+  //       message: "Nothing to update",
+  //       status: 400,
+  //     });
+  //   } catch (err) {
+  //     console.log(err);
+  //     return this.sendResponse(req, res, {
+  //       message: "Internal Server Error",
+  //       status: 500,
+  //     });
+  //   }
+  // };
+
   toggleDisable = async (req, res) => {
     try {
       const _id = req.params.id;
       const { disabled } = req.body;
+      // Step 1: Find the Halqa
       const isExist = await MaqamModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
@@ -235,22 +278,50 @@ class Maqam extends Response {
           status: 404,
         });
       }
+      // Step 2: Update the Halqa
       const updatedLocation = await MaqamModel.updateOne(
         { _id },
         {
           $set: { disabled },
         }
       );
+
       if (updatedLocation?.modifiedCount > 0) {
+        // Step 3: Track the change direction (add or subtract)
+        const changeValue = disabled ? -1 : 1;
+
+        // Start with the current Halqa and move up the chain
+        let currentMaqam = isExist;
+
+        if (currentMaqam.province) {
+          let province = await ProvinceModel.findById(currentMaqam.province);
+          if (province) {
+            await ProvinceModel.updateOne(
+              { _id: province._id },
+              { $inc: { maqamCount: changeValue } }
+            );
+            if (province.country) {
+              let country = await CountryModel.findById(province.country);
+              if (country) {
+                await CountryModel.updateOne(
+                  { _id: country._id },
+                  { $inc: { maqamCount: changeValue } }
+                );
+              }
+            }
+          }
+        }
+
         return this.sendResponse(req, res, {
           message: "Maqam Updated",
           status: 200,
         });
+      } else {
+        return this.sendResponse(req, res, {
+          message: "Nothing To Update",
+          status: 200,
+        });
       }
-      return this.sendResponse(req, res, {
-        message: "Nothing to update",
-        status: 400,
-      });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {

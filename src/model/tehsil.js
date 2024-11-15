@@ -14,6 +14,9 @@ const tehsil = mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  halqaCount: {
+    type: Number,
+  },
 });
 
 const TehsilModel = mongoose.model("Tehsil", tehsil);

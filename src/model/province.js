@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const province = mongoose.Schema({
   name: {
@@ -15,9 +15,27 @@ const province = mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  halqaCount: {
+    type: Number,
+  },
+  tehsilCount: {
+    type: Number,
+  },
+  districtCount: {
+    type: Number,
+  },
+  divisionCount: {
+    type: Number,
+  },
+  maqamCount: {
+    type: Number,
+  },
+  ilaqaCount: {
+    type: Number,
+  },
 });
 
-const ProvinceModel = mongoose.model('Province', province);
+const ProvinceModel = mongoose.model("Province", province);
 
 module.exports = {
   ProvinceModel,

@@ -1,5 +1,11 @@
 const { auditLogger } = require("../../middlewares/auditLogger");
-const { IlaqaModel, MaqamModel, UserModel } = require("../../model");
+const {
+  IlaqaModel,
+  MaqamModel,
+  UserModel,
+  CountryModel,
+  ProvinceModel,
+} = require("../../model");
 const Response = require("../Response");
 const jwt = require("jsonwebtoken");
 
@@ -30,17 +36,17 @@ class Ilaqa extends Response {
         });
       }
       const isExist = await IlaqaModel.findOne({
-        name: { $regex: new RegExp(`^${name}$`, 'i') }, // Case-insensitive check for name
-        maqam
+        name: { $regex: new RegExp(`^${name}$`, "i") }, // Case-insensitive check for name
+        maqam,
       });
-      
+
       if (isExist) {
         return this.sendResponse(req, res, {
           message: "Ilaqa already exists!",
           status: 400,
         });
       }
-      
+
       const newIlaqa = new IlaqaModel({ name, maqam });
       await newIlaqa.save();
       await auditLogger(
@@ -218,10 +224,47 @@ class Ilaqa extends Response {
       });
     }
   };
+  // toggleDisable = async (req, res) => {
+  //   try {
+  //     const _id = req.params.id;
+  //     const { disabled } = req.body;
+  //     const isExist = await IlaqaModel.findOne({ _id });
+  //     if (!isExist) {
+  //       return this.sendResponse(req, res, {
+  //         message: "Not found!",
+  //         status: 404,
+  //       });
+  //     }
+  //     const updatedLocation = await IlaqaModel.updateOne(
+  //       { _id },
+  //       {
+  //         $set: { disabled },
+  //       }
+  //     );
+  //     if (updatedLocation?.modifiedCount > 0) {
+  //       return this.sendResponse(req, res, {
+  //         message: "Ilaqa Updated",
+  //         status: 200,
+  //       });
+  //     }
+  //     return this.sendResponse(req, res, {
+  //       message: "Nothing to update",
+  //       status: 400,
+  //     });
+  //   } catch (err) {
+  //     console.log(err);
+  //     return this.sendResponse(req, res, {
+  //       message: "Internal Server Error",
+  //       status: 500,
+  //     });
+  //   }
+  // };
   toggleDisable = async (req, res) => {
     try {
       const _id = req.params.id;
       const { disabled } = req.body;
+
+      // Step 1: Find the Halqa
       const isExist = await IlaqaModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
@@ -229,20 +272,62 @@ class Ilaqa extends Response {
           status: 404,
         });
       }
+
+      // Step 2: Update the Halqa
       const updatedLocation = await IlaqaModel.updateOne(
         { _id },
         {
           $set: { disabled },
         }
       );
+
       if (updatedLocation?.modifiedCount > 0) {
+        // Step 3: Track the change direction (add or subtract)
+        const changeValue = disabled ? -1 : 1;
+
+        // Start with the current Halqa and move up the chain
+        let currentIlaqa = isExist;
+
+        if (currentIlaqa.maqam) {
+          // Step 5: If parentType is Maqam, update Maqam, Province, and Country
+          let maqam = await MaqamModel.findById(currentIlaqa.maqam);
+          if (maqam) {
+            // Update Maqam halqaCount
+            await MaqamModel.updateOne(
+              { _id: maqam._id },
+              { $inc: { ilaqaCount: changeValue } }
+            );
+
+            // Now update Province and Country
+            if (maqam.province) {
+              let province = await ProvinceModel.findById(maqam.province);
+              if (province) {
+                await ProvinceModel.updateOne(
+                  { _id: province._id },
+                  { $inc: { ilaqaCount: changeValue } }
+                );
+                if (province.country) {
+                  let country = await CountryModel.findById(province.country);
+                  if (country) {
+                    await CountryModel.updateOne(
+                      { _id: country._id },
+                      { $inc: { ilaqaCount: changeValue } }
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+
         return this.sendResponse(req, res, {
           message: "Ilaqa Updated",
           status: 200,
         });
       }
+
       return this.sendResponse(req, res, {
-        message: "Nothing to update",
+        message: "Wait! Too many requests",
         status: 400,
       });
     } catch (err) {

@@ -8,12 +8,18 @@ const maqam = mongoose.Schema({
   province: {
     type: mongoose.Types.ObjectId,
     required: true,
-    ref: 'Province',
+    ref: "Province",
   },
   disabled: {
     type: Boolean,
     default: false,
-  }
+  },
+  ilaqaCount: {
+    type: Number,
+  },
+  halqaCount: {
+    type: Number,
+  },
 });
 
 const MaqamModel = mongoose.model("Maqam", maqam);

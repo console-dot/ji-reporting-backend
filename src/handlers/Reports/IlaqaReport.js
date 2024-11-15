@@ -17,7 +17,12 @@ const {
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
-const { UserModel, MaqamModel, IlaqaModel } = require("../../model");
+const {
+  UserModel,
+  MaqamModel,
+  IlaqaModel,
+  CountryAccessListModel,
+} = require("../../model");
 const { auditLogger } = require("../../middlewares/auditLogger");
 
 const isDataComplete = (dataToUpdate) => {
@@ -195,7 +200,7 @@ class IlaqaReport extends Response {
         savings,
         loss,
       } = req.body;
-      
+
       if (!isDataComplete(req.body)) {
         return this.sendResponse(req, res, {
           message: "All fields are required",
@@ -248,7 +253,7 @@ class IlaqaReport extends Response {
         busmRehaishUnits,
         busmTotalUnits,
       });
-      
+
       const newMentionedActivity = new MentionedActivitiesModel({
         ijtRafaqa,
         studyCircle: studyCircleMentioned,
@@ -375,7 +380,13 @@ class IlaqaReport extends Response {
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
-      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      let accessList;
+      if (key === "country") {
+        const list = await CountryAccessListModel.find({});
+        accessList = list[0].countryAccessList;
+      } else {
+        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      }
       let reports;
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
@@ -845,7 +856,13 @@ class IlaqaReport extends Response {
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
-      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      let accessList;
+      if (key === "country") {
+         const list = await CountryAccessListModel.find({});
+        accessList = list[0].countryAccessList;
+      } else {
+        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      }
       const today = Date.now();
       let desiredYear = new Date(today).getFullYear();
       let desiredMonth = new Date(today).getMonth();

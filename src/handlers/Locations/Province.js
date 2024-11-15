@@ -3,7 +3,6 @@ const { ProvinceModel, CountryModel, UserModel } = require("../../model");
 const Response = require("../Response");
 const jwt = require("jsonwebtoken");
 
-
 class Province extends Response {
   createOne = async (req, res) => {
     try {
@@ -25,16 +24,16 @@ class Province extends Response {
         });
       }
       const isExist = await ProvinceModel.findOne({
-        name: { $regex: new RegExp(`^${name}$`, 'i') } // Case-insensitive check for name
+        name: { $regex: new RegExp(`^${name}$`, "i") }, // Case-insensitive check for name
       });
-      
+
       if (isExist) {
         return this.sendResponse(req, res, {
           message: "Province already exists!",
           status: 400,
         });
       }
-      
+
       const isCountry = await CountryModel.findOne({ name: country });
       if (isCountry) {
         const newProvince = new ProvinceModel({ name, country: isCountry._id });
@@ -149,7 +148,7 @@ class Province extends Response {
   deleteOne = async (req, res) => {
     try {
       const token = req.body.headers.Authorization;
-     
+
       const decoded = jwt.decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const userExist = await UserModel.findOne({ _id: userId });
@@ -190,6 +189,60 @@ class Province extends Response {
         message: "Can not update",
         status: 400,
       });
+    } catch (err) {
+      console.log(err);
+      return this.sendResponse(req, res, {
+        message: "Internal Server Error",
+        status: 500,
+      });
+    }
+  };
+  toggleDisable = async (req, res) => {
+    try {
+      const _id = req.params.id;
+      const { disabled } = req.body;
+      // Step 1: Find the Halqa
+      const isExist = await ProvinceModel.findOne({ _id });
+      if (!isExist) {
+        return this.sendResponse(req, res, {
+          message: "Not found!",
+          status: 404,
+        });
+      }
+      // Step 2: Update the Halqa
+      const updatedLocation = await ProvinceModel.updateOne(
+        { _id },
+        {
+          $set: { disabled },
+        }
+      );
+
+      if (updatedLocation?.modifiedCount > 0) {
+        // Step 3: Track the change direction (add or subtract)
+        const changeValue = disabled ? -1 : 1;
+
+        // Start with the current Halqa and move up the chain
+        let province = isExist;
+        if (province.country) {
+          let country = await CountryModel.findById(province.country);
+          if (country) {
+            await CountryModel.updateOne(
+              { _id: country._id },
+              { $inc: { provinceCount: changeValue } }
+            );
+          }
+        }
+
+        return this.sendResponse(req, res, {
+          message: "Maqam Updated",
+          status: 200,
+        });
+      } else {
+        return this.sendResponse(req, res, {
+          message: "Nothing To Update",
+          status: 200,
+        });
+      }
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {

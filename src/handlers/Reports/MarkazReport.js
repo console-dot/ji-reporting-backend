@@ -17,7 +17,12 @@ const {
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
-const { UserModel, ProvinceModel, CountryModel } = require("../../model");
+const {
+  UserModel,
+  ProvinceModel,
+  CountryModel,
+  CountryAccessListModel,
+} = require("../../model");
 const { auditLogger } = require("../../middlewares/auditLogger");
 
 const isDataComplete = (dataToUpdate) => {
@@ -392,8 +397,12 @@ class MarkazReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
-      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      if (!user) {
+        return this.sendResponse(req, res, {
+          message: "User does not exist",
+          status: 400,
+        });
+      }
       let reports;
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
@@ -447,7 +456,7 @@ class MarkazReport extends Response {
         if (year && month) {
           let startDate = new Date(Date.UTC(year, month - 1, 1));
           reports = await MarkazReportModel.find({
-            countryAreaId: accessList,
+            countryAreaId: user.userAreaId,
             month: startDate,
           }).populate({ path: "countryAreaId" });
         } else {
@@ -470,7 +479,7 @@ class MarkazReport extends Response {
         }
       }
       let total = await MarkazReportModel.find({
-        countryAreaId: accessList,
+        countryAreaId: user.userAreaId,
       });
       const totalReport = total.length;
       reports = { data: reports, length: totalReport };
@@ -522,12 +531,6 @@ class MarkazReport extends Response {
           });
         }
       } else {
-        const accessList = (await getRoleFlow(id, key)).map((i) =>
-          i.toString()
-        );
-        const { provinceAreaId } = await MarkazReportModel.findOne({
-          _id,
-        }).select("provinceAreaId");
         report = await MarkazReportModel.findOne({ _id }).populate([
           { path: "userId", select: ["_id", "email", "name", "age"] },
           { path: "countryAreaId" },
@@ -823,7 +826,13 @@ class MarkazReport extends Response {
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
-      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      let accessList;
+      if (key === "country") {
+        const list = await CountryAccessListModel.find({});
+        accessList = list[0].countryAccessList;
+      } else {
+        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      }
       const today = Date.now();
       let desiredYear = new Date(today).getFullYear();
       let desiredMonth = new Date(today).getMonth();

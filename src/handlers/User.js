@@ -1184,11 +1184,19 @@ class User extends Response {
         await UserModel.findOne({
           _id: userId,
         });
-      const validIds = (await getRoleFlow(immediate_user_id, key)).map((i) =>
-        i?.toString()
-      );
+      let accessList;
+      console.log(key);
+      if (key === "country") {
+        console.log(key);
+         const list = await CountryAccessListModel.find({});
+        accessList = list[0].countryAccessList;
+      } else {
+        accessList = (await getRoleFlow(immediate_user_id, key)).map((i) =>
+          i.toString()
+        );
+      }
       const data = await UserModel.find(
-        { userAreaId: validIds },
+        { userAreaId: accessList },
         "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType isDeleted"
       ).populate([
         "userRequestId",

@@ -14,6 +14,9 @@ const ilaqa = mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  halqaCount: {
+    type: Number,
+  },
 });
 
 const IlaqaModel = mongoose.model("Ilaqa", ilaqa);

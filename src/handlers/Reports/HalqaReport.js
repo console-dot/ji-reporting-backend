@@ -11,7 +11,11 @@ const {
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
-const { UserModel, HalqaModel } = require("../../model");
+const {
+  UserModel,
+  HalqaModel,
+  CountryAccessListModel,
+} = require("../../model");
 const { auditLogger } = require("../../middlewares/auditLogger");
 
 const isDataComplete = (dataToUpdate) => {
@@ -252,8 +256,13 @@ class HalqaReport extends Response {
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
-      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-
+      let accessList;
+      if (key === "country") {
+        const list = await CountryAccessListModel.find({});
+        accessList = list[0].countryAccessList;
+      } else {
+        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      }
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
       const year = req.query.year;
@@ -328,7 +337,7 @@ class HalqaReport extends Response {
           status: 401,
         });
       }
-      
+
       if (!_id) {
         return this.sendResponse(req, res, {
           message: "Id is required",
@@ -339,9 +348,15 @@ class HalqaReport extends Response {
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
-      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
-      const hr = await HalqaReportModel.findOne({halqaAreaId: _id })
-      
+      let accessList;
+      if (key === "country") {
+         const list = await CountryAccessListModel.find({});
+        accessList = list[0].countryAccessList;
+      } else {
+        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      }
+      const hr = await HalqaReportModel.findOne({ halqaAreaId: _id });
+
       const halqaAreaId = _id;
       if (date && !accessList.includes(halqaAreaId.toString())) {
         return this.sendResponse(req, res, {
@@ -352,7 +367,7 @@ class HalqaReport extends Response {
       let report;
       if (date) {
         report = await HalqaReportModel.findOne({
-           halqaAreaId:_id,
+          halqaAreaId: _id,
           month: date,
         }).populate({ path: "halqaAreaId" });
         if (!report) {
@@ -361,17 +376,19 @@ class HalqaReport extends Response {
             status: 400,
           });
         }
-      } else { report = await HalqaReportModel.findOne({_id }).populate([
-        { path: "userId", select: ["_id", "email", "name", "age"] },
-        { path: "wiId" },
-        { path: "halqaActivityId" },
-        { path: "otherActivityId" },
-        { path: "tdId" },
-        { path: "halqaLibId" },
-        { path: "rsdId" },
-        { path: "halqaAreaId" },
-        { path: "baitulmalId" },
-      ]);}
+      } else {
+        report = await HalqaReportModel.findOne({ _id }).populate([
+          { path: "userId", select: ["_id", "email", "name", "age"] },
+          { path: "wiId" },
+          { path: "halqaActivityId" },
+          { path: "otherActivityId" },
+          { path: "tdId" },
+          { path: "halqaLibId" },
+          { path: "rsdId" },
+          { path: "halqaAreaId" },
+          { path: "baitulmalId" },
+        ]);
+      }
       return this.sendResponse(req, res, {
         data: report,
         message: "Halqa Report fetched",
@@ -602,7 +619,13 @@ class HalqaReport extends Response {
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
-      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      let accessList;
+      if (key === "country") {
+         const list = await CountryAccessListModel.find({});
+        accessList = list[0].countryAccessList;
+      } else {
+        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      }
       const today = Date.now();
       let desiredYear = new Date(today).getFullYear();
       let desiredMonth = new Date(today).getMonth();
