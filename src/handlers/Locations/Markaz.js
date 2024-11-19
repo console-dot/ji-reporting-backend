@@ -50,7 +50,7 @@ class Country extends Response {
 
   getOne = async (req, res) => {
     try {
-      const country = await CountryModel.find();
+      const country = await CountryModel.findOne();
       if (!country) {
         return this.sendResponse(req, res, {
           message: "Not found!",
