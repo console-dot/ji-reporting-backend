@@ -1,5 +1,10 @@
 const { auditLogger } = require("../../middlewares/auditLogger");
-const { DivisionModel, UserModel } = require("../../model");
+const {
+  DivisionModel,
+  UserModel,
+  ProvinceModel,
+  CountryModel,
+} = require("../../model");
 const Response = require("../Response");
 const jwt = require("jsonwebtoken");
 
@@ -29,11 +34,11 @@ class Division extends Response {
           status: 404,
         });
       }
-      const isExist = await DivisionModel.findOne({ 
-        name: { $regex: new RegExp(`^${name}$`, 'i') }, // Case-insensitive check for name
-        province 
+      const isExist = await DivisionModel.findOne({
+        name: { $regex: new RegExp(`^${name}$`, "i") }, // Case-insensitive check for name
+        province,
       });
-  
+
       if (isExist) {
         return this.sendResponse(req, res, {
           message: "Division already exists!",
@@ -41,13 +46,14 @@ class Division extends Response {
         });
       }
       const newDivision = new DivisionModel({ name, province });
+      await newDivision.save();
+      await addDivisionToHierarchy(newDivision._id, province);
       await auditLogger(
         userExist,
         "CREATED_DIVISION",
         "A user Created Division",
         req
       );
-      await newDivision.save();
       return this.sendResponse(req, res, {
         message: "Division created",
         status: 201,
@@ -203,10 +209,46 @@ class Division extends Response {
       });
     }
   };
+  // toggleDisable = async (req, res) => {
+  //   try {
+  //     const _id = req.params.id;
+  //     const { disabled } = req.body;
+  //     const isExist = await DivisionModel.findOne({ _id });
+  //     if (!isExist) {
+  //       return this.sendResponse(req, res, {
+  //         message: "Not found!",
+  //         status: 404,
+  //       });
+  //     }
+  //     const updatedLocation = await DivisionModel.updateOne(
+  //       { _id },
+  //       {
+  //         $set: { disabled },
+  //       }
+  //     );
+  //     if (updatedLocation?.modifiedCount > 0) {
+  //       return this.sendResponse(req, res, {
+  //         message: "Division Updated",
+  //         status: 200,
+  //       });
+  //     }
+  //     return this.sendResponse(req, res, {
+  //       message: "Nothing to update",
+  //       status: 400,
+  //     });
+  //   } catch (err) {
+  //     console.log(err);
+  //     return this.sendResponse(req, res, {
+  //       message: "Internal Server Error",
+  //       status: 500,
+  //     });
+  //   }
+  // };
   toggleDisable = async (req, res) => {
     try {
       const _id = req.params.id;
       const { disabled } = req.body;
+      // Step 1: Find the Halqa
       const isExist = await DivisionModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
@@ -214,22 +256,50 @@ class Division extends Response {
           status: 404,
         });
       }
+      // Step 2: Update the Halqa
       const updatedLocation = await DivisionModel.updateOne(
         { _id },
         {
           $set: { disabled },
         }
       );
+
       if (updatedLocation?.modifiedCount > 0) {
+        // Step 3: Track the change direction (add or subtract)
+        const changeValue = disabled ? -1 : 1;
+
+        // Start with the current Halqa and move up the chain
+        let currentDivision = isExist;
+
+        if (currentDivision.province) {
+          let province = await ProvinceModel.findById(currentDivision.province);
+          if (province) {
+            await ProvinceModel.updateOne(
+              { _id: province._id },
+              { $inc: { activeDivisionCount: changeValue } }
+            );
+            if (province.country) {
+              let country = await CountryModel.findById(province.country);
+              if (country) {
+                await CountryModel.updateOne(
+                  { _id: country._id },
+                  { $inc: { activeDivisionCount: changeValue } }
+                );
+              }
+            }
+          }
+        }
+
         return this.sendResponse(req, res, {
           message: "Division Updated",
           status: 200,
         });
+      } else {
+        return this.sendResponse(req, res, {
+          message: "Nothing To Update",
+          status: 200,
+        });
       }
-      return this.sendResponse(req, res, {
-        message: "Nothing to update",
-        status: 400,
-      });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
@@ -239,5 +309,36 @@ class Division extends Response {
     }
   };
 }
+const addDivisionToHierarchy = async (divisionId, provinceId) => {
+  try {
+    // Find the Province
+    const province = await ProvinceModel.findById(provinceId);
+    if (!province) {
+      throw new Error(`Province with ID ${provinceId} not found.`);
+    }
+
+    // Update the Province's activeDivisionCount and childDivisionIDs
+    await ProvinceModel.updateOne(
+      { _id: province._id },
+      {
+        $push: { childDivisionIDs: divisionId },
+        $inc: { activeDivisionCount: 1 },
+      }
+    );
+
+    // Update the Country associated with the Province
+    if (province.country) {
+      await CountryModel.updateOne(
+        { _id: province.country },
+        {
+          $push: { childDivisionIDs: divisionId },
+          $inc: { activeDivisionCount: 1 },
+        }
+      );
+    }
+  } catch (error) {
+    console.error("Error updating hierarchy for Division:", error);
+  }
+};
 
 module.exports = Division;

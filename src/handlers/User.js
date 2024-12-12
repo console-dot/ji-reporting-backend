@@ -8,6 +8,7 @@ const {
   CountryModel,
   IlaqaModel,
   ImageModel,
+  ProvinceModel,
 } = require("../model");
 const multer = require("multer");
 const sharp = require("sharp");
@@ -1180,15 +1181,35 @@ class User extends Response {
       }
       const decoded = jwt.decode(token.split(" ")[1]);
       const userId = decoded?.id;
-      const { userAreaId: immediate_user_id, userAreaType: key } =
-        await UserModel.findOne({
-          _id: userId,
-        });
-      const validIds = (await getRoleFlow(immediate_user_id, key)).map((i) =>
-        i?.toString()
-      );
+      const user = await UserModel.findOne({
+        _id: userId,
+      });
+      let allChildAreaIDs;
+      let userArea;
+      if (user.userAreaType === "Country") {
+        userArea = await CountryModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Province") {
+        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Division") {
+        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Maqam") {
+        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Ilaqa") {
+        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
+      } else {
+        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
+      }
+      allChildAreaIDs = [
+        ...(userArea.childDistrictIDs || []),
+        ...(userArea.childDivisionIDs || []),
+        ...(userArea.childHalqaIDs || []),
+        ...(userArea.childIlaqaIDs || []),
+        ...(userArea.childMaqamIDs || []),
+        ...(userArea.childProvinceIDs || []),
+        ...(userArea.childTehsilIDs || []),
+      ];
       const data = await UserModel.find(
-        { userAreaId: validIds },
+        { userAreaId: allChildAreaIDs },
         "email name age _id userAreaId fatherName phoneNumber whatsAppNumber joiningDate institution semester subject qualification address dob nazimType isDeleted"
       ).populate([
         "userRequestId",

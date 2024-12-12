@@ -5,6 +5,7 @@ const {
   StudiesModel,
   ToseeDawaModel,
   UmeedwarModel,
+  CountryAccessListModel,
 } = require("../model");
 const { PrayersModel } = require("../model/prayers");
 const { months, getRoleFlow } = require("../utils");
@@ -287,7 +288,14 @@ class Umeedwar extends Response {
       const offset = parseInt(req.query.offset);
       const date = req.query.date;
       const { userAreaId: id, nazim: key } = user;
-      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      let accessList;
+      if (key === "country") {
+        const list = await CountryAccessListModel.find({});
+        
+        accessList = list[0].countryAccessList;
+      } else {
+        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+      }
       if (!user) {
         return this.sendResponse(req, res, {
           message: "User does not exist!",
@@ -388,10 +396,7 @@ class Umeedwar extends Response {
             .sort({ createdAt: -1 });
         }
       } else {
-        if (
-          user.nazimType !== "rukan" &&
-          user?.nazimType !== "umeedwar"
-        ) {
+        if (user.nazimType !== "rukan" && user?.nazimType !== "umeedwar") {
           reports = await UmeedwarModel.find({ areaId: accessList })
             .populate([
               {

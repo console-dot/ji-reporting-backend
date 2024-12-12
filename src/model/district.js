@@ -8,12 +8,12 @@ const district = mongoose.Schema({
   division: {
     type: mongoose.Types.ObjectId,
     required: true,
-    ref: 'Division',
+    ref: "Division",
   },
   disabled: {
     type: Boolean,
     default: false,
-  }
+  },
 });
 
 const DistrictModel = mongoose.model("District", district);
