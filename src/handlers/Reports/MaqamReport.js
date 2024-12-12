@@ -23,7 +23,10 @@ const {
   UserModel,
   MaqamModel,
   IlaqaModel,
-  CountryAccessListModel,
+  HalqaModel,
+  CountryModel,
+  ProvinceModel,
+  DivisionModel,
 } = require("../../model");
 const { auditLogger } = require("../../middlewares/auditLogger");
 
@@ -760,14 +763,30 @@ class MaqamReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
-      let accessList;
-      if (key === "country") {
-        const list = await CountryAccessListModel.find({});
-        accessList = list[0].countryAccessList;
+      let allChildAreaIDs;
+      let userArea;
+      if (user.userAreaType === "Country") {
+        userArea = await CountryModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Province") {
+        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Division") {
+        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Maqam") {
+        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Ilaqa") {
+        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
       } else {
-        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
       }
+      allChildAreaIDs = [
+        ...(userArea.childDistrictIDs || []),
+        ...(userArea.childDivisionIDs || []),
+        ...(userArea.childHalqaIDs || []),
+        ...(userArea.childIlaqaIDs || []),
+        ...(userArea.childMaqamIDs || []),
+        ...(userArea.childProvinceIDs || []),
+        ...(userArea.childTehsilIDs || []),
+      ];
       let reports;
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
@@ -794,7 +813,7 @@ class MaqamReport extends Response {
           const formattedFirstDay = firstDayOfMonth.toISOString();
           const formattedLastDay = lastDayOfMonth.toISOString();
           const ilaqaQuery = {
-            ilaqaAreaId: accessList,
+            ilaqaAreaId: allChildAreaIDs,
             month: {
               $gte: formattedFirstDay,
               $lte: formattedLastDay,
@@ -803,7 +822,6 @@ class MaqamReport extends Response {
           reports = await IlaqaReportModel.find(ilaqaQuery)
             .populate([
               { path: "userId", select: ["_id", "email", "name", "age"] },
-
               { path: "maqamTanzeemId" },
               { path: "wiId" },
               { path: "maqamActivityId" },
@@ -836,7 +854,7 @@ class MaqamReport extends Response {
           const formattedFirstDay = firstDayOfMonth.toISOString();
           const formattedLastDay = lastDayOfMonth.toISOString();
           const halqaQuery = {
-            halqaAreaId: accessList,
+            halqaAreaId: allChildAreaIDs,
             month: {
               $gte: formattedFirstDay,
               $lte: formattedLastDay,
@@ -865,19 +883,19 @@ class MaqamReport extends Response {
       } else {
         if (year && month) {
           reports = await MaqamReportModel.find({
-            maqamAreaId: accessList,
+            maqamAreaId: allChildAreaIDs,
             month: startDate,
           }).populate({ path: "maqamAreaId" });
         } else {
           reports = await MaqamReportModel.find({
-            maqamAreaId: accessList,
+            maqamAreaId: allChildAreaIDs,
           })
             .select("_id")
             .sort({ createdAt: -1 });
 
           if (reports.length > 0) {
             reports = await MaqamReportModel.find({
-              maqamAreaId: accessList,
+              maqamAreaId: allChildAreaIDs,
             })
               .populate([
                 { path: "userId", select: ["_id", "email", "name", "age"] },
@@ -892,7 +910,7 @@ class MaqamReport extends Response {
         }
       }
       let total = await MaqamReportModel.find({
-        maqamAreaId: accessList,
+        maqamAreaId: allChildAreaIDs,
       });
       const totalReport = total.length;
       reports = { data: reports, length: totalReport };
@@ -1000,14 +1018,30 @@ class MaqamReport extends Response {
       }
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
-      let accessList;
-      if (key === "country") {
-         const list = await CountryAccessListModel.find({});
-        accessList = list[0].countryAccessList;
+      let allChildAreaIDs;
+      let userArea;
+      if (user.userAreaType === "Country") {
+        userArea = await CountryModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Province") {
+        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Division") {
+        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Maqam") {
+        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Ilaqa") {
+        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
       } else {
-        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
       }
+      allChildAreaIDs = [
+        ...(userArea.childDistrictIDs || []),
+        ...(userArea.childDivisionIDs || []),
+        ...(userArea.childHalqaIDs || []),
+        ...(userArea.childIlaqaIDs || []),
+        ...(userArea.childMaqamIDs || []),
+        ...(userArea.childProvinceIDs || []),
+        ...(userArea.childTehsilIDs || []),
+      ];
       const today = Date.now();
       let desiredYear = new Date(today).getFullYear();
       let desiredMonth = new Date(today).getMonth();
@@ -1024,9 +1058,9 @@ class MaqamReport extends Response {
           $gte: startDate,
           $lte: endDate,
         },
-        maqamAreaId: accessList,
+        maqamAreaId: allChildAreaIDs,
       }).populate("maqamAreaId userId");
-      const allMaqams = await MaqamModel.find({ _id: accessList });
+      const allMaqams = await MaqamModel.find({ _id: allChildAreaIDs });
       const maqamReportsAreaIds = maqamReports.map((i) =>
         i?.maqamAreaId?._id?.toString()
       );

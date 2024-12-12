@@ -38,6 +38,8 @@ class Province extends Response {
       if (isCountry) {
         const newProvince = new ProvinceModel({ name, country: isCountry._id });
         await newProvince.save();
+
+        await addProvinceToHierarchy(newProvince._id, isCountry._id);
         await auditLogger(
           userExist,
           "CREATED_PROVINCE",
@@ -225,16 +227,18 @@ class Province extends Response {
         let province = isExist;
         if (province.country) {
           let country = await CountryModel.findById(province.country);
+   
           if (country) {
-            await CountryModel.updateOne(
+            const update = await CountryModel.updateOne(
               { _id: country._id },
-              { $inc: { provinceCount: changeValue } }
+              { $inc: { activeProvinceCount: changeValue } }
             );
+       
           }
         }
 
         return this.sendResponse(req, res, {
-          message: "Maqam Updated",
+          message: "Province Updated",
           status: 200,
         });
       } else {
@@ -252,5 +256,24 @@ class Province extends Response {
     }
   };
 }
+const addProvinceToHierarchy = async (provinceId, countryId) => {
+  try {
+    // Find the Country
+    const country = await CountryModel.findById(countryId);
+    if (!country) {
+      throw new Error(`Country with ID ${countryId} not found.`);
+    }
 
+    // Update the Country's activeProvinceCount and childProvinceIDs
+    await CountryModel.updateOne(
+      { _id: country._id },
+      {
+        $push: { childProvinceIDs: provinceId },
+        $inc: { activeProvinceCount: 1 },
+      }
+    );
+  } catch (error) {
+    console.error("Error updating hierarchy for Province:", error);
+  }
+};
 module.exports = Province;

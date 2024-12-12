@@ -13,13 +13,11 @@ const { CountryAccessListModel, CountryModel } = require("./model");
 const {
   updateHalqaCountForAllIlaqas,
   updateHalqaCountForAllTehsils,
-  updateTehsilCountForAllDistricts,
   updateCountsForAllDivisions,
   updateCountsForAllMaqams,
   updateCountsForAllProvinces,
   updateHalqaCountForAllDistricts,
   updateCountsForCountry,
-  findmissing,
   findMissing,
   findDisables,
 } = require("./provinceAccessList");
@@ -56,11 +54,11 @@ const initialize = async () => {
   }
 };
 
-// Routes
-app.use("/api/v1", router);
-
 // Listener
 initialize();
+
+// Routes
+app.use("/api/v1", router);
 
 app.listen(PORT, () => {
   console.log(`\x1b[36m%s\x1b[0m`, `Server running on port ${PORT}`);
@@ -79,15 +77,16 @@ async function saveAccessList(accessList) {
 // async function main() {
 //   await saveAccessList(countryAccessList);
 // }
+// updateHalqaCountForAllDistricts();
 
 // main();
 // updateHalqaCountForAllIlaqas();
 // updateHalqaCountForAllTehsils();
-// updateHalqaCountForAllDistricts();
 // updateCountsForAllDivisions()
 // updateCountsForAllMaqams();
 // updateCountsForAllProvinces();
 // updateCountsForCountry();
-findMissing();
+
+// findMissing();
 // findDisables();
 module.exports = { app };

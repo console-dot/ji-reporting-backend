@@ -6,31 +6,35 @@ const country = mongoose.Schema({
     unique: true,
     required: true,
   },
-  accessListIDs: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "CountryAccessList",
-  },
-  provinceCount: {
+  // Array of ObjectIds referencing related models
+  activeProvinceCount: {
     type: Number,
   },
-  divisionCount: {
+  activeDivisionCount: {
     type: Number,
   },
-  districtCount: {
+  activeDistrictCount: {
     type: Number,
   },
-  tehsilCount: {
+  activeTehsilCount: {
     type: Number,
   },
-  maqamCount: {
+  activeMaqamCount: {
     type: Number,
   },
-  ilaqaCount: {
+  activeIlaqaCount: {
     type: Number,
   },
-  halqaCount: {
+  activeHalqaCount: {
     type: Number,
   },
+  childProvinceIDs: [{ type: mongoose.Types.ObjectId, ref: "Province" }],
+  childDivisionIDs: [{ type: mongoose.Types.ObjectId, ref: "Division" }],
+  childDistrictIDs: [{ type: mongoose.Types.ObjectId, ref: "District" }],
+  childTehsilIDs: [{ type: mongoose.Types.ObjectId, ref: "Tehsil" }],
+  childMaqamIDs: [{ type: mongoose.Types.ObjectId, ref: "Maqam" }],
+  childIlaqaIDs: [{ type: mongoose.Types.ObjectId, ref: "Ilaqa" }],
+  childHalqaIDs: [{ type: mongoose.Types.ObjectId, ref: "Halqa" }],
 });
 
 const CountryModel = mongoose.model("Country", country);

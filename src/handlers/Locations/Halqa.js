@@ -18,6 +18,7 @@ class Halqa extends Response {
   createOne = async (req, res) => {
     try {
       const { name, parentId, parentType, unitType } = req.body;
+      console.log(name, parentId, parentType, unitType);
       if (!name) {
         return this.sendResponse(req, res, {
           message: "Name is required!",
@@ -69,20 +70,21 @@ class Halqa extends Response {
           status: 400,
         });
       }
-
       const newHalqa = new HalqaModel({
         name,
         parentId,
-        parentType: parentType,
+        parentType,
         unitType,
       });
+
+      await newHalqa.save();
+      await addHalqaToParentHierarchy(newHalqa._id, parentId, parentType);
       await auditLogger(
         userExist,
         "CREATED_HALQA",
         "A user Created Halqa",
         req
       );
-      await newHalqa.save();
       return this.sendResponse(req, res, {
         message: "Halqa created",
         status: 201,
@@ -399,36 +401,110 @@ class Halqa extends Response {
       );
 
       if (updatedLocation?.modifiedCount > 0) {
-        // Step 3: Track the change direction (add or subtract)
-        const changeValue = disabled ? -1 : 1;
+        try {
+          const changeValue = disabled ? -1 : 1;
 
-        // Start with the current Halqa and move up the chain
-        let currentHalqa = isExist;
+          // Start with the current Halqa and move up the chain
+          let currentHalqa = isExist;
 
-        if (currentHalqa.parentType === "Ilaqa" && currentHalqa.parentId) {
-          // Step 4: If parentType is Ilaqa, update Ilaqa, Maqam, Province, and Country
-          let ilaqa = await IlaqaModel.findById(currentHalqa.parentId);
-          if (ilaqa) {
-            // Update Ilaqa halqaCount
-            await IlaqaModel.updateOne(
-              { _id: ilaqa._id },
-              { $inc: { halqaCount: changeValue } }
-            );
+          if (currentHalqa.parentType === "Ilaqa" && currentHalqa.parentId) {
+            // Step 4: If parentType is Ilaqa, update Ilaqa, Maqam, Province, and Country
+            let ilaqa = await IlaqaModel.findById(currentHalqa.parentId);
+            if (ilaqa) {
+              // Update Ilaqa halqaCount
+              await IlaqaModel.updateOne(
+                { _id: ilaqa._id },
+                { $inc: { activeHalqaCount: changeValue } }
+              );
 
-            // Now update Maqam, Province, and Country
-            if (ilaqa.maqam) {
-              let maqam = await MaqamModel.findById(ilaqa.maqam);
-              if (maqam) {
-                await MaqamModel.updateOne(
-                  { _id: maqam._id },
-                  { $inc: { halqaCount: changeValue } }
+              // Now update Maqam, Province, and Country
+              if (ilaqa.maqam) {
+                let maqam = await MaqamModel.findById(ilaqa.maqam);
+                if (maqam) {
+                  await MaqamModel.updateOne(
+                    { _id: maqam._id },
+                    { $inc: { activeHalqaCount: changeValue } }
+                  );
+                  if (maqam.province) {
+                    let province = await ProvinceModel.findById(maqam.province);
+                    if (province) {
+                      await ProvinceModel.updateOne(
+                        { _id: province._id },
+                        { $inc: { activeHalqaCount: changeValue } }
+                      );
+                      if (province.country) {
+                        let country = await CountryModel.findById(
+                          province.country
+                        );
+                        if (country) {
+                          await CountryModel.updateOne(
+                            { _id: country._id },
+                            { $inc: { activeHalqaCount: changeValue } }
+                          );
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          } else if (
+            currentHalqa.parentType === "Maqam" &&
+            currentHalqa.parentId
+          ) {
+            // Step 5: If parentType is Maqam, update Maqam, Province, and Country
+            let maqam = await MaqamModel.findById(currentHalqa.parentId);
+            if (maqam) {
+              // Update Maqam halqaCount
+              await MaqamModel.updateOne(
+                { _id: maqam._id },
+                { $inc: { activeHalqaCount: changeValue } }
+              );
+
+              // Now update Province and Country
+              if (maqam.province) {
+                let province = await ProvinceModel.findById(maqam.province);
+                if (province) {
+                  await ProvinceModel.updateOne(
+                    { _id: province._id },
+                    { $inc: { activeHalqaCount: changeValue } }
+                  );
+                  if (province.country) {
+                    let country = await CountryModel.findById(province.country);
+                    if (country) {
+                      await CountryModel.updateOne(
+                        { _id: country._id },
+                        { $inc: { activeHalqaCount: changeValue } }
+                      );
+                    }
+                  }
+                }
+              }
+            }
+          } else if (
+            currentHalqa.parentType === "Division" &&
+            currentHalqa.parentId
+          ) {
+            try {
+              let division = await DivisionModel.findById(
+                currentHalqa.parentId
+              );
+              if (division) {
+                // Update Division halqaCount
+                await DivisionModel.updateOne(
+                  { _id: division._id },
+                  { $inc: { activeHalqaCount: changeValue } }
                 );
-                if (maqam.province) {
-                  let province = await ProvinceModel.findById(maqam.province);
+
+                // Now update Province and Country
+                if (division.province) {
+                  let province = await ProvinceModel.findById(
+                    division.province
+                  );
                   if (province) {
                     await ProvinceModel.updateOne(
                       { _id: province._id },
-                      { $inc: { halqaCount: changeValue } }
+                      { $inc: { activeHalqaCount: changeValue } }
                     );
                     if (province.country) {
                       let country = await CountryModel.findById(
@@ -437,126 +513,63 @@ class Halqa extends Response {
                       if (country) {
                         await CountryModel.updateOne(
                           { _id: country._id },
-                          { $inc: { halqaCount: changeValue } }
+                          { $inc: { activeHalqaCount: changeValue } }
                         );
                       }
                     }
                   }
                 }
               }
+            } catch (error) {
+              console.log(error);
             }
-          }
-        } else if (
-          currentHalqa.parentType === "Maqam" &&
-          currentHalqa.parentId
-        ) {
-          // Step 5: If parentType is Maqam, update Maqam, Province, and Country
-          let maqam = await MaqamModel.findById(currentHalqa.parentId);
-          if (maqam) {
-            // Update Maqam halqaCount
-            await MaqamModel.updateOne(
-              { _id: maqam._id },
-              { $inc: { halqaCount: changeValue } }
-            );
+          } else if (
+            currentHalqa.parentType === "Tehsil" &&
+            currentHalqa.parentId
+          ) {
+            let tehsil = await TehsilModel.findById(currentHalqa.parentId);
+            if (tehsil) {
+              // Update Tehsil halqaCount
+              await TehsilModel.updateOne(
+                { _id: tehsil._id },
+                { $inc: { activeHalqaCount: changeValue } }
+              );
 
-            // Now update Province and Country
-            if (maqam.province) {
-              let province = await ProvinceModel.findById(maqam.province);
-              if (province) {
-                await ProvinceModel.updateOne(
-                  { _id: province._id },
-                  { $inc: { halqaCount: changeValue } }
-                );
-                if (province.country) {
-                  let country = await CountryModel.findById(province.country);
-                  if (country) {
-                    await CountryModel.updateOne(
-                      { _id: country._id },
-                      { $inc: { halqaCount: changeValue } }
+              // Now update District, Division, Province, and Country
+              if (tehsil.district) {
+                let district = await DistrictModel.findById(tehsil.district);
+                if (district) {
+                  // District does not have a halqaCount, so move to Division
+                  if (district.division) {
+                    let division = await DivisionModel.findById(
+                      district.division
                     );
-                  }
-                }
-              }
-            }
-          }
-        } else if (
-          currentHalqa.parentType === "Division" &&
-          currentHalqa.parentId
-        ) {
-          let division = await DivisionModel.findById(currentHalqa.parentId);
-          if (division) {
-            // Update Division halqaCount
-            await DivisionModel.updateOne(
-              { _id: division._id },
-              { $inc: { halqaCount: changeValue } }
-            );
-
-            // Now update Province and Country
-            if (division.province) {
-              let province = await ProvinceModel.findById(division.province);
-              if (province) {
-                await ProvinceModel.updateOne(
-                  { _id: province._id },
-                  { $inc: { halqaCount: changeValue } }
-                );
-                if (province.country) {
-                  let country = await CountryModel.findById(province.country);
-                  if (country) {
-                    await CountryModel.updateOne(
-                      { _id: country._id },
-                      { $inc: { halqaCount: changeValue } }
-                    );
-                  }
-                }
-              }
-            }
-          }
-        } else if (
-          currentHalqa.parentType === "Tehsil" &&
-          currentHalqa.parentId
-        ) {
-          let tehsil = await TehsilModel.findById(currentHalqa.parentId);
-          if (tehsil) {
-            // Update Tehsil halqaCount
-            await TehsilModel.updateOne(
-              { _id: tehsil._id },
-              { $inc: { halqaCount: changeValue } }
-            );
-
-            // Now update District, Division, Province, and Country
-            if (tehsil.district) {
-              let district = await DistrictModel.findById(tehsil.district);
-              if (district) {
-                // District does not have a halqaCount, so move to Division
-                if (district.division) {
-                  let division = await DivisionModel.findById(
-                    district.division
-                  );
-                  if (division) {
-                    await DivisionModel.updateOne(
-                      { _id: division._id },
-                      { $inc: { halqaCount: changeValue } }
-                    );
-
-                    // Now update Province and Country
-                    if (division.province) {
-                      let province = await ProvinceModel.findById(
-                        division.province
+                    if (division) {
+                      await DivisionModel.updateOne(
+                        { _id: division._id },
+                        { $inc: { activeHalqaCount: changeValue } }
                       );
-                      if (province) {
-                        await ProvinceModel.updateOne(
-                          { _id: province._id },
-                          { $inc: { halqaCount: changeValue } }
+
+                      // Now update Province and Country
+                      if (division.province) {
+                        let province = await ProvinceModel.findById(
+                          division.province
                         );
-                        if (province.country) {
-                          let country = await CountryModel.findById(
-                            province.country
+                        if (province) {
+                          await ProvinceModel.updateOne(
+                            { _id: province._id },
+                            { $inc: { activeHalqaCount: changeValue } }
                           );
-                          if (country) {
-                            await CountryModel.updateOne(
-                              { _id: country._id },
-                              { $inc: { halqaCount: changeValue } }
+                          if (province.country) {
+                            let country = await CountryModel.findById(
+                              province.country
                             );
+                            if (country) {
+                              await CountryModel.updateOne(
+                                { _id: country._id },
+                                { $inc: { activeHalqaCount: changeValue } }
+                              );
+                            }
                           }
                         }
                       }
@@ -566,18 +579,25 @@ class Halqa extends Response {
               }
             }
           }
-        }
 
+          return this.sendResponse(req, res, {
+            message: "Halqa Updated",
+            status: 200,
+          });
+        } catch (error) {
+          console.log(error);
+          return this.sendResponse(req, res, {
+            message: "Wait! Too many requests",
+            status: 400,
+          });
+        }
+        // Step 3: Track the change direction (add or subtract)
+      } else {
         return this.sendResponse(req, res, {
-          message: "Halqa Updated",
-          status: 200,
+          message: "Somehow halqa was not updated",
+          status: 400,
         });
       }
-
-      return this.sendResponse(req, res, {
-        message: "Wait! Too many requests",
-        status: 400,
-      });
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
@@ -587,5 +607,205 @@ class Halqa extends Response {
     }
   };
 }
+const addHalqaToParentHierarchy = async (halqaId, parentId, parentType) => {
+  try {
+    let parent, grandParent, greatGrandParent;
+
+    if (parentType === "Ilaqa") {
+      // Update Ilaqa
+      parent = await IlaqaModel.findById(parentId);
+      if (!parent) {
+        throw new Error(`Ilaqa with ID ${parentId} not found.`);
+      } else {
+        await IlaqaModel.updateOne(
+          { _id: parentId },
+          {
+            $push: { childHalqaIDs: halqaId },
+            $inc: { activeHalqaCount: 1 },
+          }
+        );
+
+        // Update Maqam
+        if (parent.maqam) {
+          grandParent = await MaqamModel.findById(parent.maqam);
+          if (grandParent) {
+            await MaqamModel.updateOne(
+              { _id: grandParent._id },
+              {
+                $push: { childHalqaIDs: halqaId },
+                $inc: { activeHalqaCount: 1 },
+              }
+            );
+
+            // Update Province
+            if (grandParent.province) {
+              greatGrandParent = await ProvinceModel.findById(
+                grandParent.province
+              );
+              if (greatGrandParent) {
+                await ProvinceModel.updateOne(
+                  { _id: greatGrandParent._id },
+                  {
+                    $push: { childHalqaIDs: halqaId },
+                    $inc: { activeHalqaCount: 1 },
+                  }
+                );
+
+                // Update Country
+                if (greatGrandParent.country) {
+                  await CountryModel.updateOne(
+                    { _id: greatGrandParent.country },
+                    {
+                      $push: { childHalqaIDs: halqaId },
+                      $inc: { activeHalqaCount: 1 },
+                    }
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+    } else if (parentType === "Maqam") {
+      // Update Maqam
+
+      parent = await MaqamModel.findById(parentId);
+      if (!parent) {
+        throw new Error(`Maqam with ID ${parentId} not found.`);
+      } else {
+        await MaqamModel.updateOne(
+          { _id: parentId },
+          {
+            $push: { childHalqaIDs: halqaId },
+            $inc: { activeHalqaCount: 1 },
+          }
+        );
+
+        // Update Province
+        if (parent.province) {
+          grandParent = await ProvinceModel.findById(parent.province);
+          if (grandParent) {
+            await ProvinceModel.updateOne(
+              { _id: grandParent._id },
+              {
+                $push: { childHalqaIDs: halqaId },
+                $inc: { activeHalqaCount: 1 },
+              }
+            );
+
+            // Update Country
+            if (grandParent.country) {
+              await CountryModel.updateOne(
+                { _id: grandParent.country },
+                {
+                  $push: { childHalqaIDs: halqaId },
+                  $inc: { activeHalqaCount: 1 },
+                }
+              );
+            }
+          }
+        }
+      }
+    } else if (parentType === "Division") {
+      // Update Division
+      parent = await DivisionModel.findById(parentId);
+      if (!parent) {
+        throw new Error(`Division with ID ${parentId} not found.`);
+      } else {
+        await DivisionModel.updateOne(
+          { _id: parentId },
+          {
+            $push: { childHalqaIDs: halqaId },
+            $inc: { activeHalqaCount: 1 },
+          }
+        );
+
+        // Update Province
+        if (parent.province) {
+          grandParent = await ProvinceModel.findById(parent.province);
+          if (grandParent) {
+            await ProvinceModel.updateOne(
+              { _id: grandParent._id },
+              {
+                $push: { childHalqaIDs: halqaId },
+                $inc: { activeHalqaCount: 1 },
+              }
+            );
+
+            // Update Country
+            if (grandParent.country) {
+              await CountryModel.updateOne(
+                { _id: grandParent.country },
+                {
+                  $push: { childHalqaIDs: halqaId },
+                  $inc: { activeHalqaCount: 1 },
+                }
+              );
+            }
+          }
+        }
+      }
+    } else if (parentType === "Tehsil") {
+      // Update Tehsil
+      parent = await TehsilModel.findById(parentId);
+      if (!parent) {
+        throw new Error(`Tehsil with ID ${parentId} not found.`);
+      } else {
+        await TehsilModel.updateOne(
+          { _id: parentId },
+          {
+            $push: { childHalqaIDs: halqaId },
+            $inc: { activeHalqaCount: 1 },
+          }
+        );
+        if (parent.district) {
+          grandParent = await DistrictModel.findById(parent.district);
+          // Update Division
+          if (grandParent.division) {
+            greatGrandParent = await DivisionModel.findById(
+              grandParent.division
+            );
+            if (greatGrandParent) {
+              await DivisionModel.updateOne(
+                { _id: greatGrandParent._id },
+                {
+                  $push: { childHalqaIDs: halqaId },
+                  $inc: { activeHalqaCount: 1 },
+                }
+              );
+
+              // Update Province and Country
+              if (greatGrandParent.province) {
+                let province = await ProvinceModel.findById(
+                  greatGrandParent.province
+                );
+                if (province) {
+                  await ProvinceModel.updateOne(
+                    { _id: province._id },
+                    {
+                      $push: { childHalqaIDs: halqaId },
+                      $inc: { activeHalqaCount: 1 },
+                    }
+                  );
+                  if (province.country) {
+                    await CountryModel.updateOne(
+                      { _id: province.country },
+                      {
+                        $push: { childHalqaIDs: halqaId },
+                        $inc: { activeHalqaCount: 1 },
+                      }
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error updating parent hierarchy:", error);
+  }
+};
 
 module.exports = Halqa;

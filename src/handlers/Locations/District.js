@@ -48,6 +48,7 @@ class District extends Response {
       }
       const newDistrict = new DistrictModel({ name, division });
       await newDistrict.save();
+      await addDistrictToHierarchy(newDistrict._id, division);
       await auditLogger(
         userExist,
         "CREATED_DISTRICT",
@@ -259,7 +260,6 @@ class District extends Response {
 
         // Start with the current Halqa and move up the chain
         let currentDistrict = isExist;
-        console.log(isExist);
         if (currentDistrict.division) {
           // Step 4: If parentType is Ilaqa, update Ilaqa, Maqam, Province, and Country
           let division = await DivisionModel.findById(currentDistrict.division);
@@ -267,7 +267,7 @@ class District extends Response {
             // Update Ilaqa halqaCount
             await DivisionModel.updateOne(
               { _id: division._id },
-              { $inc: { districtCount: changeValue } }
+              { $inc: { activeDistrictCount: changeValue } }
             );
 
             // Now update Maqam, Province, and Country
@@ -277,14 +277,14 @@ class District extends Response {
               if (province) {
                 await ProvinceModel.updateOne(
                   { _id: province._id },
-                  { $inc: { districtCount: changeValue } }
+                  { $inc: { activeDistrictCount: changeValue } }
                 );
                 if (province.country) {
                   let country = await CountryModel.findById(province.country);
                   if (country) {
                     await CountryModel.updateOne(
                       { _id: country._id },
-                      { $inc: { districtCount: changeValue } }
+                      { $inc: { activeDistrictCount: changeValue } }
                     );
                   }
                 }
@@ -312,5 +312,51 @@ class District extends Response {
     }
   };
 }
+const addDistrictToHierarchy = async (districtId, divisionId) => {
+  try {
+    // Find the Division
+    const division = await DivisionModel.findById(divisionId);
+    if (!division) {
+      throw new Error(`Division with ID ${divisionId} not found.`);
+    }
+
+    // Update the Division's activeDistrictCount and childDistrictIDs
+    await DivisionModel.updateOne(
+      { _id: division._id },
+      {
+        $push: { childDistrictIDs: districtId },
+        $inc: { activeDistrictCount: 1 },
+      }
+    );
+
+    // Find the Province associated with the Division
+    const province = await ProvinceModel.findById(division.province);
+    if (!province) {
+      throw new Error(`Province not found for Division ID ${divisionId}.`);
+    }
+
+    // Update the Province's activeDistrictCount and childDistrictIDs
+    await ProvinceModel.updateOne(
+      { _id: province._id },
+      {
+        $push: { childDistrictIDs: districtId },
+        $inc: { activeDistrictCount: 1 },
+      }
+    );
+
+    // Update the Country associated with the Province
+    if (province.country) {
+      await CountryModel.updateOne(
+        { _id: province.country },
+        {
+          $push: { childDistrictIDs: districtId },
+          $inc: { activeDistrictCount: 1 },
+        }
+      );
+    }
+  } catch (error) {
+    console.error("Error updating hierarchy for District:", error);
+  }
+};
 
 module.exports = District;

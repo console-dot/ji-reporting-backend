@@ -15,24 +15,30 @@ const province = mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  halqaCount: {
+  activeDivisionCount: {
     type: Number,
   },
-  tehsilCount: {
+  activeDistrictCount: {
     type: Number,
   },
-  districtCount: {
+  activeTehsilCount: {
     type: Number,
   },
-  divisionCount: {
+  activeMaqamCount: {
     type: Number,
   },
-  maqamCount: {
+  activeIlaqaCount: {
     type: Number,
   },
-  ilaqaCount: {
+  activeHalqaCount: {
     type: Number,
   },
+  childDivisionIDs: [{ type: mongoose.Types.ObjectId, ref: "Division" }],
+  childDistrictIDs: [{ type: mongoose.Types.ObjectId, ref: "District" }],
+  childTehsilIDs: [{ type: mongoose.Types.ObjectId, ref: "Tehsil" }],
+  childMaqamIDs: [{ type: mongoose.Types.ObjectId, ref: "Maqam" }],
+  childIlaqaIDs: [{ type: mongoose.Types.ObjectId, ref: "Ilaqa" }],
+  childHalqaIDs: [{ type: mongoose.Types.ObjectId, ref: "Halqa" }],
 });
 
 const ProvinceModel = mongoose.model("Province", province);

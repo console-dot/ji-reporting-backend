@@ -49,6 +49,7 @@ class Maqam extends Response {
 
       const newMaqam = new MaqamModel({ name, province });
       await newMaqam.save();
+      await addMaqamToHierarchy(newMaqam._id, province);
       await auditLogger(
         userExist,
         "CREATED_MAQAM",
@@ -298,14 +299,14 @@ class Maqam extends Response {
           if (province) {
             await ProvinceModel.updateOne(
               { _id: province._id },
-              { $inc: { maqamCount: changeValue } }
+              { $inc: { activeMaqamCount: changeValue } }
             );
             if (province.country) {
               let country = await CountryModel.findById(province.country);
               if (country) {
                 await CountryModel.updateOne(
                   { _id: country._id },
-                  { $inc: { maqamCount: changeValue } }
+                  { $inc: { activeMaqamCount: changeValue } }
                 );
               }
             }
@@ -331,5 +332,36 @@ class Maqam extends Response {
     }
   };
 }
+const addMaqamToHierarchy = async (maqamId, provinceId) => {
+  try {
+    // Find the Province
+    const province = await ProvinceModel.findById(provinceId);
+    if (!province) {
+      throw new Error(`Province with ID ${provinceId} not found.`);
+    }
+
+    // Update the Province's activeMaqamCount and childMaqamIDs
+    await ProvinceModel.updateOne(
+      { _id: province._id },
+      {
+        $push: { childMaqamIDs: maqamId },
+        $inc: { activeMaqamCount: 1 },
+      }
+    );
+
+    // Update the Country associated with the Province
+    if (province.country) {
+      await CountryModel.updateOne(
+        { _id: province.country },
+        {
+          $push: { childMaqamIDs: maqamId },
+          $inc: { activeMaqamCount: 1 },
+        }
+      );
+    }
+  } catch (error) {
+    console.error("Error updating hierarchy for Maqam:", error);
+  }
+};
 
 module.exports = Maqam;

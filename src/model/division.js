@@ -14,15 +14,33 @@ const division = mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  halqaCount: {
+  activeDistrictCount: {
     type: Number,
   },
-  tehsilCount: {
+  activeTehsilCount: {
     type: Number,
   },
-  districtCount: {
+  activeHalqaCount: {
     type: Number,
   },
+  childDistrictIDs: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: "District",
+    },
+  ],
+  childTehsilIDs: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: "Tehsil",
+    },
+  ],
+  childHalqaIDs: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: "Halqa",
+    },
+  ],
 });
 
 const DivisionModel = mongoose.model("Division", division);

@@ -49,6 +49,7 @@ class Ilaqa extends Response {
 
       const newIlaqa = new IlaqaModel({ name, maqam });
       await newIlaqa.save();
+      await addIlaqaToHierarchy(newIlaqa._id, maqam);
       await auditLogger(
         userExist,
         "CREATED_IlAQA",
@@ -295,7 +296,7 @@ class Ilaqa extends Response {
             // Update Maqam halqaCount
             await MaqamModel.updateOne(
               { _id: maqam._id },
-              { $inc: { ilaqaCount: changeValue } }
+              { $inc: { activeIlaqaCount: changeValue } }
             );
 
             // Now update Province and Country
@@ -304,14 +305,14 @@ class Ilaqa extends Response {
               if (province) {
                 await ProvinceModel.updateOne(
                   { _id: province._id },
-                  { $inc: { ilaqaCount: changeValue } }
+                  { $inc: { activeIlaqaCount: changeValue } }
                 );
                 if (province.country) {
                   let country = await CountryModel.findById(province.country);
                   if (country) {
                     await CountryModel.updateOne(
                       { _id: country._id },
-                      { $inc: { ilaqaCount: changeValue } }
+                      { $inc: { activeIlaqaCount: changeValue } }
                     );
                   }
                 }
@@ -339,5 +340,51 @@ class Ilaqa extends Response {
     }
   };
 }
+const addIlaqaToHierarchy = async (ilaqId, maqamId) => {
+  try {
+    // Find the Maqam
+    const maqam = await MaqamModel.findById(maqamId);
+    if (!maqam) {
+      throw new Error(`Maqam with ID ${maqamId} not found.`);
+    }
+
+    // Update the Maqam's activeIlaqaCount and childIlaqaIDs
+    await MaqamModel.updateOne(
+      { _id: maqam._id },
+      {
+        $push: { childIlaqaIDs: ilaqId },
+        $inc: { activeIlaqaCount: 1 },
+      }
+    );
+
+    // Find the Province associated with the Maqam
+    const province = await ProvinceModel.findById(maqam.province);
+    if (!province) {
+      throw new Error(`Province not found for Maqam ID ${maqam._id}.`);
+    }
+
+    // Update the Province's activeIlaqaCount and childIlaqaIDs
+    await ProvinceModel.updateOne(
+      { _id: province._id },
+      {
+        $push: { childIlaqaIDs: ilaqId },
+        $inc: { activeIlaqaCount: 1 },
+      }
+    );
+
+    // Update the Country associated with the Province
+    if (province.country) {
+      await CountryModel.updateOne(
+        { _id: province.country },
+        {
+          $push: { childIlaqaIDs: ilaqId },
+          $inc: { activeIlaqaCount: 1 },
+        }
+      );
+    }
+  } catch (error) {
+    console.error("Error updating hierarchy for Ilaqa:", error);
+  }
+};
 
 module.exports = Ilaqa;

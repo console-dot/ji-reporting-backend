@@ -14,12 +14,24 @@ const maqam = mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  ilaqaCount: {
+  activeIlaqaCount: {
     type: Number,
   },
-  halqaCount: {
+  activeHalqaCount: {
     type: Number,
   },
+  childIlaqaIDs: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: "Ilaqa",
+    },
+  ],
+  childHalqaIDs: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: "Halqa",
+    },
+  ],
 });
 
 const MaqamModel = mongoose.model("Maqam", maqam);

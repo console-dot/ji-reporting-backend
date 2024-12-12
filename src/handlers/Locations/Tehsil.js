@@ -46,6 +46,7 @@ class Tehsil extends Response {
       }
       const newTehsil = new TehsilModel({ name, district });
       await newTehsil.save();
+      await addTehsilToHierarchy(newTehsil._id, district);
       await auditLogger(
         userExist,
         "TEHSIL_CREATED",
@@ -255,19 +256,19 @@ class Tehsil extends Response {
         // Step 4: Update District, Division, Province, and Country hierarchy
         const district = await DistrictModel.findById(isExist.district);
         if (district) {
-          // Update District tehsilCount
+          // Update District activeTehsilCount
           await DistrictModel.updateOne(
             { _id: district._id },
-            { $inc: { tehsilCount: changeValue } }
+            { $inc: { activeTehsilCount: changeValue } }
           );
 
           if (district.division) {
             const division = await DivisionModel.findById(district.division);
             if (division) {
-              // Update Division tehsilCount
+              // Update Division activeTehsilCount
               await DivisionModel.updateOne(
                 { _id: division._id },
-                { $inc: { tehsilCount: changeValue } }
+                { $inc: { activeTehsilCount: changeValue } }
               );
 
               if (division.province) {
@@ -275,10 +276,10 @@ class Tehsil extends Response {
                   division.province
                 );
                 if (province) {
-                  // Update Province tehsilCount
+                  // Update Province activeTehsilCount
                   await ProvinceModel.updateOne(
                     { _id: province._id },
-                    { $inc: { tehsilCount: changeValue } }
+                    { $inc: { activeTehsilCount: changeValue } }
                   );
 
                   if (province.country) {
@@ -286,10 +287,10 @@ class Tehsil extends Response {
                       province.country
                     );
                     if (country) {
-                      // Update Country tehsilCount
+                      // Update Country activeTehsilCount
                       await CountryModel.updateOne(
                         { _id: country._id },
-                        { $inc: { tehsilCount: changeValue } }
+                        { $inc: { activeTehsilCount: changeValue } }
                       );
                     }
                   }
@@ -320,5 +321,56 @@ class Tehsil extends Response {
     }
   };
 }
+const addTehsilToHierarchy = async (tehsilId, districtId) => {
+  try {
+    // Find the District
+    const district = await DistrictModel.findById(districtId);
+    if (!district) {
+      throw new Error(`District with ID ${districtId} not found.`);
+    }
 
+    // Find the Division associated with the District
+    const division = await DivisionModel.findById(district.division);
+    if (!division) {
+      throw new Error(`Division not found for District ID ${districtId}.`);
+    }
+
+    // Update the Division's activeTehsilCount and childTehsilIDs
+    await DivisionModel.updateOne(
+      { _id: division._id },
+      {
+        $push: { childTehsilIDs: tehsilId },
+        $inc: { activeTehsilCount: 1 },
+      }
+    );
+
+    // Find the Province associated with the Division
+    const province = await ProvinceModel.findById(division.province);
+    if (!province) {
+      throw new Error(`Province not found for Division ID ${division._id}.`);
+    }
+
+    // Update the Province's activeTehsilCount and childTehsilIDs
+    await ProvinceModel.updateOne(
+      { _id: province._id },
+      {
+        $push: { childTehsilIDs: tehsilId },
+        $inc: { activeTehsilCount: 1 },
+      }
+    );
+
+    // Update the Country associated with the Province
+    if (province.country) {
+      await CountryModel.updateOne(
+        { _id: province.country },
+        {
+          $push: { childTehsilIDs: tehsilId },
+          $inc: { activeTehsilCount: 1 },
+        }
+      );
+    }
+  } catch (error) {
+    console.error("Error updating hierarchy for Tehsil:", error);
+  }
+};
 module.exports = Tehsil;

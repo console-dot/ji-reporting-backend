@@ -14,12 +14,6 @@ const district = mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  tehsilCount: {
-    type: Number,
-  },
-  halqaCount: {
-    type: Number,
-  },
 });
 
 const DistrictModel = mongoose.model("District", district);

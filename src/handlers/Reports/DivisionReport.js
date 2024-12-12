@@ -21,7 +21,11 @@ const Response = require("../Response");
 const {
   UserModel,
   DivisionModel,
-  CountryAccessListModel,
+  CountryModel,
+  ProvinceModel,
+  MaqamModel,
+  IlaqaModel,
+  HalqaModel,
 } = require("../../model");
 const { auditLogger } = require("../../middlewares/auditLogger");
 
@@ -423,14 +427,30 @@ class DivisionReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
-      let accessList;
-      if (key === "country") {
-        const list = await CountryAccessListModel.find({});
-        accessList = list[0].countryAccessList;
+      let allChildAreaIDs;
+      let userArea;
+      if (user.userAreaType === "Country") {
+        userArea = await CountryModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Province") {
+        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Division") {
+        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Maqam") {
+        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Ilaqa") {
+        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
       } else {
-        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
       }
+      allChildAreaIDs = [
+        ...(userArea.childDistrictIDs || []),
+        ...(userArea.childDivisionIDs || []),
+        ...(userArea.childHalqaIDs || []),
+        ...(userArea.childIlaqaIDs || []),
+        ...(userArea.childMaqamIDs || []),
+        ...(userArea.childProvinceIDs || []),
+        ...(userArea.childTehsilIDs || []),
+      ];
       let reports;
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
@@ -457,7 +477,7 @@ class DivisionReport extends Response {
         const formattedFirstDay = firstDayOfMonth.toISOString();
         const formattedLastDay = lastDayOfMonth.toISOString();
         const reportsQuery = {
-          halqaAreaId: accessList,
+          halqaAreaId: allChildAreaIDs,
           month: {
             $gte: formattedFirstDay,
             $lte: formattedLastDay,
@@ -483,19 +503,19 @@ class DivisionReport extends Response {
       } else {
         if (year && month) {
           reports = await DivisionReportModel.find({
-            divisionAreaId: accessList,
+            divisionAreaId: allChildAreaIDs,
             month: startDate,
           }).populate({ path: "divisionAreaId" });
         } else {
           reports = await DivisionReportModel.find({
-            divisionAreaId: accessList,
+            divisionAreaId: allChildAreaIDs,
           })
             .select("_id")
             .sort({ createdAt: -1 });
 
           if (reports.length > 0) {
             reports = await DivisionReportModel.find({
-              divisionAreaId: accessList,
+              divisionAreaId: allChildAreaIDs,
             })
               .populate([
                 { path: "userId", select: ["_id", "email", "name", "age"] },
@@ -508,7 +528,7 @@ class DivisionReport extends Response {
         }
       }
       let total = await DivisionReportModel.find({
-        divisionAreaId: accessList,
+        divisionAreaId: allChildAreaIDs,
       });
       const totalReport = total.length;
       reports = { data: reports, length: totalReport };
@@ -874,14 +894,30 @@ class DivisionReport extends Response {
       }
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
-      let accessList;
-      if (key === "country") {
-        const list = await CountryAccessListModel.find({});
-        accessList = list[0].countryAccessList;
+      let allChildAreaIDs;
+      let userArea;
+      if (user.userAreaType === "Country") {
+        userArea = await CountryModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Province") {
+        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Division") {
+        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Maqam") {
+        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Ilaqa") {
+        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
       } else {
-        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
       }
+      allChildAreaIDs = [
+        ...(userArea.childDistrictIDs || []),
+        ...(userArea.childDivisionIDs || []),
+        ...(userArea.childHalqaIDs || []),
+        ...(userArea.childIlaqaIDs || []),
+        ...(userArea.childMaqamIDs || []),
+        ...(userArea.childProvinceIDs || []),
+        ...(userArea.childTehsilIDs || []),
+      ];
       const today = Date.now();
       let desiredYear = new Date(today).getFullYear();
       let desiredMonth = new Date(today).getMonth();
@@ -897,9 +933,9 @@ class DivisionReport extends Response {
           $gte: startDate,
           $lte: endDate,
         },
-        divisionAreaId: accessList,
+        divisionAreaId: allChildAreaIDs,
       }).populate("divisionAreaId userId");
-      const allDivisions = await DivisionModel.find({ _id: accessList });
+      const allDivisions = await DivisionModel.find({ _id: allChildAreaIDs });
       const divisionReportsAreaIds = divisionReports.map((i) =>
         i?.divisionAreaId?._id?.toString()
       );

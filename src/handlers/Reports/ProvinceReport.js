@@ -19,7 +19,15 @@ const {
 } = require("../../model/reports");
 const { months, getRoleFlow } = require("../../utils");
 const Response = require("../Response");
-const { UserModel, ProvinceModel, CountryAccessListModel } = require("../../model");
+const {
+  UserModel,
+  ProvinceModel,
+  CountryModel,
+  DivisionModel,
+  MaqamModel,
+  IlaqaModel,
+  HalqaModel,
+} = require("../../model");
 const { auditLogger } = require("../../middlewares/auditLogger");
 
 const isDataComplete = (dataToUpdate) => {
@@ -403,15 +411,30 @@ class ProvinceReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
-      let accessList;
-      if (key === "country") {
-         const list = await CountryAccessListModel.find({});
-        accessList = list[0].countryAccessList;
-  
+      let allChildAreaIDs;
+      let userArea;
+      if (user.userAreaType === "Country") {
+        userArea = await CountryModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Province") {
+        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Division") {
+        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Maqam") {
+        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Ilaqa") {
+        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
       } else {
-        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
       }
+      allChildAreaIDs = [
+        ...(userArea.childDistrictIDs || []),
+        ...(userArea.childDivisionIDs || []),
+        ...(userArea.childHalqaIDs || []),
+        ...(userArea.childIlaqaIDs || []),
+        ...(userArea.childMaqamIDs || []),
+        ...(userArea.childProvinceIDs || []),
+        ...(userArea.childTehsilIDs || []),
+      ];
       let reports;
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
@@ -438,14 +461,14 @@ class ProvinceReport extends Response {
         const formattedFirstDay = firstDayOfMonth.toISOString();
         const formattedLastDay = lastDayOfMonth.toISOString();
         const divisionQuery = {
-          divisionAreaId: accessList,
+          divisionAreaId: allChildAreaIDs,
           month: {
             $gte: formattedFirstDay,
             $lte: formattedLastDay,
           },
         };
         const maqamQuery = {
-          maqamAreaId: accessList,
+          maqamAreaId: allChildAreaIDs,
           month: {
             $gte: formattedFirstDay,
             $lte: formattedLastDay,
@@ -494,16 +517,16 @@ class ProvinceReport extends Response {
         if (year && month) {
           let startDate = new Date(Date.UTC(year, month - 1, 1));
           reports = await ProvinceReportModel.find({
-            provinceAreaId: accessList,
+            provinceAreaId: allChildAreaIDs,
             month: startDate,
           }).populate({ path: "provinceAreaId" });
         } else {
           const existingReports = await ProvinceReportModel.find({
-            provinceAreaId: accessList,
+            provinceAreaId: allChildAreaIDs,
           });
           if (existingReports.length > 0) {
             reports = await ProvinceReportModel.find({
-              provinceAreaId: accessList,
+              provinceAreaId: allChildAreaIDs,
             })
               .populate([
                 { path: "userId", select: ["_id", "email", "name", "age"] },
@@ -518,7 +541,7 @@ class ProvinceReport extends Response {
         }
       }
       let total = await ProvinceReportModel.find({
-        provinceAreaId: accessList,
+        provinceAreaId: allChildAreaIDs,
       });
       const totalReport = total.length;
       reports = {
@@ -895,14 +918,30 @@ class ProvinceReport extends Response {
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
-      let accessList;
-      if (key === "country") {
-         const list = await CountryAccessListModel.find({});
-        accessList = list[0].countryAccessList;
-  
+      let allChildAreaIDs;
+      let userArea;
+      if (user.userAreaType === "Country") {
+        userArea = await CountryModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Province") {
+        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Division") {
+        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Maqam") {
+        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Ilaqa") {
+        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
       } else {
-        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
       }
+      allChildAreaIDs = [
+        ...(userArea.childDistrictIDs || []),
+        ...(userArea.childDivisionIDs || []),
+        ...(userArea.childHalqaIDs || []),
+        ...(userArea.childIlaqaIDs || []),
+        ...(userArea.childMaqamIDs || []),
+        ...(userArea.childProvinceIDs || []),
+        ...(userArea.childTehsilIDs || []),
+      ];
       const today = Date.now();
       let desiredYear = new Date(today).getFullYear();
       let desiredMonth = new Date(today).getMonth();
@@ -919,9 +958,9 @@ class ProvinceReport extends Response {
           $gte: startDate,
           $lte: endDate,
         },
-        provinceAreaId: accessList,
+        provinceAreaId: allChildAreaIDs,
       }).populate("provinceAreaId userId");
-      const allProvinces = await ProvinceModel.find({ _id: accessList });
+      const allProvinces = await ProvinceModel.find({ _id: allChildAreaIDs });
       const provinceReportsAreaIds = provinceReports.map((i) =>
         i?.provinceAreaId?._id?.toString()
       );
@@ -951,5 +990,7 @@ class ProvinceReport extends Response {
     }
   };
 }
+
+
 
 module.exports = ProvinceReport;

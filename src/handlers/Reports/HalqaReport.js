@@ -15,6 +15,11 @@ const {
   UserModel,
   HalqaModel,
   CountryAccessListModel,
+  MaqamModel,
+  IlaqaModel,
+  DivisionModel,
+  ProvinceModel,
+  CountryModel,
 } = require("../../model");
 const { auditLogger } = require("../../middlewares/auditLogger");
 
@@ -350,7 +355,7 @@ class HalqaReport extends Response {
       const { userAreaId: id, nazim: key } = user;
       let accessList;
       if (key === "country") {
-         const list = await CountryAccessListModel.find({});
+        const list = await CountryAccessListModel.find({});
         accessList = list[0].countryAccessList;
       } else {
         accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
@@ -618,14 +623,30 @@ class HalqaReport extends Response {
       }
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
-      let accessList;
-      if (key === "country") {
-         const list = await CountryAccessListModel.find({});
-        accessList = list[0].countryAccessList;
+      let allChildAreaIDs;
+      let userArea;
+      if (user.userAreaType === "Country") {
+        userArea = await CountryModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Province") {
+        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Division") {
+        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Maqam") {
+        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Ilaqa") {
+        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
       } else {
-        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
       }
+      allChildAreaIDs = [
+        ...(userArea.childDistrictIDs || []),
+        ...(userArea.childDivisionIDs || []),
+        ...(userArea.childHalqaIDs || []),
+        ...(userArea.childIlaqaIDs || []),
+        ...(userArea.childMaqamIDs || []),
+        ...(userArea.childProvinceIDs || []),
+        ...(userArea.childTehsilIDs || []),
+      ];
       const today = Date.now();
       let desiredYear = new Date(today).getFullYear();
       let desiredMonth = new Date(today).getMonth();
@@ -662,12 +683,12 @@ class HalqaReport extends Response {
           $gte: startDate,
           $lt: endDate,
         },
-        halqaAreaId: accessList,
+        halqaAreaId: allChildAreaIDs,
       }).populate("halqaAreaId userId");
 
-      const allHalqas = await HalqaModel.find({ _id: accessList }).populate(
-        "parentId"
-      );
+      const allHalqas = await HalqaModel.find({
+        _id: allChildAreaIDs,
+      }).populate("parentId");
       const halqaReportsAreaIds = halqaReports.map((i) =>
         i?.halqaAreaId?._id?.toString()
       );

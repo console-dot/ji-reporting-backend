@@ -198,23 +198,23 @@ const months = [
   "December",
 ];
 
+const getModal = (userAreaType) => {
+  switch (userAreaType) {
+    case "Province":
+      return null;
+    case "Division":
+      return ProvinceModel;
+    case "District":
+      return DivisionModel;
+    case "Tehsil":
+      return DistrictModel;
+    case "Halqa":
+      return TehsilModel;
+    case "Maqam":
+      return ProvinceModel;
+  }
+};
 const getParentId = async (_id) => {
-  const getModal = (userAreaType) => {
-    switch (userAreaType) {
-      case "Province":
-        return null;
-      case "Division":
-        return ProvinceModel;
-      case "District":
-        return DivisionModel;
-      case "Tehsil":
-        return DistrictModel;
-      case "Halqa":
-        return TehsilModel;
-      case "Maqam":
-        return ProvinceModel;
-    }
-  };
   const userExist = await UserModel.findOne({ _id });
   if (!userExist) {
     return null;
@@ -245,4 +245,5 @@ module.exports = {
   cacheAllData,
   getRoleFlow,
   getParentId,
+  getModal,
 };

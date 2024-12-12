@@ -14,9 +14,10 @@ const tehsil = mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  halqaCount: {
+  activeHalqaCount: {
     type: Number,
   },
+  childHalqaIDs: [{ type: mongoose.Types.ObjectId, ref: "Halqa" }],
 });
 
 const TehsilModel = mongoose.model("Tehsil", tehsil);

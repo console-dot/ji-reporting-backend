@@ -46,13 +46,14 @@ class Division extends Response {
         });
       }
       const newDivision = new DivisionModel({ name, province });
+      await newDivision.save();
+      await addDivisionToHierarchy(newDivision._id, province);
       await auditLogger(
         userExist,
         "CREATED_DIVISION",
         "A user Created Division",
         req
       );
-      await newDivision.save();
       return this.sendResponse(req, res, {
         message: "Division created",
         status: 201,
@@ -275,14 +276,14 @@ class Division extends Response {
           if (province) {
             await ProvinceModel.updateOne(
               { _id: province._id },
-              { $inc: { divisionCount: changeValue } }
+              { $inc: { activeDivisionCount: changeValue } }
             );
             if (province.country) {
               let country = await CountryModel.findById(province.country);
               if (country) {
                 await CountryModel.updateOne(
                   { _id: country._id },
-                  { $inc: { divisionCount: changeValue } }
+                  { $inc: { activeDivisionCount: changeValue } }
                 );
               }
             }
@@ -308,5 +309,36 @@ class Division extends Response {
     }
   };
 }
+const addDivisionToHierarchy = async (divisionId, provinceId) => {
+  try {
+    // Find the Province
+    const province = await ProvinceModel.findById(provinceId);
+    if (!province) {
+      throw new Error(`Province with ID ${provinceId} not found.`);
+    }
+
+    // Update the Province's activeDivisionCount and childDivisionIDs
+    await ProvinceModel.updateOne(
+      { _id: province._id },
+      {
+        $push: { childDivisionIDs: divisionId },
+        $inc: { activeDivisionCount: 1 },
+      }
+    );
+
+    // Update the Country associated with the Province
+    if (province.country) {
+      await CountryModel.updateOne(
+        { _id: province.country },
+        {
+          $push: { childDivisionIDs: divisionId },
+          $inc: { activeDivisionCount: 1 },
+        }
+      );
+    }
+  } catch (error) {
+    console.error("Error updating hierarchy for Division:", error);
+  }
+};
 
 module.exports = Division;

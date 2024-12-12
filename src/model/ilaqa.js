@@ -14,9 +14,10 @@ const ilaqa = mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  halqaCount: {
+  activeHalqaCount: {
     type: Number,
   },
+  childHalqaIDs: [{ type: mongoose.Types.ObjectId, ref: "Halqa" }],
 });
 
 const IlaqaModel = mongoose.model("Ilaqa", ilaqa);
