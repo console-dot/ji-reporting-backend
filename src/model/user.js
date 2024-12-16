@@ -74,7 +74,7 @@ const users = mongoose.Schema(
         "bachelors",
         "masters",
         "phd",
-        "deploma",
+        "diploma",
       ],
     },
     subject: {

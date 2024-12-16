@@ -259,6 +259,10 @@ const getAreaModal = (userAreaType) => {
       return MaqamModel;
     case "Ilaqa":
       return IlaqaModel;
+    case "Tehsil":
+      return TehsilModel;
+    case "District":
+      return DistrictModel;
     default:
       throw new Error(`Invalid userAreaType: ${userAreaType}`);
   }

@@ -13,7 +13,13 @@ const {
   HalqaModel,
 } = require("../model");
 const { PrayersModel } = require("../model/prayers");
-const { months, getRoleFlow } = require("../utils");
+const {
+  months,
+  getRoleFlow,
+  getQueryDateRange,
+  getUserArea,
+  getChildAreaDetails,
+} = require("../utils");
 const Response = require("./Response");
 const { decode } = require("jsonwebtoken");
 
@@ -289,6 +295,12 @@ class Umeedwar extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
+      if (!user) {
+        return this.sendResponse(req, res, {
+          message: "User does not exist!",
+          status: 404,
+        });
+      }
       const inset = parseInt(req.query.inset);
       const offset = parseInt(req.query.offset);
       const date = req.query.date;
@@ -316,12 +328,7 @@ class Umeedwar extends Response {
         ...(userArea.childProvinceIDs || []),
         ...(userArea.childTehsilIDs || []),
       ];
-      if (!user) {
-        return this.sendResponse(req, res, {
-          message: "User does not exist!",
-          status: 404,
-        });
-      }
+
       let reports;
       let total;
       if (offset >= 0 && inset >= 0) {
