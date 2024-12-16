@@ -16,7 +16,7 @@ const {
   HalqaReportModel,
   BaitulmalModel,
 } = require("../../model/reports");
-const { months, getRoleFlow } = require("../../utils");
+const { months, getRoleFlow, getQueryDateRange } = require("../../utils");
 const Response = require("../Response");
 const {
   UserModel,
@@ -879,12 +879,14 @@ class DivisionReport extends Response {
     try {
       const { queryDate } = req.query;
       const token = req.headers.authorization;
+
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
           status: 401,
         });
       }
+
       const decoded = decode(token.split(" ")[1]);
       if (!decoded) {
         return this.sendResponse(req, res, {
@@ -892,72 +894,95 @@ class DivisionReport extends Response {
           status: 401,
         });
       }
+
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      let allChildAreaIDs;
-      let userArea;
-      if (user.userAreaType === "Country") {
-        userArea = await CountryModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Province") {
-        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Division") {
-        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Maqam") {
-        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Ilaqa") {
-        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
-      } else {
-        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
+      const { userAreaId: id, userAreaType } = user;
+
+      // Fetch user area based on the type
+      const areaModels = {
+        Country: CountryModel,
+        Province: ProvinceModel,
+        Division: DivisionModel,
+        Maqam: MaqamModel,
+        Ilaqa: IlaqaModel,
+        Halqa: HalqaModel, // Default case
+      };
+
+      const userArea = await areaModels[userAreaType]?.findOne({ _id: id });
+
+      if (!userArea) {
+        return this.sendResponse(req, res, {
+          message: "User area not found",
+          status: 404,
+        });
       }
-      allChildAreaIDs = [
-        ...(userArea.childDistrictIDs || []),
-        ...(userArea.childDivisionIDs || []),
-        ...(userArea.childHalqaIDs || []),
-        ...(userArea.childIlaqaIDs || []),
-        ...(userArea.childMaqamIDs || []),
-        ...(userArea.childProvinceIDs || []),
-        ...(userArea.childTehsilIDs || []),
-      ];
-      const today = Date.now();
-      let desiredYear = new Date(today).getFullYear();
-      let desiredMonth = new Date(today).getMonth();
-      if (queryDate) {
-        const convert = new Date(queryDate);
-        desiredYear = new Date(convert).getFullYear();
-        desiredMonth = new Date(convert).getMonth();
-      }
-      const startDate = new Date(desiredYear, desiredMonth, 0);
-      const endDate = new Date(desiredYear, desiredMonth + 1, 1);
-      const divisionReports = await DivisionReportModel.find({
-        month: {
-          $gte: startDate,
-          $lte: endDate,
+
+      // Combine all child area IDs into a single array
+      let allChildAreaIDs = [...(userArea.childDivisionIDs || [])];
+
+      const { startDate, endDate } = getQueryDateRange(queryDate);
+
+      allChildAreaIDs.push(id); // Add the user's area ID to the list
+
+      // Aggregation pipeline to fetch reports and identify unfilled areas
+      const divisionReports = await DivisionReportModel.aggregate([
+        {
+          $match: {
+            month: { $gte: startDate, $lte: endDate },
+            divisionAreaId: { $in: allChildAreaIDs },
+          },
         },
-        divisionAreaId: allChildAreaIDs,
-      }).populate("divisionAreaId userId");
-      const allDivisions = await DivisionModel.find({ _id: allChildAreaIDs });
-      const divisionReportsAreaIds = divisionReports.map((i) =>
-        i?.divisionAreaId?._id?.toString()
+        {
+          $lookup: {
+            from: "divisions", // Assuming 'divisions' is the collection name for DivisionModel
+            localField: "divisionAreaId",
+            foreignField: "_id",
+            as: "divisionArea",
+          },
+        },
+        {
+          $unwind: "$divisionArea", // Flatten the divisionArea array
+        },
+        {
+          $project: {
+            _id: 1,
+            divisionAreaId: 1,
+          },
+        },
+      ]);
+
+      const allDivisions = await DivisionModel.find({
+        _id: { $in: allChildAreaIDs },
+        disabled: false, // Ensure that disabled is false
+      }).select("name _id province");
+
+      // Create a set for fast lookup
+      const divisionReportsAreaIds = new Set(
+        divisionReports.map((i) => i?.divisionAreaId?._id?.toString())
       );
       const allDivisionsAreaIds = allDivisions.map((i) => i?._id?.toString());
-      const unfilledArr = [];
-      allDivisionsAreaIds.forEach((i, index) => {
-        if (!divisionReportsAreaIds.includes(i)) {
-          unfilledArr.push(i);
-        }
-      });
-      const unfilled = await DivisionModel.find({ _id: unfilledArr });
+
+      // Identify unfilled areas by comparing the two sets
+      const unfilledArr = allDivisionsAreaIds.filter(
+        (i) => !divisionReportsAreaIds.has(i)
+      );
+
+      // Fetch unfilled Divisions
+      const unfilled = await DivisionModel.find({ _id: { $in: unfilledArr } });
+
+      // Send response
       return this.sendResponse(req, res, {
         message: "Reports data fetched successfully",
         status: 200,
         data: {
-          unfilled: unfilled,
-          totaldivision: allDivisionsAreaIds?.length,
+          unfilled,
+          totalDivision: allDivisionsAreaIds.length,
           allDivisions: allDivisions,
         },
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
         status: 500,

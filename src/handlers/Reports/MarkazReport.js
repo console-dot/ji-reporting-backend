@@ -21,7 +21,6 @@ const {
   UserModel,
   ProvinceModel,
   CountryModel,
-  CountryAccessListModel,
   HalqaModel,
   IlaqaModel,
   MaqamModel,

@@ -10,6 +10,14 @@ const {
   CountryModel,
 } = require("./model");
 const mongoose = require("mongoose");
+const {
+  MarkazReportModel,
+  ProvinceReportModel,
+  DivisionReportModel,
+  HalqaReportModel,
+  MaqamReportModel,
+  IlaqaReportModel,
+} = require("./model/reports");
 const getImmediateUser = async (userAreaId, userAreaType) => {
   let req = undefined;
   switch (userAreaType) {
@@ -237,7 +245,124 @@ const getParentId = async (_id) => {
   });
   return parentId;
 };
+const getAreaModal = (userAreaType) => {
+  switch (userAreaType) {
+    case "Country":
+      return CountryModel;
+    case "Province":
+      return ProvinceModel;
+    case "Division":
+      return DivisionModel;
+    case "Halqa":
+      return HalqaModel;
+    case "Maqam":
+      return MaqamModel;
+    case "Ilaqa":
+      return IlaqaModel;
+    default:
+      throw new Error(`Invalid userAreaType: ${userAreaType}`);
+  }
+};
+const getUserArea = async (userArea, userAreaType) => {
+  const model = getAreaModal(userAreaType);
+  if (!model) {
+    throw new Error(`No model found for userAreaType: ${userAreaType}`);
+  }
+  return await model.findById(userArea);
+};
 
+const getAreaModelAndField = (areaType) => {
+  switch (areaType) {
+    case "Country":
+      return {
+        reportModel: MarkazReportModel,
+        areaModel: CountryModel,
+        field: "countryAreaId",
+      };
+    case "Province":
+      return {
+        reportModel: ProvinceReportModel,
+        areaModel: ProvinceModel,
+        field: "provinceAreaId",
+      };
+    case "Division":
+      return {
+        reportModel: DivisionReportModel,
+        areaModel: DivisionModel,
+        field: "divisionAreaId",
+      };
+    case "Halqa":
+      return {
+        reportModel: HalqaReportModel,
+        areaModel: HalqaModel,
+        field: "halqaAreaId",
+      };
+    case "Maqam":
+      return {
+        reportModel: MaqamReportModel,
+        areaModel: MaqamModel,
+        field: "maqamAreaId",
+      };
+    case "Ilaqa":
+      return {
+        reportModel: IlaqaReportModel,
+        areaModel: IlaqaModel,
+        field: "ilaqaAreaId",
+      };
+    default:
+      throw new Error(`Invalid area type: ${areaType}`);
+  }
+};
+
+const getChildAreaDetails = (areaType, userArea) => {
+  const areaHierarchy = {
+    Country: ["Province", "Division", "Halqa", "Maqam", "Ilaqa"],
+    Province: ["Division", "Halqa", "Maqam", "Ilaqa"],
+    Division: ["Halqa"],
+    Maqam: ["Halqa", "Ilaqa"],
+    Ilaqa: ["Halqa"],
+  };
+
+  const childTypes = areaHierarchy[areaType] || [];
+  return childTypes.map((type) => {
+    const { reportModel, areaModel, field } = getAreaModelAndField(type);
+    const childIds = userArea[`child${type}IDs`] || [];
+    return { type, reportModel, areaModel, field, ids: childIds };
+  });
+};
+
+const getQueryDateRange = (queryDate) => {
+  let desiredYear, desiredMonth, startDate, endDate;
+
+  if (queryDate) {
+    const convertedDate = new Date(queryDate);
+    desiredYear = convertedDate.getFullYear();
+    desiredMonth = convertedDate.getMonth();
+
+    startDate = new Date(desiredYear, desiredMonth, 1); // First day of the month
+    endDate = new Date(desiredYear, desiredMonth + 1, 0); // Last day of the month
+  } else {
+    const currentDate = new Date();
+    desiredYear = currentDate.getFullYear();
+    desiredMonth = currentDate.getMonth();
+
+    startDate = new Date(desiredYear, desiredMonth, 1); // First day of the current month
+    endDate = new Date(desiredYear, desiredMonth + 1, 0); // Last day of the current month
+  }
+
+  return { startDate, endDate };
+};
+const getChildAreas = (area) => {
+  return [
+    ...(area.childDistrictIDs || []),
+    ...(area.childDivisionIDs || []),
+    ...(area.childHalqaIDs || []),
+    ...(area.childIlaqaIDs || []),
+    ...(area.childMaqamIDs || []),
+    ...(area.childProvinceIDs || []),
+    ...(area.childTehsilIDs || []),
+  ];
+};
 module.exports = {
   getImmediateUser,
   getPopulateMethod,
@@ -246,4 +371,9 @@ module.exports = {
   getRoleFlow,
   getParentId,
   getModal,
+  getAreaModal,
+  getUserArea,
+  getQueryDateRange,
+  getChildAreas,
+  getChildAreaDetails,
 };

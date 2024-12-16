@@ -18,7 +18,6 @@ const { ToseeDawaModel } = require("./toseeDawa");
 const { CountryModel } = require("./country");
 const { IlaqaModel } = require("./ilaqa");
 const { AuditLogModel } = require("./auditLog");
-const { CountryAccessListModel } = require("./countryAccessList");
 const { ImageModel } = require("./image");
 module.exports = {
   RoleModel,
@@ -42,5 +41,4 @@ module.exports = {
   CountryModel,
   IlaqaModel,
   AuditLogModel,
-  CountryAccessListModel,
 };

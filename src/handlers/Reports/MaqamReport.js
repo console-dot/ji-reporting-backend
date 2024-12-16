@@ -1003,12 +1003,16 @@ class MaqamReport extends Response {
     try {
       const { queryDate } = req.query;
       const token = req.headers.authorization;
+
+      // Check if token is present
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
           status: 401,
         });
       }
+
+      // Decode the token
       const decoded = decode(token.split(" ")[1]);
       if (!decoded) {
         return this.sendResponse(req, res, {
@@ -1016,73 +1020,122 @@ class MaqamReport extends Response {
           status: 401,
         });
       }
-      const userId = decoded?.id;
-      const user = await UserModel.findOne({ _id: userId });
-      let allChildAreaIDs;
-      let userArea;
-      if (user.userAreaType === "Country") {
-        userArea = await CountryModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Province") {
-        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Division") {
-        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Maqam") {
-        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Ilaqa") {
-        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
-      } else {
-        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
-      }
-      allChildAreaIDs = [
-        ...(userArea.childDistrictIDs || []),
-        ...(userArea.childDivisionIDs || []),
-        ...(userArea.childHalqaIDs || []),
-        ...(userArea.childIlaqaIDs || []),
-        ...(userArea.childMaqamIDs || []),
-        ...(userArea.childProvinceIDs || []),
-        ...(userArea.childTehsilIDs || []),
-      ];
-      const today = Date.now();
-      let desiredYear = new Date(today).getFullYear();
-      let desiredMonth = new Date(today).getMonth();
-      if (queryDate) {
-        const convert = new Date(queryDate);
-        desiredYear = new Date(convert).getFullYear();
-        desiredMonth = new Date(convert).getMonth();
-      }
-      const startDate = new Date(desiredYear, desiredMonth, 0);
-      const endDate = new Date(desiredYear, desiredMonth + 1, 1);
 
-      const maqamReports = await MaqamReportModel.find({
-        month: {
-          $gte: startDate,
-          $lte: endDate,
+      // Extract user data from decoded token
+      const userId = decoded.id;
+      const user = await UserModel.findById(userId);
+      if (!user) {
+        return this.sendResponse(req, res, {
+          message: "User not found",
+          status: 404,
+        });
+      }
+
+      const { userAreaId: id, nazim: key, userAreaType } = user;
+
+      // Fetch user area model based on userAreaType
+      let userArea;
+      switch (userAreaType) {
+        case "Country":
+          userArea = await CountryModel.findById(id);
+          break;
+        case "Province":
+          userArea = await ProvinceModel.findById(id);
+          break;
+        case "Division":
+          userArea = await DivisionModel.findById(id);
+          break;
+        case "Maqam":
+          userArea = await MaqamModel.findById(id);
+          break;
+        case "Ilaqa":
+          userArea = await IlaqaModel.findById(id);
+          break;
+        default:
+          userArea = await HalqaModel.findById(id);
+      }
+
+      if (!userArea) {
+        return this.sendResponse(req, res, {
+          message: "User Area not found",
+          status: 404,
+        });
+      }
+
+      // Combine all child area IDs into a single array
+      const allChildAreaIDs = [...(userArea.childMaqamIDs || [])];
+
+      // Determine the desired date range
+      const today = new Date();
+      const desiredYear = queryDate
+        ? new Date(queryDate).getFullYear()
+        : today.getFullYear();
+      const desiredMonth = queryDate
+        ? new Date(queryDate).getMonth()
+        : today.getMonth();
+
+      const startDate = new Date(desiredYear, desiredMonth, 1); // First day of the month
+      const endDate = new Date(desiredYear, desiredMonth + 1, 0); // Last day of the month
+
+      // Add the user's area ID to the list of child areas
+      allChildAreaIDs.push(id);
+
+      // Aggregation pipeline to fetch maqam reports for the given date range and area IDs
+      const maqamReports = await MaqamReportModel.aggregate([
+        {
+          $match: {
+            month: { $gte: startDate, $lte: endDate },
+            maqamAreaId: { $in: allChildAreaIDs },
+          },
         },
-        maqamAreaId: allChildAreaIDs,
-      }).populate("maqamAreaId userId");
-      const allMaqams = await MaqamModel.find({ _id: allChildAreaIDs });
-      const maqamReportsAreaIds = maqamReports.map((i) =>
-        i?.maqamAreaId?._id?.toString()
+        {
+          $lookup: {
+            from: "maqams", // Reference to MaqamModel collection
+            localField: "maqamAreaId",
+            foreignField: "_id",
+            as: "maqamArea",
+          },
+        },
+        { $unwind: "$maqamArea" },
+        {
+          $project: {
+            _id: 1,
+            maqamAreaId: 1,
+          },
+        },
+      ]);
+
+      // Fetch all maqams in the user's area
+      const allMaqams = await MaqamModel.find({
+        _id: { $in: allChildAreaIDs },
+        disabled: false, // Ensure that disabled is false
+      }).select("name _id province");
+
+      // Create a set for fast lookup
+      const maqamReportsAreaIds = new Set(
+        maqamReports.map((i) => i?.maqamAreaId?._id?.toString())
       );
-      const allMaqamsAreaIds = allMaqams.map((i) => i?._id?.toString());
-      const unfilledArr = [];
-      allMaqamsAreaIds.forEach((i, index) => {
-        if (!maqamReportsAreaIds.includes(i)) {
-          unfilledArr.push(i);
-        }
-      });
-      const unfilled = await MaqamModel.find({ _id: unfilledArr });
+      const allMaqamAreaIds = allMaqams.map((i) => i?._id?.toString());
+
+      // Identify unfilled areas by comparing the two sets
+      const unfilledArr = allMaqamAreaIds.filter(
+        (i) => !maqamReportsAreaIds.has(i)
+      );
+
+      // Fetch unfilled maqams from the database
+      const unfilled = await MaqamModel.find({ _id: { $in: unfilledArr } });
+
       return this.sendResponse(req, res, {
         message: "Reports data fetched successfully",
         status: 200,
         data: {
           unfilled: unfilled,
-          totalmaqam: allMaqamsAreaIds?.length,
+          totalMaqam: allMaqamAreaIds.length,
           allMaqams: allMaqams,
         },
       });
     } catch (error) {
-      console.log(error);
+      console.error("Error occurred:", error);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
         status: 500,

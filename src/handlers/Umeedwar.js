@@ -5,7 +5,12 @@ const {
   StudiesModel,
   ToseeDawaModel,
   UmeedwarModel,
-  CountryAccessListModel,
+  CountryModel,
+  ProvinceModel,
+  DivisionModel,
+  MaqamModel,
+  IlaqaModel,
+  HalqaModel,
 } = require("../model");
 const { PrayersModel } = require("../model/prayers");
 const { months, getRoleFlow } = require("../utils");
@@ -287,15 +292,30 @@ class Umeedwar extends Response {
       const inset = parseInt(req.query.inset);
       const offset = parseInt(req.query.offset);
       const date = req.query.date;
-      const { userAreaId: id, nazim: key } = user;
-      let accessList;
-      if (key === "country") {
-        const list = await CountryAccessListModel.find({});
-        
-        accessList = list[0].countryAccessList;
+      let allChildAreaIDs;
+      let userArea;
+      if (user.userAreaType === "Country") {
+        userArea = await CountryModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Province") {
+        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Division") {
+        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Maqam") {
+        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Ilaqa") {
+        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
       } else {
-        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
       }
+      allChildAreaIDs = [
+        ...(userArea.childDistrictIDs || []),
+        ...(userArea.childDivisionIDs || []),
+        ...(userArea.childHalqaIDs || []),
+        ...(userArea.childIlaqaIDs || []),
+        ...(userArea.childMaqamIDs || []),
+        ...(userArea.childProvinceIDs || []),
+        ...(userArea.childTehsilIDs || []),
+      ];
       if (!user) {
         return this.sendResponse(req, res, {
           message: "User does not exist!",
@@ -310,7 +330,7 @@ class Umeedwar extends Response {
           user.nazimType !== "rukan" &&
           user?.nazimType !== "umeedwar"
         ) {
-          reports = await UmeedwarModel.find({ areaId: accessList })
+          reports = await UmeedwarModel.find({ areaId: allChildAreaIDs })
             .populate([
               {
                 path: "areaId",
@@ -360,7 +380,7 @@ class Umeedwar extends Response {
           user?.nazimType !== "umeedwar"
         ) {
           reports = await UmeedwarModel.find({
-            areaId: accessList,
+            areaId: allChildAreaIDs,
             month: date,
           })
             .populate([
@@ -397,7 +417,7 @@ class Umeedwar extends Response {
         }
       } else {
         if (user.nazimType !== "rukan" && user?.nazimType !== "umeedwar") {
-          reports = await UmeedwarModel.find({ areaId: accessList })
+          reports = await UmeedwarModel.find({ areaId: allChildAreaIDs })
             .populate([
               {
                 path: "areaId",
@@ -431,7 +451,7 @@ class Umeedwar extends Response {
             .sort({ createdAt: -1 });
         }
       }
-      let totalReports = await UmeedwarModel.find({ areaId: accessList });
+      let totalReports = await UmeedwarModel.find({ areaId: allChildAreaIDs });
       reports = { data: reports, length: totalReports.length };
       return this.sendResponse(req, res, {
         message: "Personal reports are fetched!",
