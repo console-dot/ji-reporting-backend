@@ -15,7 +15,7 @@ const {
   HalqaReportModel,
   BaitulmalModel,
 } = require("../../model/reports");
-const { months, getRoleFlow } = require("../../utils");
+const { months, getRoleFlow, getQueryDateRange } = require("../../utils");
 const Response = require("../Response");
 const {
   UserModel,
@@ -857,14 +857,16 @@ class IlaqaReport extends Response {
   };
   filledUnfilled = async (req, res) => {
     try {
-      const { queryDate } = req.query;
+      const { queryDate, areaId, areaType } = req.query;
       const token = req.headers.authorization;
+
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
           status: 401,
         });
       }
+
       const decoded = decode(token.split(" ")[1]);
       if (!decoded) {
         return this.sendResponse(req, res, {
@@ -872,74 +874,101 @@ class IlaqaReport extends Response {
           status: 401,
         });
       }
+
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
-      let allChildAreaIDs;
-      let userArea;
-      if (user.userAreaType === "Country") {
-        userArea = await CountryModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Province") {
-        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Division") {
-        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Maqam") {
-        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Ilaqa") {
-        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
-      } else {
-        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
+      const { userAreaId: id, userAreaType } = user;
+
+      // Fetch user area based on the type
+      const areaModels = {
+        Country: CountryModel,
+        Province: ProvinceModel,
+        Division: DivisionModel,
+        Maqam: MaqamModel,
+        Ilaqa: IlaqaModel,
+        Halqa: HalqaModel, // Default case
+      };
+
+      const userArea = await areaModels[userAreaType]?.findOne({ _id: id });
+
+      if (!userArea) {
+        return this.sendResponse(req, res, {
+          message: "User area not found",
+          status: 404,
+        });
       }
-      allChildAreaIDs = [
-        ...(userArea.childDistrictIDs || []),
-        ...(userArea.childDivisionIDs || []),
-        ...(userArea.childHalqaIDs || []),
-        ...(userArea.childIlaqaIDs || []),
-        ...(userArea.childMaqamIDs || []),
-        ...(userArea.childProvinceIDs || []),
-        ...(userArea.childTehsilIDs || []),
-      ];
-      const today = Date.now();
-      let desiredYear = new Date(today).getFullYear();
-      let desiredMonth = new Date(today).getMonth();
-      if (queryDate) {
-        const convert = new Date(queryDate);
-        desiredYear = new Date(convert).getFullYear();
-        desiredMonth = new Date(convert).getMonth();
-      }
-      const startDate = new Date(desiredYear, desiredMonth, 0);
-      const endDate = new Date(desiredYear, desiredMonth + 1, 1);
-      allChildAreaIDs.push(id);
-      const ilaqaReports = await IlaqaReportModel.find({
-        month: {
-          $gte: startDate,
-          $lte: endDate,
-        },
-        ilaqaAreaId: allChildAreaIDs,
-      }).populate("ilaqaAreaId userId");
-      const allIlaqas = await IlaqaModel.find({ _id: allChildAreaIDs });
-      const ilaqaReportsAreaIds = ilaqaReports.map((i) =>
-        i?.ilaqaAreaId?._id?.toString()
+
+      // Get the child Ilaqas related to the user area
+      const allChildAreaIDs = userArea.childIlaqaIDs || [];
+
+      // Determine date range
+      const today = new Date();
+      const defaultYear = today.getFullYear();
+      const defaultMonth = today.getMonth();
+      const { startDate, endDate } = queryDate
+        ? getQueryDateRange(queryDate)
+        : {
+            startDate: new Date(defaultYear, defaultMonth, 1),
+            endDate: new Date(defaultYear, defaultMonth + 1, 0),
+          };
+
+      // Aggregate reports and areas based on area type
+      const [ilaqaReports, allIlaqas] = await Promise.all([
+        IlaqaReportModel.aggregate([
+          {
+            $match: {
+              month: { $gte: startDate, $lte: endDate },
+              ilaqaAreaId: { $in: allChildAreaIDs },
+            },
+          },
+          {
+            $lookup: {
+              from: "ilaqas", // Ensure collection name matches
+              localField: "ilaqaAreaId",
+              foreignField: "_id",
+              as: "ilaqaArea",
+            },
+          },
+          { $unwind: "$ilaqaArea" },
+          { $project: { ilaqaAreaId: 1 } },
+        ]),
+        IlaqaModel.aggregate([
+          {
+            $match: {
+              _id: { $in: allChildAreaIDs },
+              disabled: false, // Ensure the Ilaqa is not disabled
+            },
+          },
+          { $project: { _id: 1, maqam: 1 } },
+        ]),
+      ]);
+
+      // Identify unfilled areas
+      const ilaqaReportsAreaIds = new Set(
+        ilaqaReports.map((i) => i.ilaqaAreaId.toString())
       );
-      const allIlaqaAreaIds = allIlaqas.map((i) => i?._id?.toString());
-      const unfilledArr = [];
-      allIlaqaAreaIds.forEach((i, index) => {
-        if (!ilaqaReportsAreaIds.includes(i)) {
-          unfilledArr.push(i);
-        }
-      });
-      const unfilled = await IlaqaModel.find({ _id: unfilledArr });
+      const allIlaqaAreaIds = allIlaqas.map((i) => i._id.toString());
+      const unfilledArr = allIlaqaAreaIds.filter(
+        (i) => !ilaqaReportsAreaIds.has(i)
+      );
+
+      // Fetch details for unfilled areas
+      const unfilled = await IlaqaModel.find({ _id: { $in: unfilledArr } })
+        .select("name maqam _id")
+        .populate("maqam");
+
+      // Send response
       return this.sendResponse(req, res, {
         message: "Reports data fetched successfully",
         status: 200,
         data: {
-          unfilled: unfilled,
-          totalIlaqa: allIlaqaAreaIds?.length,
-          allIlaqas: allIlaqas,
+          unfilled,
+          totalIlaqa: allIlaqaAreaIds.length,
+          allIlaqas,
         },
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
         status: 500,

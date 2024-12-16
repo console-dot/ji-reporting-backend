@@ -9,7 +9,7 @@ const db = require("./db"); // Import the connection
 const { router } = require("./routes");
 const file = require("express-fileupload");
 const { cacheAllData } = require("./utils");
-const { CountryAccessListModel, CountryModel } = require("./model");
+const { CountryModel } = require("./model");
 const {
   updateHalqaCountForAllIlaqas,
   updateHalqaCountForAllTehsils,
@@ -63,20 +63,7 @@ app.use("/api/v1", router);
 app.listen(PORT, () => {
   console.log(`\x1b[36m%s\x1b[0m`, `Server running on port ${PORT}`);
 });
-async function saveAccessList(accessList) {
-  // try {
-  //   const countryAccessList = new CountryAccessListModel({
-  //     countryAccessList: accessList, // Pass the array of IDs here
-  //   });
-  //   const savedDocument = await countryAccessList.save();
-  //   console.log("Access list saved:", savedDocument);
-  // } catch (error) {
-  //   console.error("Error saving access list:", error);
-  // }
-}
-// async function main() {
-//   await saveAccessList(countryAccessList);
-// }
+
 // updateHalqaCountForAllDistricts();
 
 // main();

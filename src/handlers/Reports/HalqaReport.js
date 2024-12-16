@@ -8,13 +8,21 @@ const {
   RozShabBedariModel,
   HalqaReportModel,
   BaitulmalModel,
+  MaqamReportModel,
+  DivisionReportModel,
+  IlaqaReportModel,
 } = require("../../model/reports");
-const { months, getRoleFlow } = require("../../utils");
+const {
+  months,
+  getUserArea,
+  getChildAreas,
+  getQueryDateRange,
+  getChildAreaDetails,
+} = require("../../utils");
 const Response = require("../Response");
 const {
   UserModel,
   HalqaModel,
-  CountryAccessListModel,
   MaqamModel,
   IlaqaModel,
   DivisionModel,
@@ -22,6 +30,7 @@ const {
   CountryModel,
 } = require("../../model");
 const { auditLogger } = require("../../middlewares/auditLogger");
+const { default: mongoose } = require("mongoose");
 
 const isDataComplete = (dataToUpdate) => {
   const requiredKeys = [
@@ -260,14 +269,30 @@ class HalqaReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
-      let accessList;
-      if (key === "country") {
-        const list = await CountryAccessListModel.find({});
-        accessList = list[0].countryAccessList;
+      let allChildAreaIDs;
+      let userArea;
+      if (user.userAreaType === "Country") {
+        userArea = await CountryModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Province") {
+        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Division") {
+        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Maqam") {
+        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Ilaqa") {
+        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
       } else {
-        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
       }
+      allChildAreaIDs = [
+        ...(userArea.childDistrictIDs || []),
+        ...(userArea.childDivisionIDs || []),
+        ...(userArea.childHalqaIDs || []),
+        ...(userArea.childIlaqaIDs || []),
+        ...(userArea.childMaqamIDs || []),
+        ...(userArea.childProvinceIDs || []),
+        ...(userArea.childTehsilIDs || []),
+      ];
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
       const year = req.query.year;
@@ -278,7 +303,7 @@ class HalqaReport extends Response {
         year && month ? new Date(Date.UTC(year, month - 1, 1)) : null;
 
       const baseQuery = {
-        halqaAreaId: accessList,
+        halqaAreaId: allChildAreaIDs,
         ...(startDate && { month: startDate }),
       };
 
@@ -353,17 +378,34 @@ class HalqaReport extends Response {
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
       const { userAreaId: id, nazim: key } = user;
-      let accessList;
-      if (key === "country") {
-        const list = await CountryAccessListModel.find({});
-        accessList = list[0].countryAccessList;
+      let allChildAreaIDs;
+      let userArea;
+      if (user.userAreaType === "Country") {
+        userArea = await CountryModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Province") {
+        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Division") {
+        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Maqam") {
+        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Ilaqa") {
+        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
       } else {
-        accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
+        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
       }
+      allChildAreaIDs = [
+        ...(userArea.childDistrictIDs || []),
+        ...(userArea.childDivisionIDs || []),
+        ...(userArea.childHalqaIDs || []),
+        ...(userArea.childIlaqaIDs || []),
+        ...(userArea.childMaqamIDs || []),
+        ...(userArea.childProvinceIDs || []),
+        ...(userArea.childTehsilIDs || []),
+      ];
       const hr = await HalqaReportModel.findOne({ halqaAreaId: _id });
 
       const halqaAreaId = _id;
-      if (date && !accessList.includes(halqaAreaId.toString())) {
+      if (date && !allChildAreaIDs.includes(halqaAreaId.toString())) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
           status: 401,
@@ -604,16 +646,19 @@ class HalqaReport extends Response {
       });
     }
   };
+
   filledUnfilled = async (req, res) => {
     try {
       const { queryDate } = req.query;
       const token = req.headers.authorization;
+
       if (!token) {
         return this.sendResponse(req, res, {
           message: "Access Denied",
           status: 401,
         });
       }
+
       const decoded = decode(token.split(" ")[1]);
       if (!decoded) {
         return this.sendResponse(req, res, {
@@ -621,98 +666,185 @@ class HalqaReport extends Response {
           status: 401,
         });
       }
+
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      let allChildAreaIDs;
-      let userArea;
-      if (user.userAreaType === "Country") {
-        userArea = await CountryModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Province") {
-        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Division") {
-        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Maqam") {
-        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Ilaqa") {
-        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
-      } else {
-        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
+      const { userAreaId: id, userAreaType } = user;
+
+      // Fetch user area
+      const userArea = await getUserArea(id, userAreaType);
+      if (!userArea) {
+        return this.sendResponse(req, res, {
+          message: "User area not found",
+          status: 404,
+        });
       }
-      allChildAreaIDs = [
-        ...(userArea.childDistrictIDs || []),
-        ...(userArea.childDivisionIDs || []),
-        ...(userArea.childHalqaIDs || []),
-        ...(userArea.childIlaqaIDs || []),
-        ...(userArea.childMaqamIDs || []),
-        ...(userArea.childProvinceIDs || []),
-        ...(userArea.childTehsilIDs || []),
-      ];
-      const today = Date.now();
-      let desiredYear = new Date(today).getFullYear();
-      let desiredMonth = new Date(today).getMonth();
-      let startDate, endDate;
 
-      if (queryDate) {
-        const convert = new Date(queryDate);
-        desiredYear = convert.getFullYear();
-        desiredMonth = convert.getMonth();
+      const allChildAreaIDs = userArea.childHalqaIDs;
+      // Determine date range
+      const { startDate, endDate } = getQueryDateRange(queryDate);
 
-        // Set startDate to the 1st of the provided month
-        startDate = new Date(desiredYear, desiredMonth, 1);
-
-        // Set endDate to the last day of the provided month
-        endDate = new Date(desiredYear, desiredMonth + 1, 0);
-      } else {
-        const currentDate = new Date();
-        desiredYear = currentDate.getFullYear();
-        desiredMonth = currentDate.getMonth();
-
-        // Set startDate to the 1st of the previous month
-        startDate = new Date(desiredYear, desiredMonth, 1);
-
-        // If the previous month is December, adjust the year
-        if (desiredMonth === 0) {
-          desiredYear -= 1;
-        }
-
-        // Set endDate to the 1st of the current month
-        endDate = new Date(desiredYear, desiredMonth + 1, 1);
-      }
-      const halqaReports = await HalqaReportModel.find({
-        month: {
-          $gte: startDate,
-          $lt: endDate,
+      // Fetch halqa reports based on the user's area and date range
+      const halqaReports = await HalqaReportModel.aggregate([
+        {
+          $match: {
+            month: { $gte: startDate, $lte: endDate },
+            halqaAreaId: { $in: allChildAreaIDs }, // Only child areas relevant to the user
+          },
         },
-        halqaAreaId: allChildAreaIDs,
-      }).populate("halqaAreaId userId");
+        {
+          $lookup: {
+            from: "halqas",
+            localField: "halqaAreaId",
+            foreignField: "_id",
+            as: "halqaArea",
+          },
+        },
+        { $unwind: "$halqaArea" },
+        { $project: { halqaAreaId: 1 } },
+      ]);
+      const halqaReportsAreaIds = new Set(
+        halqaReports.map((i) => i.halqaAreaId.toString())
+      );
 
-      const allHalqas = await HalqaModel.find({
-        _id: allChildAreaIDs,
-      }).populate("parentId");
-      const halqaReportsAreaIds = halqaReports.map((i) =>
-        i?.halqaAreaId?._id?.toString()
+      // Fetch all halqas that match the child area IDs
+      const allHalqas = await HalqaModel.aggregate([
+        {
+          $match: {
+            _id: { $in: allChildAreaIDs },
+            disabled: false,
+          },
+        },
+        { $project: { _id: 1, parentId: 1 } },
+      ]);
+      const allHalqaAreaIds = allHalqas.map((i) => i._id.toString());
+      const unfilledArr = allHalqaAreaIds.filter(
+        (i) => !halqaReportsAreaIds.has(i)
       );
-      const allHalqasAreaIds = allHalqas.map((i) => i?._id?.toString());
-      const unfilledArr = [];
-      allHalqasAreaIds.forEach((i, index) => {
-        if (!halqaReportsAreaIds.includes(i)) {
-          unfilledArr.push(i);
-        }
-      });
-      const unfilled = await HalqaModel.find({ _id: unfilledArr }).populate(
-        "parentId"
-      );
+
+      // Fetch unfilled areas
+      const unfilled = await HalqaModel.find({ _id: { $in: unfilledArr } })
+        .select("name parentId _id")
+        .populate("parentId");
+
+      // Send response
       return this.sendResponse(req, res, {
         message: "Reports data fetched successfully",
         status: 200,
         data: {
-          unfilled: unfilled,
-          totalhalqa: allHalqasAreaIds?.length,
-          allHalqas: allHalqas,
+          unfilled,
+          totalHalqa: allHalqaAreaIds.length,
+          allHalqas,
         },
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      return this.sendResponse(req, res, {
+        message: "Internal Server Error",
+        status: 500,
+      });
+    }
+  };
+
+  all = async (req, res) => {
+    try {
+      const { queryDate, areaType, areaId } = req.query;
+      const { startDate, endDate } = getQueryDateRange(queryDate);
+      // Fetch user's area
+      const userArea = await getUserArea(areaId, areaType);
+      if (!userArea) {
+        return this.sendResponse(req, res, {
+          message: "User area not found",
+          status: 404,
+        });
+      }
+
+      // Get child area details dynamically
+      const areaDetails = getChildAreaDetails(areaType, userArea);
+      // Fetch reports for all child areas
+      const reportPromises = areaDetails.map(
+        ({ ids, reportModel, field, type }) => {
+          if (!reportModel) {
+            console.error(`No reportModel found for area type: ${type}`);
+            return Promise.resolve([]); // Return an empty array if reportModel is missing
+          }
+
+          return reportModel.aggregate([
+            {
+              $match: {
+                month: { $gte: startDate, $lte: endDate },
+                [field]: { $in: ids },
+              },
+            },
+            {
+              $project: {
+                areaId: `$${field}`,
+                areaType: type,
+                submittedBy: 1,
+              },
+            },
+          ]);
+        }
+      );
+
+      const allReports = (await Promise.all(reportPromises)).flat();
+
+      // Fetch child area names
+      const nameFetchPromises = areaDetails.map(({ ids, areaModel, type }) =>
+        areaModel
+          .find({ _id: { $in: ids }, disabled: false })
+          .select("_id name")
+          .lean()
+          .then((areas) => areas.map(({ _id, name }) => ({ _id, name, type })))
+      );
+
+      const allChildAreas = (await Promise.all(nameFetchPromises)).flat();
+
+      const submittedIds = allReports.map((report) => report.areaId.toString());
+      const submittedReports = allChildAreas.filter((area) =>
+        submittedIds.includes(area._id.toString())
+      );
+      const notSubmittedReports = allChildAreas.filter(
+        (area) => !submittedIds.includes(area._id.toString())
+      );
+
+      // Fetch users for not-submitted areas
+      const notSubmittedAreaIds = notSubmittedReports.map((area) => area._id);
+
+      const userPromises = areaDetails.map(({ type }) =>
+        UserModel.find({
+          userAreaId: { $in: notSubmittedAreaIds },
+          userAreaType: type,
+          nazimType: { $in: ["nazim", "umeedwaar-nazim", "rukan-nazim"] },
+        }).select("_id name userAreaId nazimType")
+      );
+
+      const usersInNotSubmittedAreas = (await Promise.all(userPromises)).flat();
+
+      // Group users by area
+      const usersByArea = usersInNotSubmittedAreas.reduce((acc, user) => {
+        acc[user.userAreaId] = acc[user.userAreaId] || [];
+        acc[user.userAreaId].push(user);
+        return acc;
+      }, {});
+
+      // Add users to not-submitted areas
+      const notSubmittedWithUsers = notSubmittedReports.map((area) => ({
+        ...area,
+        users: usersByArea[area._id.toString()] || [],
+      }));
+      const reportData = {
+        submitted: submittedReports,
+        notSubmitted: notSubmittedWithUsers,
+      };
+
+      return this.sendResponse(req, res, {
+        message: "Reports fetched successfully",
+        status: 200,
+        data: reportData,
+      });
+    } catch (error) {
+      console.error(error);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
         status: 500,

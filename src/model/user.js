@@ -68,16 +68,23 @@ const users = mongoose.Schema(
     },
     qualification: {
       type: String,
-      enum: ["matric", "intermediate", "bachelors", "masters", "phd"],
+      enum: [
+        "matric",
+        "intermediate",
+        "bachelors",
+        "masters",
+        "phd",
+        "deploma",
+      ],
     },
     subject: {
       type: mongoose.Types.ObjectId,
       required: true,
       ref: "Subject",
     },
-    profileImage : {
+    profileImage: {
       type: mongoose.Types.ObjectId,
-      ref:"Image"
+      ref: "Image",
     },
     semester: {
       type: String,

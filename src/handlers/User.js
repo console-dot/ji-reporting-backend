@@ -1215,8 +1215,11 @@ class User extends Response {
         "userRequestId",
         { path: "userAreaId", refPath: "userAreaType" },
       ]);
+      const validUser = data.filter(
+        (i) => i?.userRequestId?.status === "accepted"
+      );
       return this.sendResponse(req, res, {
-        data: data.filter((i) => i?.userRequestId?.status === "accepted"),
+        data: validUser,
         status: 200,
       });
     } catch (err) {
