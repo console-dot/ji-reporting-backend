@@ -18,7 +18,6 @@ class Halqa extends Response {
   createOne = async (req, res) => {
     try {
       const { name, parentId, parentType, unitType } = req.body;
-      console.log(name, parentId, parentType, unitType);
       if (!name) {
         return this.sendResponse(req, res, {
           message: "Name is required!",
