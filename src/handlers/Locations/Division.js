@@ -98,7 +98,12 @@ class Division extends Response {
   getOne = async (req, res) => {
     try {
       const _id = req.params.id;
-      const data = await DivisionModel.findOne({ _id }).populate("province");
+      const data = await DivisionModel.findOne({ _id })
+        .select("_id name division")
+        .populate({
+          path: "province",
+          select: "name",
+        });
       if (!data) {
         return this.sendResponse(req, res, {
           message: "Not found!",
