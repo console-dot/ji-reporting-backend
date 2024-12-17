@@ -122,7 +122,6 @@ class Compilation extends Response {
         endDateObj.setMonth(endDateObj.getMonth() + 1);
       }
 
-    
       const query = {
         month: {
           $gte: startDateObj,
@@ -190,7 +189,7 @@ class Compilation extends Response {
             ])
             .lean();
           let b = sumObjectsInArray(a);
-          
+
           let muntakhib = false;
           const isIlaqa = await IlaqaModel.find({ maqam: areaId });
           if (isIlaqa?.length > 0) {
@@ -234,7 +233,7 @@ class Compilation extends Response {
               { path: "rsdId" },
             ])
             .lean();
-          
+          data = sumObjectsInArray(ilaqaReports);
           break;
         case "halqa":
           query.halqaAreaId = areaId;

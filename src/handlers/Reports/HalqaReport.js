@@ -402,15 +402,6 @@ class HalqaReport extends Response {
         ...(userArea.childProvinceIDs || []),
         ...(userArea.childTehsilIDs || []),
       ];
-      const hr = await HalqaReportModel.findOne({ halqaAreaId: _id });
-
-      const halqaAreaId = _id;
-      if (date && !allChildAreaIDs.includes(halqaAreaId.toString())) {
-        return this.sendResponse(req, res, {
-          message: "Access Denied",
-          status: 401,
-        });
-      }
       let report;
       if (date) {
         report = await HalqaReportModel.findOne({
