@@ -405,6 +405,7 @@ class IlaqaReport extends Response {
         ...(userArea.childMaqamIDs || []),
         ...(userArea.childProvinceIDs || []),
         ...(userArea.childTehsilIDs || []),
+        userArea._id,
       ];
       let reports;
       const inset = parseInt(req.query.inset) || 0;
@@ -515,7 +516,7 @@ class IlaqaReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
+
       if (!_id) {
         return this.sendResponse(req, res, {
           message: "Id is required",

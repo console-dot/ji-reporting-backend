@@ -786,6 +786,7 @@ class MaqamReport extends Response {
         ...(userArea.childMaqamIDs || []),
         ...(userArea.childProvinceIDs || []),
         ...(userArea.childTehsilIDs || []),
+        userArea._id,
       ];
       let reports;
       const inset = parseInt(req.query.inset) || 0;

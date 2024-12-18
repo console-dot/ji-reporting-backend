@@ -1207,6 +1207,7 @@ class User extends Response {
         ...(userArea.childMaqamIDs || []),
         ...(userArea.childProvinceIDs || []),
         ...(userArea.childTehsilIDs || []),
+        userArea._id,
       ];
       const data = await UserModel.find(
         { userAreaId: allChildAreaIDs },

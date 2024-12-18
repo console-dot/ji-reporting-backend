@@ -292,6 +292,7 @@ class HalqaReport extends Response {
         ...(userArea.childMaqamIDs || []),
         ...(userArea.childProvinceIDs || []),
         ...(userArea.childTehsilIDs || []),
+        userArea._id,
       ];
       const inset = parseInt(req.query.inset) || 0;
       const offset = parseInt(req.query.offset) || 10;
@@ -377,31 +378,12 @@ class HalqaReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
-      let allChildAreaIDs;
-      let userArea;
-      if (user.userAreaType === "Country") {
-        userArea = await CountryModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Province") {
-        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Division") {
-        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Maqam") {
-        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
-      } else if (user.userAreaType === "Ilaqa") {
-        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
-      } else {
-        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
+      if (!user) {
+        return this.sendResponse(req, res, {
+          message: "User Not Found",
+          status: 404,
+        });
       }
-      allChildAreaIDs = [
-        ...(userArea.childDistrictIDs || []),
-        ...(userArea.childDivisionIDs || []),
-        ...(userArea.childHalqaIDs || []),
-        ...(userArea.childIlaqaIDs || []),
-        ...(userArea.childMaqamIDs || []),
-        ...(userArea.childProvinceIDs || []),
-        ...(userArea.childTehsilIDs || []),
-      ];
       let report;
       if (date) {
         report = await HalqaReportModel.findOne({
@@ -760,18 +742,28 @@ class HalqaReport extends Response {
             return Promise.resolve([]); // Return an empty array if reportModel is missing
           }
 
+          const allIds = [...ids, userArea._id];
+
           return reportModel.aggregate([
             {
               $match: {
                 month: { $gte: startDate, $lte: endDate },
-                [field]: { $in: ids },
+                [field]: { $in: allIds },
+              },
+            },
+            {
+              $lookup: {
+                from: "users",
+                localField: "userId",
+                foreignField: "_id",
+                as: "users",
               },
             },
             {
               $project: {
                 areaId: `$${field}`,
                 areaType: type,
-                submittedBy: 1,
+                submittedBy: { $arrayElemAt: ["$users", 0] }, // Extract first user detail
               },
             },
           ]);
@@ -779,22 +771,50 @@ class HalqaReport extends Response {
       );
 
       const allReports = (await Promise.all(reportPromises)).flat();
-
       // Fetch child area names
-      const nameFetchPromises = areaDetails.map(({ ids, areaModel, type }) =>
-        areaModel
-          .find({ _id: { $in: ids }, disabled: false })
+      const nameFetchPromises = areaDetails.map(({ ids, areaModel, type }) => {
+        // Include userArea._id in the ids array
+        const allIds = [...ids, userArea._id];
+
+        // Fetch areas based on the combined ids
+        return areaModel
+          .find({ _id: { $in: allIds }, disabled: false })
           .select("_id name")
           .lean()
-          .then((areas) => areas.map(({ _id, name }) => ({ _id, name, type })))
-      );
+          .then((areas) =>
+            areas.map(({ _id, name }) => ({
+              _id,
+              name,
+              type,
+            }))
+          );
+      });
 
       const allChildAreas = (await Promise.all(nameFetchPromises)).flat();
 
+      // Assuming allReports contains user info and areaId
       const submittedIds = allReports.map((report) => report.areaId.toString());
-      const submittedReports = allChildAreas.filter((area) =>
-        submittedIds.includes(area._id.toString())
-      );
+
+      // Filter areas based on whether they exist in submittedReports
+      const submittedReports = allChildAreas
+        .filter((area) => submittedIds.includes(area._id.toString()))
+        .map((area) => {
+          // Find all reports for this area
+          const matchingReports = allReports.filter(
+            (report) => report.areaId.toString() === area._id.toString()
+          );
+
+          // Collect all users from the matching reports into an array
+          const users = matchingReports
+            .map((report) => report.submittedBy)
+            .flat();
+
+          // Add the area name and all users to the area details
+          return {
+            ...area, // Spread area details
+            users: users.length ? users : null, 
+          };
+        });
       const notSubmittedReports = allChildAreas.filter(
         (area) => !submittedIds.includes(area._id.toString())
       );

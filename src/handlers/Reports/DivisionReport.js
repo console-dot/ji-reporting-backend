@@ -450,6 +450,7 @@ class DivisionReport extends Response {
         ...(userArea.childMaqamIDs || []),
         ...(userArea.childProvinceIDs || []),
         ...(userArea.childTehsilIDs || []),
+        userArea._id,
       ];
       let reports;
       const inset = parseInt(req.query.inset) || 0;
@@ -558,7 +559,6 @@ class DivisionReport extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
       let report;
       if (!_id) {
         return this.sendResponse(req, res, {
@@ -578,18 +578,6 @@ class DivisionReport extends Response {
           });
         }
       } else {
-        const accessList = (await getRoleFlow(id, key)).map((i) =>
-          i.toString()
-        );
-        const { divisionAreaId } = await DivisionReportModel.findOne({
-          _id,
-        }).select("divisionAreaId");
-        if (!accessList.includes(divisionAreaId.toString())) {
-          return this.sendResponse(req, res, {
-            message: "Access Denied",
-            status: 401,
-          });
-        }
         report = await DivisionReportModel.findOne({ _id }).populate([
           { path: "userId", select: ["_id", "email", "name", "age"] },
           { path: "divisionAreaId", populate: { path: "province" } },
