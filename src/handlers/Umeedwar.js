@@ -327,6 +327,7 @@ class Umeedwar extends Response {
         ...(userArea.childMaqamIDs || []),
         ...(userArea.childProvinceIDs || []),
         ...(userArea.childTehsilIDs || []),
+        userArea?._id,
       ];
 
       let reports;

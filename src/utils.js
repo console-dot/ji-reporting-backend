@@ -320,17 +320,17 @@ const getAreaModelAndField = (areaType) => {
 
 const getChildAreaDetails = (areaType, userArea) => {
   const areaHierarchy = {
-    Country: ["Province", "Division", "Halqa", "Maqam", "Ilaqa"],
-    Province: ["Division", "Halqa", "Maqam", "Ilaqa"],
-    Division: ["Halqa"],
-    Maqam: ["Halqa", "Ilaqa"],
-    Ilaqa: ["Halqa"],
+    Country: ["Country", "Province", "Division", "Halqa", "Maqam", "Ilaqa"],
+    Province: ["Province", "Division", "Halqa", "Maqam", "Ilaqa"],
+    Division: ["Division", "Halqa"],
+    Maqam: ["Maqam", "Halqa", "Ilaqa"],
+    Ilaqa: ["Ilaqa", "Halqa"],
   };
-
   const childTypes = areaHierarchy[areaType] || [];
   return childTypes.map((type) => {
     const { reportModel, areaModel, field } = getAreaModelAndField(type);
-    const childIds = userArea[`child${type}IDs`] || [];
+    const childTypeIDs = userArea[`child${type}IDs`];
+    const childIds = [...(childTypeIDs || []), userArea._id];
     return { type, reportModel, areaModel, field, ids: childIds };
   });
 };
@@ -365,6 +365,7 @@ const getChildAreas = (area) => {
     ...(area.childMaqamIDs || []),
     ...(area.childProvinceIDs || []),
     ...(area.childTehsilIDs || []),
+    area?._id,
   ];
 };
 module.exports = {

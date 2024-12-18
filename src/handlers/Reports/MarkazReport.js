@@ -851,6 +851,7 @@ class MarkazReport extends Response {
         ...(userArea.childMaqamIDs || []),
         ...(userArea.childProvinceIDs || []),
         ...(userArea.childTehsilIDs || []),
+        userArea._id,
       ];
       const today = Date.now();
       let desiredYear = new Date(today).getFullYear();

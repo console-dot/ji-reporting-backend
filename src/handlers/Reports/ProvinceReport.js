@@ -434,6 +434,7 @@ class ProvinceReport extends Response {
         ...(userArea.childMaqamIDs || []),
         ...(userArea.childProvinceIDs || []),
         ...(userArea.childTehsilIDs || []),
+        userArea._id,
       ];
       let reports;
       const inset = parseInt(req.query.inset) || 0;
@@ -917,7 +918,6 @@ class ProvinceReport extends Response {
       }
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const { userAreaId: id, nazim: key } = user;
       let allChildAreaIDs;
       let userArea;
       if (user.userAreaType === "Country") {
@@ -941,6 +941,7 @@ class ProvinceReport extends Response {
         ...(userArea.childMaqamIDs || []),
         ...(userArea.childProvinceIDs || []),
         ...(userArea.childTehsilIDs || []),
+        userArea._id,
       ];
       const today = Date.now();
       let desiredYear = new Date(today).getFullYear();
@@ -990,7 +991,5 @@ class ProvinceReport extends Response {
     }
   };
 }
-
-
 
 module.exports = ProvinceReport;
