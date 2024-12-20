@@ -382,7 +382,8 @@ class MarkazReport extends Response {
     } catch (err) {
       console.log(err);
       return this.sendResponse(req, res, {
-        message: "Internal Server Error",
+        message:
+          "Error adding Markaz Report. Please try again. maybe some fields are missing",
         status: 500,
       });
     }
