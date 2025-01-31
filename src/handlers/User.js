@@ -1369,7 +1369,10 @@ class User extends Response {
           userAreaId,
           nazimType,
         };
-        searchResult = await UserModel.find(areaQuery).populate("userAreaId");
+        searchResult = await UserModel.find(areaQuery).populate([
+          "userRequestId",
+          { path: "userAreaId", refPath: "userAreaType" },
+        ]);
       } else {
         // Construct the query
         const query = {};
@@ -1399,7 +1402,10 @@ class User extends Response {
         searchResult = await UserModel.find({
           ...query,
           userAreaId: accessList,
-        }).populate("userAreaId");
+        }).populate([
+          "userRequestId",
+          { path: "userAreaId", refPath: "userAreaType" },
+        ]);
       }
       // Send the search result as a response
       return this.sendResponse(req, res, {
