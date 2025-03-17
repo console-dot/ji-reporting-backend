@@ -1,4 +1,11 @@
-const { TehsilModel, UserModel } = require("../../model");
+const {
+  TehsilModel,
+  UserModel,
+  DistrictModel,
+  ProvinceModel,
+  CountryModel,
+  DivisionModel,
+} = require("../../model");
 const Response = require("../Response");
 const { auditLogger } = require("../../middlewares/auditLogger");
 const jwt = require("jsonwebtoken");
@@ -39,6 +46,7 @@ class Tehsil extends Response {
       }
       const newTehsil = new TehsilModel({ name, district });
       await newTehsil.save();
+      await addTehsilToHierarchy(newTehsil._id, district);
       await auditLogger(
         userExist,
         "TEHSIL_CREATED",
@@ -185,35 +193,127 @@ class Tehsil extends Response {
       });
     }
   };
+  // toggleDisable = async (req, res) => {
+  //   try {
+  //     const _id = req.params.id;
+  //     const { disabled } = req.body;
+  //     const isExist = await TehsilModel.findOne({ _id });
+  //     if (!isExist) {
+  //       return this.sendResponse(req, res, {
+  //         message: "Not found!",
+  //         status: 404,
+  //       });
+  //     }
+  //     const updatedLocation = await TehsilModel.updateOne(
+  //       { _id },
+  //       {
+  //         $set: { disabled },
+  //       }
+  //     );
+  //     if (updatedLocation?.modifiedCount > 0) {
+  //       return this.sendResponse(req, res, {
+  //         message: "Tehsil Updated",
+  //         status: 200,
+  //       });
+  //     }
+  //     return this.sendResponse(req, res, {
+  //       message: "Nothing to update",
+  //       status: 400,
+  //     });
+  //   } catch (err) {
+  //     console.log(err);
+  //     return this.sendResponse(req, res, {
+  //       message: "Internal Server Error",
+  //       status: 500,
+  //     });
+  //   }
+  // };
+
   toggleDisable = async (req, res) => {
     try {
       const _id = req.params.id;
       const { disabled } = req.body;
+
+      // Step 1: Find the Tehsil
       const isExist = await TehsilModel.findOne({ _id });
       if (!isExist) {
         return this.sendResponse(req, res, {
-          message: "Not found!",
+          message: "Tehsil not found!",
           status: 404,
         });
       }
+
+      // Step 2: Update the Tehsil
       const updatedLocation = await TehsilModel.updateOne(
         { _id },
-        {
-          $set: { disabled },
-        }
+        { $set: { disabled } }
       );
+
       if (updatedLocation?.modifiedCount > 0) {
+        // Step 3: Track the change direction (add or subtract)
+        const changeValue = disabled ? -1 : 1;
+
+        // Step 4: Update District, Division, Province, and Country hierarchy
+        const district = await DistrictModel.findById(isExist.district);
+        if (district) {
+          // Update District activeTehsilCount
+          await DistrictModel.updateOne(
+            { _id: district._id },
+            { $inc: { activeTehsilCount: changeValue } }
+          );
+
+          if (district.division) {
+            const division = await DivisionModel.findById(district.division);
+            if (division) {
+              // Update Division activeTehsilCount
+              await DivisionModel.updateOne(
+                { _id: division._id },
+                { $inc: { activeTehsilCount: changeValue } }
+              );
+
+              if (division.province) {
+                const province = await ProvinceModel.findById(
+                  division.province
+                );
+                if (province) {
+                  // Update Province activeTehsilCount
+                  await ProvinceModel.updateOne(
+                    { _id: province._id },
+                    { $inc: { activeTehsilCount: changeValue } }
+                  );
+
+                  if (province.country) {
+                    const country = await CountryModel.findById(
+                      province.country
+                    );
+                    if (country) {
+                      // Update Country activeTehsilCount
+                      await CountryModel.updateOne(
+                        { _id: country._id },
+                        { $inc: { activeTehsilCount: changeValue } }
+                      );
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // Step 5: Respond with success
         return this.sendResponse(req, res, {
-          message: "Tehsil Updated",
+          message: "Tehsil updated successfully!",
           status: 200,
         });
       }
+
+      // Handle case where no updates were made
       return this.sendResponse(req, res, {
-        message: "Nothing to update",
+        message: "No changes made.",
         status: 400,
       });
     } catch (err) {
-      console.log(err);
+      console.error("Error in toggleDisable:", err);
       return this.sendResponse(req, res, {
         message: "Internal Server Error",
         status: 500,
@@ -221,5 +321,56 @@ class Tehsil extends Response {
     }
   };
 }
+const addTehsilToHierarchy = async (tehsilId, districtId) => {
+  try {
+    // Find the District
+    const district = await DistrictModel.findById(districtId);
+    if (!district) {
+      throw new Error(`District with ID ${districtId} not found.`);
+    }
 
+    // Find the Division associated with the District
+    const division = await DivisionModel.findById(district.division);
+    if (!division) {
+      throw new Error(`Division not found for District ID ${districtId}.`);
+    }
+
+    // Update the Division's activeTehsilCount and childTehsilIDs
+    await DivisionModel.updateOne(
+      { _id: division._id },
+      {
+        $push: { childTehsilIDs: tehsilId },
+        $inc: { activeTehsilCount: 1 },
+      }
+    );
+
+    // Find the Province associated with the Division
+    const province = await ProvinceModel.findById(division.province);
+    if (!province) {
+      throw new Error(`Province not found for Division ID ${division._id}.`);
+    }
+
+    // Update the Province's activeTehsilCount and childTehsilIDs
+    await ProvinceModel.updateOne(
+      { _id: province._id },
+      {
+        $push: { childTehsilIDs: tehsilId },
+        $inc: { activeTehsilCount: 1 },
+      }
+    );
+
+    // Update the Country associated with the Province
+    if (province.country) {
+      await CountryModel.updateOne(
+        { _id: province.country },
+        {
+          $push: { childTehsilIDs: tehsilId },
+          $inc: { activeTehsilCount: 1 },
+        }
+      );
+    }
+  } catch (error) {
+    console.error("Error updating hierarchy for Tehsil:", error);
+  }
+};
 module.exports = Tehsil;

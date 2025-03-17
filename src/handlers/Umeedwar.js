@@ -5,9 +5,21 @@ const {
   StudiesModel,
   ToseeDawaModel,
   UmeedwarModel,
+  CountryModel,
+  ProvinceModel,
+  DivisionModel,
+  MaqamModel,
+  IlaqaModel,
+  HalqaModel,
 } = require("../model");
 const { PrayersModel } = require("../model/prayers");
-const { months, getRoleFlow } = require("../utils");
+const {
+  months,
+  getRoleFlow,
+  getQueryDateRange,
+  getUserArea,
+  getChildAreaDetails,
+} = require("../utils");
 const Response = require("./Response");
 const { decode } = require("jsonwebtoken");
 
@@ -283,17 +295,41 @@ class Umeedwar extends Response {
       const decoded = decode(token.split(" ")[1]);
       const userId = decoded?.id;
       const user = await UserModel.findOne({ _id: userId });
-      const inset = parseInt(req.query.inset);
-      const offset = parseInt(req.query.offset);
-      const date = req.query.date;
-      const { userAreaId: id, nazim: key } = user;
-      const accessList = (await getRoleFlow(id, key)).map((i) => i.toString());
       if (!user) {
         return this.sendResponse(req, res, {
           message: "User does not exist!",
           status: 404,
         });
       }
+      const inset = parseInt(req.query.inset);
+      const offset = parseInt(req.query.offset);
+      const date = req.query.date;
+      let allChildAreaIDs;
+      let userArea;
+      if (user.userAreaType === "Country") {
+        userArea = await CountryModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Province") {
+        userArea = await ProvinceModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Division") {
+        userArea = await DivisionModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Maqam") {
+        userArea = await MaqamModel.findOne({ _id: user.userAreaId });
+      } else if (user.userAreaType === "Ilaqa") {
+        userArea = await IlaqaModel.findOne({ _id: user.userAreaId });
+      } else {
+        userArea = await HalqaModel.findOne({ _id: user.userAreaId });
+      }
+      allChildAreaIDs = [
+        ...(userArea.childDistrictIDs || []),
+        ...(userArea.childDivisionIDs || []),
+        ...(userArea.childHalqaIDs || []),
+        ...(userArea.childIlaqaIDs || []),
+        ...(userArea.childMaqamIDs || []),
+        ...(userArea.childProvinceIDs || []),
+        ...(userArea.childTehsilIDs || []),
+        userArea?._id,
+      ];
+
       let reports;
       let total;
       if (offset >= 0 && inset >= 0) {
@@ -302,7 +338,7 @@ class Umeedwar extends Response {
           user.nazimType !== "rukan" &&
           user?.nazimType !== "umeedwar"
         ) {
-          reports = await UmeedwarModel.find({ areaId: accessList })
+          reports = await UmeedwarModel.find({ areaId: allChildAreaIDs })
             .populate([
               {
                 path: "areaId",
@@ -352,7 +388,7 @@ class Umeedwar extends Response {
           user?.nazimType !== "umeedwar"
         ) {
           reports = await UmeedwarModel.find({
-            areaId: accessList,
+            areaId: allChildAreaIDs,
             month: date,
           })
             .populate([
@@ -388,11 +424,8 @@ class Umeedwar extends Response {
             .sort({ createdAt: -1 });
         }
       } else {
-        if (
-          user.nazimType !== "rukan" &&
-          user?.nazimType !== "umeedwar"
-        ) {
-          reports = await UmeedwarModel.find({ areaId: accessList })
+        if (user.nazimType !== "rukan" && user?.nazimType !== "umeedwar") {
+          reports = await UmeedwarModel.find({ areaId: allChildAreaIDs })
             .populate([
               {
                 path: "areaId",
@@ -426,7 +459,7 @@ class Umeedwar extends Response {
             .sort({ createdAt: -1 });
         }
       }
-      let totalReports = await UmeedwarModel.find({ areaId: accessList });
+      let totalReports = await UmeedwarModel.find({ areaId: allChildAreaIDs });
       reports = { data: reports, length: totalReports.length };
       return this.sendResponse(req, res, {
         message: "Personal reports are fetched!",
