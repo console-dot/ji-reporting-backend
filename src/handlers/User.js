@@ -250,15 +250,11 @@ class User extends Response {
             status: 404,
           });
         }
-
-        const encryptedPhone = this.encryptData(phoneNumber);
-        const encryptedWhatsapp = this.encryptData(whatsAppNumber);
-        const encryptedHomeAdress = this.encryptData(address);
         let newUserRequest;
+
         if (
           (nazimType === "rukan" || nazimType === "umeedwar") &&
-          userAreaType !== "Halqa" &&
-          userAreaType !== "Ilaqa"
+          (userAreaType === "Halqa" || userAreaType === "Ilaqa")
         ) {
           newUserRequest = new UserRequest({
             immediate_user_id: userAreaId,
@@ -270,7 +266,12 @@ class User extends Response {
             nazimType,
           });
         }
+
         const userRequestReq = await newUserRequest.save();
+
+        const encryptedPhone = this.encryptData(phoneNumber);
+        const encryptedWhatsapp = this.encryptData(whatsAppNumber);
+        const encryptedHomeAdress = this.encryptData(address);
         newUser = new UserModel({
           email,
           password,
@@ -592,7 +593,7 @@ class User extends Response {
       const { key, password1, password2 } = req.body;
       if (!key) {
         return this.sendResponse(req, res, {
-          message: "Key is required",
+          message: "Your reset key is expired",
           status: 400,
         });
       }
@@ -1345,6 +1346,7 @@ class User extends Response {
         joiningDate,
         nazimType,
       } = req.query;
+      console.log(userAreaId, userAreaType, nazim, nazimType);
       const token = req.headers.authorization;
       if (!token) {
         return this.sendResponse(req, res, {
@@ -1369,7 +1371,11 @@ class User extends Response {
           userAreaId,
           nazimType,
         };
-        searchResult = await UserModel.find(areaQuery).populate("userAreaId");
+        console.log(areaQuery);
+        searchResult = await UserModel.find(areaQuery).populate(
+          "userRequestId"
+        );
+        console.log(searchResult);
       } else {
         // Construct the query
         const query = {};
@@ -1395,6 +1401,7 @@ class User extends Response {
             $lt: new Date(`${joiningYear + 1}-01-01`),
           };
         }
+        console.log(query);
         // Perform the search using the constructed query
         searchResult = await UserModel.find({
           ...query,
